@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "ph-ee-bulk-processor"
+  labels:
+    app: ph-ee-bulk-processor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ph-ee-bulk-processor
+  template:
+    metadata:
+      labels:
+        app: ph-ee-bulk-processor
+    spec:
+      containers:
+        - name: ph-ee-bulk-processor
+          image: us.icr.io/phee-ns/phee-bulk-processor
+          ports:
+            - containerPort: 5000
+          volumeMounts:
+            - name: ph-ee-config
+              mountPath: "/config"
+      volumes:
+        - name: ph-ee-config
+          configMap:
+            name: ph-ee-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: ph-ee-bulk-processor
+  name: ph-ee-bulk-processor
+  namespace: default
+spec:
+  ports:
+    - name: port
+      port: 80
+      protocol: TCP
+      targetPort: 5000
+  selector:
+    app: ph-ee-bulk-processor
+  sessionAffinity: None
+  type: LoadBalancer
