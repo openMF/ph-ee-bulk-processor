@@ -31,8 +31,8 @@ cloud:
   aws:
     enabled: true
     credentials:
-      access-key:
-      secret-key:
+      access-key: ${AWS_ACCESS_KEY:AKIAX32JM37TYOG3QUJU}
+      secret-key: ${AWS_SECRET_KEY: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}
     region:
       static: us-east-2
     stack:

@@ -18,6 +18,8 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.util.Map;
 
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
+
 @Component
 public class ZeebeWorkers {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -59,7 +61,7 @@ public class ZeebeWorkers {
                     logger.info("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
 
                     Map<String, Object> variables = job.getVariablesAsMap();
-                    String batchId = (String) variables.get("batchId");
+                    String batchId = (String) variables.get(BATCH_ID);
                     String fileName = (String) variables.get("fileName");
 
                     // TODO: How to get sender information? Hard coded in Channel connector?
@@ -70,7 +72,7 @@ public class ZeebeWorkers {
 
                     while (readValues.hasNext()) {
                         Transaction current = readValues.next();
-//                        System.out.println(objectMapper.writeValueAsString(current));
+                        current.setBatchId(batchId);
                         if (current.getPayment_mode().equals("gsma"))
                             kafkaTemplate.send(gsmaTopicName, objectMapper.writeValueAsString(current));
                         else if (current.getPayment_mode().equals("sclb"))
