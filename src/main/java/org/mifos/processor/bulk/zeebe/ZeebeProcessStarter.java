@@ -1,12 +1,11 @@
 package org.mifos.processor.bulk.zeebe;
 
-import io.zeebe.client.ZeebeClient;
-import io.zeebe.client.api.response.WorkflowInstanceEvent;
+import io.camunda.zeebe.client.ZeebeClient;
+import io.camunda.zeebe.client.api.response.ProcessInstanceEvent;
 import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -55,7 +54,7 @@ public class ZeebeProcessStarter {
         }
 
         // TODO if successful transfer response arrives in X timeout return it otherwise do callback
-        WorkflowInstanceEvent join = zeebeClient.newCreateInstanceCommand()
+        ProcessInstanceEvent join = zeebeClient.newCreateInstanceCommand()
                 .bpmnProcessId(workflowId)
                 .latestVersion()
                 .variables(variables)

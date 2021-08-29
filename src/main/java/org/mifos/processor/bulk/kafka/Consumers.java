@@ -65,8 +65,8 @@ public class Consumers {
         creditParty.setKey("msisdn");
         creditParty.setValue(transaction.getAccount_number());
         GsmaParty debitParty = new GsmaParty();
-        creditParty.setKey("msisdn");
-        creditParty.setValue("7543010");
+        debitParty.setKey("msisdn");
+        debitParty.setValue(transaction.getAccount_number());
         gsmaChannelRequest.setCreditParty(new GsmaParty[]{creditParty});
         gsmaChannelRequest.setDebitParty(new GsmaParty[]{debitParty});
 //        gsmaChannelRequest.setInternationalTransferInformation().setReceivingAmount(gsmaChannelRequest.getAmount());

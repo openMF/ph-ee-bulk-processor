@@ -3,7 +3,7 @@ package org.mifos.processor.bulk.zeebe;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import io.zeebe.client.ZeebeClient;
+import io.camunda.zeebe.client.ZeebeClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.mifos.processor.bulk.file.FileTransferService;
 import org.mifos.processor.bulk.schema.Transaction;
