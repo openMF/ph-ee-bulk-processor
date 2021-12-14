@@ -5,6 +5,11 @@ import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import io.camunda.zeebe.client.ZeebeClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.camunda.zeebe.client.api.response.ActivatedJob;
+import org.apache.camel.CamelContext;
+import org.apache.camel.Exchange;
+import org.apache.camel.ProducerTemplate;
+import org.apache.camel.support.DefaultExchange;
 import org.mifos.processor.bulk.file.FileTransferService;
 import org.mifos.processor.bulk.schema.Transaction;
 import org.slf4j.Logger;
@@ -16,9 +21,10 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.List;
 import java.util.Map;
 
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
 
 @Component
 public class ZeebeWorkers {
@@ -52,9 +58,19 @@ public class ZeebeWorkers {
     @Value(value = "${kafka.topic.slcb.name}")
     private String slcbTopicName;
 
+    @Autowired
+    private CamelContext camelContext;
+
+    @Autowired
+    private ProducerTemplate producerTemplate;
+
     @PostConstruct
     public void setupWorkers() {
+        workerBulkProcessor();
+        workerCheckTransactions();
+    }
 
+    private void workerBulkProcessor(){
         zeebeClient.newWorker()
                 .jobType("bulk-processor")
                 .handler((client, job) -> {
@@ -85,6 +101,27 @@ public class ZeebeWorkers {
                 .name("bulk-processor")
                 .maxJobsActive(workerMaxJobs)
                 .open();
+    }
 
+    private void workerCheckTransactions(){
+        String jobType = "check-transactions";
+        zeebeClient.newWorker()
+                .jobType(jobType)
+                .handler((client, job) -> {
+                    logger.info("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
+
+                    Map<String, Object> variables = job.getVariablesAsMap();
+                    String batchId = (String) variables.get(BATCH_ID);
+
+                    Exchange exchange = new DefaultExchange(camelContext);
+                    exchange.setProperty("batchId", batchId);
+                    producerTemplate.send("direct:check-transactions", exchange);
+
+                    client.newCompleteCommand(job.getKey())
+                            .send();
+                })
+                .name(jobType)
+                .maxJobsActive(workerMaxJobs)
+                .open();
     }
 }
