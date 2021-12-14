@@ -12,6 +12,7 @@ public class Routes extends RouteBuilder {
     @Override
     public void configure() throws Exception {
         routeCheckTransactions();
+        routeSampleTransactions();
     }
 
     private void routeCheckTransactions(){
@@ -24,8 +25,21 @@ public class Routes extends RouteBuilder {
                 .process(exchange -> {
                     // get response body
                     // check successful transactions >= x%
-                    // sample y% of successful transactions
-                    // store the sampled request IDs in zeebe workflow variable
+                    // set zeebe variable readyForSample = true
+                });
+    }
+
+    private void routeSampleTransactions(){
+        String id = "sample-transactions";
+        from("direct:" + id)
+                .id(id)
+                .log("Fetching transaction details")
+                //set request params
+                .to("/api/v1/batch/transactions")
+                .process(exchange -> {
+                    // get response body
+                    // sample transactions
+                    // store the sampled transaction ids in zeebe variable
                 });
     }
 }

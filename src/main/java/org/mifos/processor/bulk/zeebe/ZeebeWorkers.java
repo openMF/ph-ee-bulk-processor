@@ -68,6 +68,7 @@ public class ZeebeWorkers {
     public void setupWorkers() {
         workerBulkProcessor();
         workerCheckTransactions();
+        workerSampleTransactions();
     }
 
     private void workerBulkProcessor(){
@@ -116,6 +117,28 @@ public class ZeebeWorkers {
                     Exchange exchange = new DefaultExchange(camelContext);
                     exchange.setProperty("batchId", batchId);
                     producerTemplate.send("direct:check-transactions", exchange);
+
+                    client.newCompleteCommand(job.getKey())
+                            .send();
+                })
+                .name(jobType)
+                .maxJobsActive(workerMaxJobs)
+                .open();
+    }
+
+    private void workerSampleTransactions(){
+        String jobType = "sample-transactions";
+        zeebeClient.newWorker()
+                .jobType(jobType)
+                .handler((client, job) -> {
+                    logger.info("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
+
+                    Map<String, Object> variables = job.getVariablesAsMap();
+                    String batchId = (String) variables.get(BATCH_ID);
+
+                    Exchange exchange = new DefaultExchange(camelContext);
+                    exchange.setProperty("batchId", batchId);
+                    producerTemplate.send("direct:sample-transactions", exchange);
 
                     client.newCompleteCommand(job.getKey())
                             .send();
