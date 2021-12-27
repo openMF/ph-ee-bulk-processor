@@ -24,6 +24,7 @@ import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
 
+import static org.mifos.processor.bulk.camel.config.CamelProperties.IS_BATCH_READY;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
 
 @Component
@@ -115,7 +116,7 @@ public class ZeebeWorkers {
                     String batchId = (String) variables.get(BATCH_ID);
 
                     Exchange exchange = new DefaultExchange(camelContext);
-                    exchange.setProperty("batchId", batchId);
+                    exchange.setProperty(BATCH_ID, batchId);
                     producerTemplate.send("direct:check-transactions", exchange);
 
                     client.newCompleteCommand(job.getKey())
@@ -137,7 +138,8 @@ public class ZeebeWorkers {
                     String batchId = (String) variables.get(BATCH_ID);
 
                     Exchange exchange = new DefaultExchange(camelContext);
-                    exchange.setProperty("batchId", batchId);
+                    exchange.setProperty(BATCH_ID, batchId);
+                    exchange.setProperty(IS_BATCH_READY, variables.get(IS_SAMPLE_READY));
                     producerTemplate.send("direct:sample-transactions", exchange);
 
                     client.newCompleteCommand(job.getKey())
