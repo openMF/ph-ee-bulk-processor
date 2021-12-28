@@ -1,6 +1,7 @@
 package org.mifos.processor.bulk.camel.routes;
 
 
+import com.google.gson.Gson;
 import io.camunda.zeebe.client.ZeebeClient;
 import org.apache.camel.builder.RouteBuilder;
 import org.json.JSONArray;
@@ -101,7 +102,7 @@ public class Routes extends RouteBuilder {
                         sampledTransactionIds.add(successfulTransactionIds.get(i));
                     }
                     HashMap<String, Object> newVariables = new HashMap<>();
-                    newVariables.put(SAMPLED_TX_IDS, sampledTransactionIds.toString());
+                    newVariables.put(SAMPLED_TX_IDS, new Gson().toJson(sampledTransactionIds));
 
                     // store the sampled transaction ids in zeebe variable
                     zeebeClient.newSetVariablesCommand(Long.parseLong(exchange.getProperty(BATCH_ID).toString()))
