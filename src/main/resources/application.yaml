@@ -59,4 +59,8 @@ bpmn:
     international-remittance-payer: "international_remittance_payer_process-{dfspid}"
     debit-party-process: "debit_party_process-{dfspid}"
 
-operations-app-host: ""
+operations-app-config:
+  host: ""
+
+config:
+  minimum-successful-tx-ratio: 0.90
