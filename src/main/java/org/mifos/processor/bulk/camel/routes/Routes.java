@@ -24,8 +24,11 @@ public class Routes extends RouteBuilder {
     @Autowired
     ZeebeClient zeebeClient;
 
-    @Value("${operations-app-host}")
+    @Value("${operations-app-config.host}")
     String operationsAppHost;
+
+    @Value("${config.minimum-successful-tx-ratio}")
+    double minimumSuccessfulTxRatio;
 
     @Override
     public void configure() throws Exception {
@@ -56,7 +59,7 @@ public class Routes extends RouteBuilder {
 
                     HashMap<String, Object> newVariables = new HashMap<>();
                     // check successful transactions >= x%
-                    if ((successfulTransactions * 100 / totalTransactions) >= 90) {
+                    if (((double)successfulTransactions / totalTransactions) >= minimumSuccessfulTxRatio) {
                         newVariables.put(IS_SAMPLE_READY, true);
                     } else {
                         newVariables.put(IS_SAMPLE_READY, false);
