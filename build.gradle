@@ -10,9 +10,13 @@ plugins {
 }
 
 repositories {
-    mavenLocal()
+    // mavenLocal()
     maven {
         url = uri('https://repo.maven.apache.org/maven2')
+
+    }
+    maven { 
+        url "https://fynarfin.jfrog.io/artifactory/fyn-libs-release-local"
     }
 
     maven {
