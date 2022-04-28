@@ -22,4 +22,6 @@ public class ZeebeVariables {
     public static final String INITIATOR_FSPID = "initiatorFspId";
     public static final String TRANSACTION_TYPE = "transactionType";
     public static final String BATCH_ID = "batchId";
+    public static final String IS_SAMPLE_READY = "isSampleReady";
+    public static final String SAMPLED_TX_IDS = "sampledTransactionIds";
 }
