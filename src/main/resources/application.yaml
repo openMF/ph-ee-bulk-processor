@@ -27,6 +27,11 @@ zeebe:
   broker:
     contactpoint: "zeebe-zeebe-gateway:26500"
 
+operations-app:
+  contactpoint: "https://ops-bk.ibank.financial"
+  endpoints:
+    batch-transaction: "/api/v1/batch/transactions"
+
 cloud:
   aws:
     enabled: true
@@ -58,9 +63,6 @@ bpmn:
     international-remittance-payee: "international_remittance_payee_process-{dfspid}"
     international-remittance-payer: "international_remittance_payer_process-{dfspid}"
     debit-party-process: "debit_party_process-{dfspid}"
-
-operations-app-config:
-  host: ""
 
 config:
   minimum-successful-tx-ratio: 0.90

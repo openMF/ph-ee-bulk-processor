@@ -19,13 +19,7 @@ import static org.mifos.processor.bulk.camel.config.CamelProperties.IS_BATCH_REA
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
 
 @Component
-public class Routes extends RouteBuilder {
-
-    @Autowired
-    ZeebeClient zeebeClient;
-
-    @Value("${operations-app-config.host}")
-    String operationsAppHost;
+public class Routes extends BaseRouteBuilder {
 
     @Value("${config.minimum-successful-tx-ratio}")
     double minimumSuccessfulTxRatio;
@@ -42,7 +36,7 @@ public class Routes extends RouteBuilder {
                 .id(id)
                 .log("Fetching transaction details")
                 //set request params
-                .to(operationsAppHost+ "/api/v1/batch/transactions")
+                .toD(operationsAppConfig.batchTransactionEndpoint)
                 .process(exchange -> {
                     // get response body
                     JSONObject transfers = new JSONObject(exchange.getIn().getBody(String.class));
@@ -80,7 +74,7 @@ public class Routes extends RouteBuilder {
                 .process(exchange -> {
                     exchange.getIn().setHeader("batchId", exchange.getProperty(BATCH_ID));
                 })
-                .toD(operationsAppHost + "/api/v1/batch/transactions")
+                .toD(operationsAppConfig.batchTransactionEndpoint)
                 .process(exchange -> {
                     // get response body
 

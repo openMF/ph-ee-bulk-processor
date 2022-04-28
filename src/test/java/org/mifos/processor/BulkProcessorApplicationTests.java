@@ -1,4 +1,4 @@
-package org.mifos.pheeprocessorbulk;
+package org.mifos.processor;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
