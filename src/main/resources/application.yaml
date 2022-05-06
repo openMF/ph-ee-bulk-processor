@@ -36,8 +36,8 @@ cloud:
   aws:
     enabled: true
     credentials:
-      access-key: ${AWS_ACCESS_KEY:AKIAX32JM37TYOG3QUJU}
-      secret-key: ${AWS_SECRET_KEY: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}
+      access-key: ${AWS_ACCESS_KEY:AKIAX32JM37TZOJ5AKFB}
+      secret-key: ${AWS_SECRET_KEY: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}
     region:
       static: us-east-2
     stack:
@@ -63,6 +63,7 @@ bpmn:
     international-remittance-payee: "international_remittance_payee_process-{dfspid}"
     international-remittance-payer: "international_remittance_payer_process-{dfspid}"
     debit-party-process: "debit_party_process-{dfspid}"
+    bulk-processor: "bulk_processor-ibank-usa"
 
 config:
   minimum-successful-tx-ratio: 0.90
