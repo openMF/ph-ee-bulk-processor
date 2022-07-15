@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -37,6 +38,18 @@ public class AzureFileTransferImpl implements FileTransferService {
             logger.error("Error uploading file to Azure", e);
         }
 
+        return null;
+    }
+
+    @Override
+    public String uploadFile(File file, String bucketName) {
+        try {
+            String fileName = System.currentTimeMillis() + "_" + file.getName();
+            client.containerName(bucketName).blobName(fileName).buildClient().upload(Files.newInputStream(file.toPath()), file.length());
+            return fileName;
+        } catch (IOException e) {
+            logger.error("Error uploading file to Azure", e);
+        }
         return null;
     }
 
