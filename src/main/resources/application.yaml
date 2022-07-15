@@ -67,3 +67,7 @@ bpmn:
 
 config:
   minimum-successful-tx-ratio: 0.90
+  ordering: true
+  formatting: true
+  mergeback: false
+  backpressure: false
