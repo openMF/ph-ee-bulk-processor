@@ -59,10 +59,18 @@ bpmn:
 
 config:
   minimum-successful-tx-ratio: 0.90
-  partylookup: false
-  approval: false
-  ordering: true
-  splitting: false
-  formatting: true
-  mergeback: false
-  backpressure: false
+  partylookup:
+    enable: false
+  approval:
+    enable: false
+  ordering:
+    enable: true
+  splitting:
+    enable: false
+    batch-size: 10
+  formatting:
+    enable: true
+  mergeback:
+    enable: false
+  backpressure:
+    enable: false
