@@ -1,0 +1,60 @@
+package org.mifos.processor.bulk.zeebe.worker;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import io.camunda.zeebe.client.ZeebeClient;
+import io.camunda.zeebe.client.api.worker.JobHandler;
+import org.apache.camel.CamelContext;
+import org.apache.camel.Exchange;
+import org.apache.camel.ProducerTemplate;
+import org.mifos.processor.bulk.camel.routes.RouteId;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+
+@Component
+public abstract class BaseWorker {
+
+    @Autowired
+    private ZeebeClient zeebeClient;
+
+    @Autowired
+    private CsvMapper csvMapper;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Value("${application.bucket-name}")
+    private String bucketName;
+
+    @Value("${zeebe.client.evenly-allocated-max-jobs}")
+    private int workerMaxJobs;
+
+    @Autowired
+    private CamelContext camelContext;
+
+    @Autowired
+    private ProducerTemplate producerTemplate;
+
+    @Autowired
+    protected WorkerConfig workerConfig;
+
+    @PostConstruct
+    public abstract void setup();
+
+    public void newWorker(Worker worker, JobHandler handler) {
+        zeebeClient.newWorker()
+                .jobType(worker.getValue())
+                .handler(handler)
+                .name(worker.getValue())
+                .maxJobsActive(workerMaxJobs)
+                .open();
+    }
+
+    public void sendToCamelRoute(RouteId routeId, Exchange exchange) {
+        producerTemplate.send(routeId.getValue(), exchange);
+    }
+
+}

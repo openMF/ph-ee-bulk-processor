@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 import java.util.UUID;
 
 @Component
+@Deprecated
 public class HealthCheck extends RouteBuilder {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -43,12 +44,6 @@ public class HealthCheck extends RouteBuilder {
     @Value("${zeebe.client.evenly-allocated-max-jobs}")
     private int workerMaxJobs;
 
-    @Value(value = "${kafka.topic.gsma.name}")
-    private String gsmaTopicName;
-
-    @Value(value = "${kafka.topic.slcb.name}")
-    private String slcbTopicName;
-
     @Override
     public void configure() {
         from("rest:GET:/")
@@ -68,7 +63,7 @@ public class HealthCheck extends RouteBuilder {
                     CsvSchema schema = CsvSchema.emptySchema().withHeader();
                     MappingIterator<Transaction> readValues = csvMapper.readerWithSchemaFor(Transaction.class).with(schema).readValues(csvFile);
 
-                    while (readValues.hasNext()) {
+                    /*while (readValues.hasNext()) {
                         Transaction current = readValues.next();
                         current.setBatchId(batchId);
                         System.out.println(objectMapper.writeValueAsString(current));
@@ -76,7 +71,7 @@ public class HealthCheck extends RouteBuilder {
                             kafkaTemplate.send(gsmaTopicName, objectMapper.writeValueAsString(current));
                         else if (current.getPayment_mode().equals("sclb"))
                             kafkaTemplate.send(slcbTopicName, objectMapper.writeValueAsString(current));
-                    }
+                    }*/
                 })
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(200))
                 .setBody(constant(""));

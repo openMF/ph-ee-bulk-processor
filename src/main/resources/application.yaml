@@ -9,14 +9,6 @@ camel:
 application:
   bucket-name: paymenthub-ee-dev
 
-kafka:
-  bootstrapAddress: "kafka:9092"
-  topic:
-    gsma:
-      name: gsma
-    slcb:
-      name: slcb
-
 zeebe:
   client:
     max-execution-threads: 1000
@@ -67,7 +59,10 @@ bpmn:
 
 config:
   minimum-successful-tx-ratio: 0.90
+  partylookup: false
+  approval: false
   ordering: true
+  splitting: false
   formatting: true
   mergeback: false
   backpressure: false
