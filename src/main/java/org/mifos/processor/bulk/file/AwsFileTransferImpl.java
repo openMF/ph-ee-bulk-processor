@@ -28,9 +28,14 @@ public class AwsFileTransferImpl implements FileTransferService {
     public String uploadFile(MultipartFile file, String bucketName) {
 
         File fileObj = convertMultiPartFileToFile(file);
-        String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-        s3Client.putObject(new PutObjectRequest(bucketName, fileName, fileObj));
-        fileObj.delete();
+        return uploadFile(fileObj, bucketName);
+    }
+
+    @Override
+    public String uploadFile(File file, String bucketName) {
+        String fileName = System.currentTimeMillis() + "_" + file.getName();
+        s3Client.putObject(new PutObjectRequest(bucketName, fileName, file));
+        file.delete();
 
         return fileName;
     }

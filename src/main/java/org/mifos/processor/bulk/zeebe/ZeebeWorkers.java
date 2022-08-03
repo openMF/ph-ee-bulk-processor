@@ -28,6 +28,7 @@ import static org.mifos.processor.bulk.camel.config.CamelProperties.IS_BATCH_REA
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
 
 @Component
+@Deprecated
 public class ZeebeWorkers {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -44,20 +45,11 @@ public class ZeebeWorkers {
     @Qualifier("awsStorage")
     private FileTransferService fileTransferService;
 
-    @Autowired
-    private KafkaTemplate<String, String> kafkaTemplate;
-
     @Value("${application.bucket-name}")
     private String bucketName;
 
     @Value("${zeebe.client.evenly-allocated-max-jobs}")
     private int workerMaxJobs;
-
-    @Value(value = "${kafka.topic.gsma.name}")
-    private String gsmaTopicName;
-
-    @Value(value = "${kafka.topic.slcb.name}")
-    private String slcbTopicName;
 
     @Autowired
     private CamelContext camelContext;
@@ -65,7 +57,7 @@ public class ZeebeWorkers {
     @Autowired
     private ProducerTemplate producerTemplate;
 
-    @PostConstruct
+    //@PostConstruct
     public void setupWorkers() {
         workerBulkProcessor();
         workerCheckTransactions();
@@ -88,14 +80,14 @@ public class ZeebeWorkers {
                     CsvSchema schema = CsvSchema.emptySchema().withHeader();
                     MappingIterator<Transaction> readValues = csvMapper.readerWithSchemaFor(Transaction.class).with(schema).readValues(csvFile);
 
-                    while (readValues.hasNext()) {
+                    /*while (readValues.hasNext()) {
                         Transaction current = readValues.next();
                         current.setBatchId(batchId);
                         if (current.getPayment_mode().equals("gsma"))
                             kafkaTemplate.send(gsmaTopicName, objectMapper.writeValueAsString(current));
                         else if (current.getPayment_mode().equals("sclb"))
                             kafkaTemplate.send(slcbTopicName, objectMapper.writeValueAsString(current));
-                    }
+                    }*/
 
                     client.newCompleteCommand(job.getKey())
                             .send();

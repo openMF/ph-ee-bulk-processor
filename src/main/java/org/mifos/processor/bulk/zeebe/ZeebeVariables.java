@@ -24,4 +24,11 @@ public class ZeebeVariables {
     public static final String BATCH_ID = "batchId";
     public static final String IS_SAMPLE_READY = "isSampleReady";
     public static final String SAMPLED_TX_IDS = "sampledTransactionIds";
+
+    public static final String PARTY_LOOKUP_FAILED = "partyLookupFailed";
+    public static final String APPROVAL_FAILED = "approvalFailed";
+    public static final String ORDERING_FAILED = "orderingFailed";
+    public static final String SPLITTING_FAILED = "splittingFailed";
+    public static final String FORMATTING_FAILED = "formattingFailed";
+    public static final String MERGE_FAILED = "mergeFailed";
 }
