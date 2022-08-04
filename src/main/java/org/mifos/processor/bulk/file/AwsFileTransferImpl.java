@@ -33,7 +33,7 @@ public class AwsFileTransferImpl implements FileTransferService {
 
     @Override
     public String uploadFile(File file, String bucketName) {
-        String fileName = System.currentTimeMillis() + "_" + file.getName();
+        String fileName = file.getName();
         s3Client.putObject(new PutObjectRequest(bucketName, fileName, file));
         file.delete();
 

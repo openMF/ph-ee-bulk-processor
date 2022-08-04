@@ -52,4 +52,6 @@ public class ZeebeVariables {
 
     public static final String MERGE_ENABLED = "mergeEnabled";
 
+    public static final String ORDERED_BY = "orderedBy";
+
 }

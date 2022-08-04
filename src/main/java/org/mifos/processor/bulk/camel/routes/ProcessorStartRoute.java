@@ -36,10 +36,10 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
     @Value("${bpmn.flows.bulk-processor}")
     private String workflowId;
 
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Override
-    public void configure() throws Exception {
+    public void configure() {
         setup();
     }
 
@@ -47,7 +47,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
         from("rest:POST:/bulk/transfer/{requestId}/{fileName}")
                 .unmarshal().mimeMultipart("multipart/*")
                 .process(exchange -> {
-                    String fileName = exchange.getIn().getHeader("fileName", String.class);
+                    String fileName = System.currentTimeMillis() + "_" +  exchange.getIn().getHeader("fileName", String.class);
                     String requestId = exchange.getIn().getHeader("requestId", String.class);
                     String batchId = UUID.randomUUID().toString();
 
