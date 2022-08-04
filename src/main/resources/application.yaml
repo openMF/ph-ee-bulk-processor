@@ -67,7 +67,7 @@ config:
     enable: true
   splitting:
     enable: false
-    batch-size: 10
+    sub-batch-size: 5
   formatting:
     enable: true
   mergeback:
