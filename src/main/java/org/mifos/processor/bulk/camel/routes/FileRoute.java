@@ -13,7 +13,7 @@ import static org.mifos.processor.bulk.camel.config.CamelProperties.LOCAL_FILE_P
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
 
 @Component
-public class FileDownloadingRoute extends BaseRouteBuilder{
+public class FileRoute extends BaseRouteBuilder {
 
     @Autowired
     @Qualifier("awsStorage")
@@ -24,8 +24,14 @@ public class FileDownloadingRoute extends BaseRouteBuilder{
 
     @Override
     public void configure() throws Exception {
+
+        /**
+         * Downloads the file from cloud, stores in local and returns the file path
+         * Input the file name through exchange variable: [SERVER_FILE_NAME]
+         * Output the local file path through exchange variable: [LOCAL_FILE_PATH]
+         */
         from("direct:download-file")
-                .id("download-file")
+                .id("direct:download-file")
                 .log("Started download-file route")
                 .process(exchange -> {
                     String filename = exchange.getProperty(SERVER_FILE_NAME, String.class);
@@ -36,6 +42,21 @@ public class FileDownloadingRoute extends BaseRouteBuilder{
                         fos.write(csvFile);
                     }
                     exchange.setProperty(LOCAL_FILE_PATH, file.getAbsolutePath());
+                });
+
+        /**
+         * Uploads the file to cloud and returns the file name in cloud
+         * Input the local file path through exchange variable: [LOCAL_FILE_PATH]
+         * Output the server file name through exchange variable: [SERVER_FILE_NAME]
+         */
+        from("direct:upload-file")
+                .id("direct:upload-file")
+                .log("Uploading file")
+                .process(exchange -> {
+                    String filepath = exchange.getProperty(LOCAL_FILE_PATH, String.class);
+                    String serverFileName = fileTransferService.uploadFile(new File(filepath), bucketName);
+                    exchange.setProperty(SERVER_FILE_NAME, serverFileName);
+                    logger.info("Uploaded file: {}", serverFileName);
                 });
     }
 }

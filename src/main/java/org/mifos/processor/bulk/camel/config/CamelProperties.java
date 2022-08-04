@@ -11,4 +11,12 @@ public class CamelProperties {
 
     public static final String LOCAL_FILE_PATH = "localFilePath";
 
+    public static final String SUB_BATCH_FILE_ARRAY = "subBatchFileArray";
+
+    public static final String SUB_BATCH_COUNT = "subBatchCount";
+
+    public static final String SUB_BATCH_CREATED = "subBatchCreated";
+
+    public static final String SERVER_SUB_BATCH_FILE_NAME_ARRAY = "serverSubBatchFileName";
+
 }

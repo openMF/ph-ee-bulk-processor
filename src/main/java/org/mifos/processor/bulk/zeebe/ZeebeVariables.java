@@ -31,4 +31,10 @@ public class ZeebeVariables {
     public static final String SPLITTING_FAILED = "splittingFailed";
     public static final String FORMATTING_FAILED = "formattingFailed";
     public static final String MERGE_FAILED = "mergeFailed";
+
+    public static final String FILE_NAME = "filename";
+
+    public static final String REQUEST_ID = "requestId";
+
+    public static final String SUB_BATCHES = "subBatches";
 }

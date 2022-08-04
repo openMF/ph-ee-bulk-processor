@@ -33,7 +33,7 @@ public abstract class BaseWorker {
     private int workerMaxJobs;
 
     @Autowired
-    private CamelContext camelContext;
+    protected CamelContext camelContext;
 
     @Autowired
     private ProducerTemplate producerTemplate;
