@@ -1,30 +1,24 @@
 package org.mifos.processor.bulk.camel.routes;
 
-import io.undertow.util.MultipartParser;
-import org.apache.camel.attachment.Attachment;
-import org.apache.camel.attachment.AttachmentMessage;
 import org.mifos.processor.bulk.file.FileTransferService;
 import org.mifos.processor.bulk.zeebe.ZeebeProcessStarter;
+import org.mifos.processor.bulk.zeebe.worker.WorkerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Component;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
 
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
 
 @Component
-public class ProcessorStartRoute extends BaseRouteBuilder{
+public class ProcessorStartRoute extends BaseRouteBuilder {
 
     @Autowired
     private ZeebeProcessStarter zeebeProcessStarter;
@@ -32,6 +26,9 @@ public class ProcessorStartRoute extends BaseRouteBuilder{
     @Autowired
     @Qualifier("awsStorage")
     private FileTransferService fileTransferService;
+
+    @Autowired
+    protected WorkerConfig workerConfig;
 
     @Value("${application.bucket-name}")
     private String bucketName;
@@ -77,8 +74,15 @@ public class ProcessorStartRoute extends BaseRouteBuilder{
                     
                     Map<String, Object> variables = new HashMap<>();
                     variables.put(BATCH_ID, batchId);
-                    variables.put("fileName", fileName);
-                    variables.put("requestId", requestId);
+                    variables.put(FILE_NAME, fileName);
+                    variables.put(REQUEST_ID, requestId);
+                    variables.put(PARTY_LOOKUP_ENABLED, workerConfig.isPartyLookUpWorkerEnabled);
+                    variables.put(APPROVAL_ENABLED, workerConfig.isApprovalWorkerEnabled);
+                    variables.put(ORDERING_ENABLED, workerConfig.isOrderingWorkerEnabled);
+                    variables.put(SPLITTING_ENABLED, workerConfig.isSplittingWorkerEnabled);
+                    variables.put(FORMATTING_ENABLED, workerConfig.isFormattingWorkerEnabled);
+                    variables.put(SUCCESS_THRESHOLD_CHECK_ENABLED, workerConfig.isSuccessThresholdCheckEnabled);
+                    variables.put(MERGE_ENABLED, workerConfig.isMergeBackWorkerEnabled);
 
                     zeebeProcessStarter.startZeebeWorkflow(workflowId, "", variables);
                 });
