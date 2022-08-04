@@ -37,4 +37,19 @@ public class ZeebeVariables {
     public static final String REQUEST_ID = "requestId";
 
     public static final String SUB_BATCHES = "subBatches";
+
+    public static final String PARTY_LOOKUP_ENABLED = "partyLookupEnabled";
+
+    public static final String APPROVAL_ENABLED = "approvalEnabled";
+
+    public static final String ORDERING_ENABLED = "orderingEnabled";
+
+    public static final String SPLITTING_ENABLED = "splittingEnabled";
+
+    public static final String FORMATTING_ENABLED = "formattingEnabled";
+
+    public static final String SUCCESS_THRESHOLD_CHECK_ENABLED = "successThresholdCheckEnabled";
+
+    public static final String MERGE_ENABLED = "mergeEnabled";
+
 }

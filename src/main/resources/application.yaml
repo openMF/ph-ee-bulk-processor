@@ -74,3 +74,6 @@ config:
     enable: false
   backpressure:
     enable: false
+  success-threshold-check:
+    enable: false
+    success-rate: 95 # in percentage
