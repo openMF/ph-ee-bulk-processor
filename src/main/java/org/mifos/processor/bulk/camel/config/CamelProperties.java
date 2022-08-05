@@ -7,7 +7,7 @@ public class CamelProperties {
     public static final String AUTH_TYPE = "authType";
     public static final String IS_BATCH_READY = "isBatchReady"; // camel property to check if batch is ready for sampling
 
-    public static final String SERVER_FILE_NAME = "serverFileNam";
+    public static final String SERVER_FILE_NAME = "serverFileName";
 
     public static final String LOCAL_FILE_PATH = "localFilePath";
 
@@ -22,4 +22,7 @@ public class CamelProperties {
     public static final String TRANSACTION_LIST = "transactionList";
 
     public static final String OVERRIDE_HEADER = "overrideHeader";
+
+    public static final String TENANT_NAME = "tenantName";
+
 }

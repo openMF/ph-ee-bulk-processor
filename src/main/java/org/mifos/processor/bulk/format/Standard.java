@@ -1,4 +1,4 @@
-package org.mifos.processor.format;
+package org.mifos.processor.bulk.format;
 
 public enum Standard {
 

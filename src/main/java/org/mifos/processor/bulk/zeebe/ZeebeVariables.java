@@ -22,6 +22,7 @@ public class ZeebeVariables {
     public static final String INITIATOR_FSPID = "initiatorFspId";
     public static final String TRANSACTION_TYPE = "transactionType";
     public static final String BATCH_ID = "batchId";
+    public static final String SUB_BATCH_ID = "subBatchId";
     public static final String IS_SAMPLE_READY = "isSampleReady";
     public static final String SAMPLED_TX_IDS = "sampledTransactionIds";
 
@@ -30,6 +31,7 @@ public class ZeebeVariables {
     public static final String ORDERING_FAILED = "orderingFailed";
     public static final String SPLITTING_FAILED = "splittingFailed";
     public static final String FORMATTING_FAILED = "formattingFailed";
+    public static final String INIT_SUB_BATCH_FAILED = "initSubBatchFailed";
     public static final String MERGE_FAILED = "mergeFailed";
 
     public static final String FILE_NAME = "filename";
@@ -37,6 +39,11 @@ public class ZeebeVariables {
     public static final String REQUEST_ID = "requestId";
 
     public static final String SUB_BATCHES = "subBatches";
+    public static final String PURPOSE = "purpose";
+
+    public static final String INIT_SUCCESS_SUB_BATCHES = "initSuccessSubBatches";
+
+    public static final String INIT_FAILURE_SUB_BATCHES = "initFailureSubBatches";
 
     public static final String PARTY_LOOKUP_ENABLED = "partyLookupEnabled";
 
@@ -55,4 +62,8 @@ public class ZeebeVariables {
     public static final String ORDERED_BY = "orderedBy";
 
     public static final String FORMATTING_STANDARD = "formattingStandard";
+
+    public static final String REMAINING_SUB_BATCH = "remainingSubBatch";
+
+    public static final String TRANSACTION_REQUEST = "transactionRequest";
 }

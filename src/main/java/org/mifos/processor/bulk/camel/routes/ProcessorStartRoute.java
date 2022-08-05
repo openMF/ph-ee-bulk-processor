@@ -1,5 +1,6 @@
 package org.mifos.processor.bulk.camel.routes;
 
+import org.apache.camel.attachment.AttachmentMessage;
 import org.mifos.processor.bulk.file.FileTransferService;
 import org.mifos.processor.bulk.zeebe.ZeebeProcessStarter;
 import org.mifos.processor.bulk.zeebe.worker.WorkerConfig;
@@ -11,9 +12,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import static org.mifos.processor.bulk.camel.config.CamelProperties.TENANT_NAME;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
 
 
@@ -45,12 +50,17 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
 
     private void setup() {
         from("rest:POST:/bulk/transfer/{requestId}/{fileName}")
-                .to(RouteId.FORMATTING.getValue())
-                /*.unmarshal().mimeMultipart("multipart/*")
+                .unmarshal().mimeMultipart("multipart/*")
+                .to("direct:validate-tenant")
                 .process(exchange -> {
                     String fileName = System.currentTimeMillis() + "_" +  exchange.getIn().getHeader("fileName", String.class);
                     String requestId = exchange.getIn().getHeader("requestId", String.class);
+                    String purpose = exchange.getIn().getHeader("purpose", String.class);
                     String batchId = UUID.randomUUID().toString();
+
+                    if (purpose == null || purpose.isEmpty()) {
+                        purpose = "test payment";
+                    }
 
                     logger.info("\n\n Filename: " + fileName + " \n\n");
                     logger.info("\n\n BatchId: " + batchId + " \n\n");
@@ -77,6 +87,8 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     variables.put(BATCH_ID, batchId);
                     variables.put(FILE_NAME, fileName);
                     variables.put(REQUEST_ID, requestId);
+                    variables.put(PURPOSE, purpose);
+                    variables.put(TENANT_ID, exchange.getProperty(TENANT_NAME));
                     variables.put(PARTY_LOOKUP_ENABLED, workerConfig.isPartyLookUpWorkerEnabled);
                     variables.put(APPROVAL_ENABLED, workerConfig.isApprovalWorkerEnabled);
                     variables.put(ORDERING_ENABLED, workerConfig.isOrderingWorkerEnabled);
@@ -86,6 +98,20 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     variables.put(MERGE_ENABLED, workerConfig.isMergeBackWorkerEnabled);
 
                     zeebeProcessStarter.startZeebeWorkflow(workflowId, "", variables);
-                })*/;
+                    exchange.getIn().setBody(batchId);
+                });
+
+        from("direct:validate-tenant")
+                .id("direct:validate-tenant")
+                .log("Validating tenant")
+                .process(exchange -> {
+                    String tenantName = exchange.getIn().getHeader("Platform-TenantId", String.class);
+                    if (tenantName == null || tenantName.isEmpty() || !tenants.contains(tenantName)) {
+                        throw new Exception("Invalid tenant value.");
+                    }
+                    exchange.setProperty(TENANT_NAME, tenantName);
+                });
+
+
     }
 }

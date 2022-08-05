@@ -7,7 +7,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.List;
-
 import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SPLITTING_FAILED;
 
@@ -62,7 +61,7 @@ public class SplittingRoute extends BaseRouteBuilder {
                     List<String> subBatchFile = new ArrayList<>();
                     int subBatchCount = 1;
                     for (int i = 0; i < lines.size(); i+=subBatchSize) {
-                        String filename = "sub-batch-"+subBatchCount+".csv";
+                        String filename = System.currentTimeMillis() + "_" + "sub-batch-"+subBatchCount+".csv";
                         FileWriter writer = new FileWriter(filename);
                         writer.write(header);
                         for (int j = i; j < Math.min(i + subBatchSize, lines.size()); j++) {

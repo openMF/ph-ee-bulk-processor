@@ -8,7 +8,9 @@ public enum Worker {
     SPLITTING("splitting"),
     FORMATTING("formatting"),
     BATCH_STATUS("batchStatus"),
-    MERGE_BACK("mergeSubBatch");
+    MERGE_BACK("mergeSubBatch"),
+
+    INIT_SUB_BATCH("initSubBatch");
 
     private final String value;
 

@@ -5,6 +5,7 @@ import org.apache.camel.support.DefaultExchange;
 import org.mifos.processor.bulk.camel.routes.RouteId;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -42,14 +43,16 @@ public class SplittingWorker extends BaseWorker {
             }
 
             Boolean subBatchCreated = exchange.getProperty(SUB_BATCH_CREATED, Boolean.class);
-            List<String> serverSubBatchFile = exchange.getProperty(SERVER_SUB_BATCH_FILE_NAME_ARRAY, List.class);
-            if (!subBatchCreated && serverSubBatchFile.isEmpty()) {
+            List<String> serverSubBatchFileList = exchange.getProperty(SERVER_SUB_BATCH_FILE_NAME_ARRAY, List.class);
+            if (!subBatchCreated && serverSubBatchFileList.isEmpty()) {
                 // if no sub-batches is created, insert the original filename in sub batch array
-                serverSubBatchFile.add(filename);
+                serverSubBatchFileList.add(filename);
             }
 
             variables.put(SPLITTING_FAILED, false);
-            variables.put(SUB_BATCHES, serverSubBatchFile);
+            variables.put(SUB_BATCHES, serverSubBatchFileList);
+            variables.put(INIT_SUCCESS_SUB_BATCHES, new ArrayList<String>());
+            variables.put(INIT_FAILURE_SUB_BATCHES, new ArrayList<String>());
             variables.put(SUB_BATCH_CREATED, subBatchCreated);
 
             client.newCompleteCommand(job.getKey()).variables(variables).send();

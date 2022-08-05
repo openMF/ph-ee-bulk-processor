@@ -42,6 +42,26 @@ public class ZeebeProcessStarter {
         }
     }
 
+    public void startZeebeWorkflow(String workflowId, Map<String, Object> extraVariables) {
+
+        Map<String, Object> variables = new HashMap<>();
+        variables.put(ZeebeVariables.ORIGIN_DATE, Instant.now().toEpochMilli());
+        if(extraVariables != null) {
+            variables.putAll(extraVariables);
+        }
+
+        // TODO if successful transfer response arrives in X timeout return it otherwise do callback
+        ProcessInstanceEvent join = zeebeClient.newCreateInstanceCommand()
+                .bpmnProcessId(workflowId)
+                .latestVersion()
+                .variables(variables)
+                .send()
+                .join();
+
+
+        logger.info("zeebee workflow instance from process {}", workflowId);
+    }
+
     public String startZeebeWorkflow(String workflowId, String request, Map<String, Object> extraVariables) {
         String transactionId = generateTransactionId();
 
