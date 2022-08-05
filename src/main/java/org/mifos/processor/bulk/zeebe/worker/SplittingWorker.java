@@ -48,6 +48,7 @@ public class SplittingWorker extends BaseWorker {
                 serverSubBatchFile.add(filename);
             }
 
+            variables.put(SPLITTING_FAILED, false);
             variables.put(SUB_BATCHES, serverSubBatchFile);
             variables.put(SUB_BATCH_CREATED, subBatchCreated);
 

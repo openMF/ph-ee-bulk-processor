@@ -92,4 +92,8 @@ public class Transaction {
                 ", batchId='" + batchId + '\'' +
                 '}';
     }
+
+    public String getCsvString() {
+        return String.format("%s,%s,%s,%s,%s,%s,%s", id, request_id, payment_mode, account_number, amount, currency, note);
+    }
 }

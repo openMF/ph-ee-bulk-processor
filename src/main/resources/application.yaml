@@ -65,6 +65,7 @@ config:
     enable: false
   ordering:
     enable: true
+    field: "payment_mode"
   splitting:
     enable: false
     sub-batch-size: 5

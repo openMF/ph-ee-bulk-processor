@@ -28,7 +28,7 @@ public class SplittingRoute extends BaseRouteBuilder {
         from(RouteId.SPLITTING.getValue())
                 .id(RouteId.SPLITTING.getValue())
                 .log("Starting route " + RouteId.SPLITTING.name())
-                .process(exchange -> exchange.setProperty(LOCAL_FILE_PATH, "1659424507931_ph-ee-bulk-demo-5.csv"))
+                .to("direct:download-file")
                 .to("direct:create-sub-batch-file")
                 .choice()
                 .when(exchange -> exchange.getProperty(SUB_BATCH_CREATED, Boolean.class))
@@ -38,9 +38,7 @@ public class SplittingRoute extends BaseRouteBuilder {
                 .end()
                 .process(exchange -> exchange.setProperty(SPLITTING_FAILED, false));
 
-        /**
-         * Creates the sub-batch CSVs
-         */
+        //Creates the sub-batch CSVs
         from("direct:create-sub-batch-file")
                 .id("direct:create-sub-batch-file")
                 .log("Creating sub-batch file")
@@ -53,6 +51,7 @@ public class SplittingRoute extends BaseRouteBuilder {
                     while ((line = reader.readLine()) != null) {
                         lines.add(line);
                     }
+                    reader.close();
 
                     if (lines.size() <= subBatchSize) {
                         exchange.setProperty(SUB_BATCH_CREATED, false);
@@ -80,9 +79,7 @@ public class SplittingRoute extends BaseRouteBuilder {
                     exchange.setProperty(SERVER_SUB_BATCH_FILE_NAME_ARRAY, new ArrayList<String>());
                 });
 
-        /**
-         * Iterate through each CSVs of sub-batches and uploads in cloud
-         */
+        // Iterate through each CSVs of sub-batches and uploads in cloud
         from("direct:upload-sub-batch-file")
                 .id("direct:upload-sub-batch-file")
                 .log("Starting upload of sub-batch file")
