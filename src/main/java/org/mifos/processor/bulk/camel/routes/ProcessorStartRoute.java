@@ -45,7 +45,8 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
 
     private void setup() {
         from("rest:POST:/bulk/transfer/{requestId}/{fileName}")
-                .unmarshal().mimeMultipart("multipart/*")
+                .to(RouteId.FORMATTING.getValue())
+                /*.unmarshal().mimeMultipart("multipart/*")
                 .process(exchange -> {
                     String fileName = System.currentTimeMillis() + "_" +  exchange.getIn().getHeader("fileName", String.class);
                     String requestId = exchange.getIn().getHeader("requestId", String.class);
@@ -85,6 +86,6 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     variables.put(MERGE_ENABLED, workerConfig.isMergeBackWorkerEnabled);
 
                     zeebeProcessStarter.startZeebeWorkflow(workflowId, "", variables);
-                });
+                })*/;
     }
 }

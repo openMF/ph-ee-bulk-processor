@@ -71,6 +71,7 @@ config:
     sub-batch-size: 5
   formatting:
     enable: true
+    standard: "DEFAULT"
   mergeback:
     enable: false
   backpressure:

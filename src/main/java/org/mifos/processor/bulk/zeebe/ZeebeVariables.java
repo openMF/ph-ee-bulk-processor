@@ -54,4 +54,6 @@ public class ZeebeVariables {
 
     public static final String ORDERED_BY = "orderedBy";
 
+    public static final String FORMATTING_STANDARD = "formattingStandard";
+
 }

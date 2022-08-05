@@ -3,7 +3,7 @@ package org.mifos.processor.bulk.schema;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonPropertyOrder({ "id", "request_id", "payment_mode", "account_number", "amount", "currency", "note" })
-public class Transaction {
+public class Transaction implements CsvSchema {
 
     private int id;
     private String request_id;
@@ -93,7 +93,14 @@ public class Transaction {
                 '}';
     }
 
+    @Override
     public String getCsvString() {
         return String.format("%s,%s,%s,%s,%s,%s,%s", id, request_id, payment_mode, account_number, amount, currency, note);
     }
+
+    @Override
+    public String getCsvHeader() {
+        return "id,request_id,payment_mode,account_number,amount,currency,note";
+    }
+
 }

@@ -20,4 +20,6 @@ public class CamelProperties {
     public static final String SERVER_SUB_BATCH_FILE_NAME_ARRAY = "serverSubBatchFileName";
 
     public static final String TRANSACTION_LIST = "transactionList";
+
+    public static final String OVERRIDE_HEADER = "overrideHeader";
 }
