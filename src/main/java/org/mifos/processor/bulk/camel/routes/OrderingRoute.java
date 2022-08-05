@@ -16,6 +16,7 @@ public class OrderingRoute extends BaseRouteBuilder {
     @Value("${config.ordering.field}")
     private String orderingField;
 
+
     @Override
     public void configure() {
 
