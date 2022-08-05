@@ -42,6 +42,7 @@ public class FileRoute extends BaseRouteBuilder {
                         fos.write(csvFile);
                     }
                     exchange.setProperty(LOCAL_FILE_PATH, file.getAbsolutePath());
+                    logger.info("File downloaded");
                 });
 
         /**
