@@ -18,7 +18,7 @@ zeebe:
     #    number-of-workers: 8
     #    evenly-allocated-max-jobs: "#{${zeebe.client.max-execution-threads} / ${zeebe.client.number-of-workers}}"
   broker:
-    contactpoint: "127.0.0.1:26500"
+    contactpoint: "zeebe-zeebe-gateway:26500"
 
 operations-app:
   contactpoint: "https://ops-bk.ibank.financial"
