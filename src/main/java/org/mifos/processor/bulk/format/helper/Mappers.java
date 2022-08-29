@@ -1,4 +1,4 @@
-package org.mifos.processor.format.helper;
+package org.mifos.processor.bulk.format.helper;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

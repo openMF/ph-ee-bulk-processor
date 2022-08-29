@@ -9,9 +9,12 @@ import org.mifos.processor.bulk.OperationsAppConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 public abstract class BaseRouteBuilder extends RouteBuilder {
 
@@ -23,6 +26,9 @@ public abstract class BaseRouteBuilder extends RouteBuilder {
 
     @Autowired
     ZeebeClient zeebeClient;
+
+    @Value("#{'${tenants}'.split(',')}")
+    protected List<String> tenants;
 
     public Logger logger = LoggerFactory.getLogger(this.getClass());
 

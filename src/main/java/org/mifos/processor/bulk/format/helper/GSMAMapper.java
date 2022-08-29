@@ -1,10 +1,8 @@
-package org.mifos.processor.format.helper;
+package org.mifos.processor.bulk.format.helper;
 
 import org.mifos.processor.bulk.schema.GSMATransaction;
 import org.mifos.processor.bulk.schema.Transaction;
 import org.springframework.stereotype.Component;
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 public class GSMAMapper extends BaseMapper<Transaction, GSMATransaction> {

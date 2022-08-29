@@ -1,8 +1,8 @@
 package org.mifos.processor.bulk.camel.routes;
 
 import org.mifos.processor.bulk.schema.Transaction;
-import org.mifos.processor.format.Standard;
-import org.mifos.processor.format.helper.Mappers;
+import org.mifos.processor.bulk.format.Standard;
+import org.mifos.processor.bulk.format.helper.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

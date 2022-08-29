@@ -1,7 +1,7 @@
 package org.mifos.processor.bulk;
 
 import org.mifos.processor.bulk.schema.Transaction;
-import org.mifos.processor.format.Standard;
+import org.mifos.processor.bulk.format.Standard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;

@@ -6,6 +6,7 @@ camel:
       json-jackson:
         auto-discover-object-mapper: true
 
+
 application:
   bucket-name: paymenthub-ee-dev
 
@@ -40,7 +41,7 @@ cloud:
       connection-string:
 
 
-dfspids: "ibank-usa,ibank-india"
+tenants: "ibank-usa,ibank-india"
 
 bpmn:
   flows:
@@ -56,21 +57,22 @@ bpmn:
     international-remittance-payer: "international_remittance_payer_process-{dfspid}"
     debit-party-process: "debit_party_process-{dfspid}"
     bulk-processor: "bulk_processor-ibank-usa"
+    slcb: "slcb-{dfspid}"
 
 config:
   minimum-successful-tx-ratio: 0.90
   partylookup:
-    enable: false
-  approval:
-    enable: false
-  ordering:
     enable: true
+  approval:
+    enable: true
+  ordering:
+    enable: false
     field: "payment_mode"
   splitting:
     enable: false
     sub-batch-size: 5
   formatting:
-    enable: true
+    enable: false
     standard: "DEFAULT"
   mergeback:
     enable: false

@@ -1,7 +1,6 @@
-package org.mifos.processor.format.helper;
+package org.mifos.processor.bulk.format.helper;
 
 import org.mifos.processor.bulk.schema.CsvSchema;
-import org.mifos.processor.bulk.schema.GSMATransaction;
 
 import java.util.ArrayList;
 import java.util.List;
