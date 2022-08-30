@@ -41,7 +41,6 @@ public class FormattingRoute extends BaseRouteBuilder {
                 .log("Starting route " + RouteId.FORMATTING.name())
                 .choice()
                 .when(exchange -> formattingStandard != Standard.DEFAULT)
-                .process(exchange -> exchange.setProperty(SERVER_FILE_NAME, "ph-ee-bulk-demo-5.csv"))
                 .to("direct:download-file")
                 .to("direct:get-transaction-array")
                 .to("direct:format-data")
