@@ -66,4 +66,12 @@ public class ZeebeVariables {
     public static final String REMAINING_SUB_BATCH = "remainingSubBatch";
 
     public static final String TRANSACTION_REQUEST = "transactionRequest";
+
+    public static final String TOTAL_AMOUNT = "totalAmount";
+
+    public static final String ONGOING_AMOUNT = "ongoingAmount";
+
+    public static final String FAILED_AMOUNT = "failedAmount";
+
+    public static final String COMPLETED_AMOUNT = "completedAmount";
 }

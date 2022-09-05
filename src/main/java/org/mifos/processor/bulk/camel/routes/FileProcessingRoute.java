@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
 
 @Component
 public class FileProcessingRoute extends BaseRouteBuilder {
@@ -32,6 +33,9 @@ public class FileProcessingRoute extends BaseRouteBuilder {
                 .id("direct:get-transaction-array")
                 .log("Starting route direct:get-transaction-array")
                 .process(exchange -> {
+                    Long totalAmount = 0L;
+                    Long failedAmount = 0L;
+                    Long completedAmount = 0L;
                     String filename = exchange.getProperty(LOCAL_FILE_PATH, String.class);
                     CsvSchema schema = CsvSchema.emptySchema().withHeader();
                     FileReader reader = new FileReader(filename);
@@ -40,9 +44,14 @@ public class FileProcessingRoute extends BaseRouteBuilder {
                     while (readValues.hasNext()) {
                         Transaction current = readValues.next();
                         transactionList.add(current);
+                        totalAmount += Long.parseLong(current.getAmount());
                     }
                     reader.close();
                     exchange.setProperty(TRANSACTION_LIST, transactionList);
+                    exchange.setProperty(TOTAL_AMOUNT, totalAmount);
+                    exchange.setProperty(ONGOING_AMOUNT, totalAmount); // initially ongoing amount is same as total amount
+                    exchange.setProperty(FAILED_AMOUNT, failedAmount);
+                    exchange.setProperty(COMPLETED_AMOUNT, completedAmount);
                 });
 
         /**
