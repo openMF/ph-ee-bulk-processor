@@ -74,4 +74,12 @@ public class ZeebeVariables {
     public static final String FAILED_AMOUNT = "failedAmount";
 
     public static final String COMPLETED_AMOUNT = "completedAmount";
+
+    public static final String MERGE_FILE_LIST = "mergeFiles";
+
+    public static final String MERGE_ITERATION = "mergeIteration";
+
+    public static final String MERGE_COMPLETED = "mergeCompleted";
+
+    public static final String RESULT_FILE = "resultFile";
 }

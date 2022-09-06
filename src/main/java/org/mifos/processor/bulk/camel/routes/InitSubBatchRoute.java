@@ -1,7 +1,6 @@
 package org.mifos.processor.bulk.camel.routes;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import org.mifos.processor.bulk.Utils;
+import org.mifos.processor.bulk.utility.Utils;
 import org.mifos.processor.bulk.schema.Transaction;
 import org.mifos.processor.bulk.zeebe.BpmnConfig;
 import org.mifos.processor.bulk.zeebe.ZeebeProcessStarter;
