@@ -55,7 +55,8 @@ public class MergeBackRoute extends BaseRouteBuilder {
                     }
                     if (exchange.getProperty(MERGE_ITERATION, Integer.class) == 1) {
                         // generate new name for merged file in case of first iteration
-                        String newFileName = System.currentTimeMillis() + "_" + exchange.getProperty(BATCH_ID, String.class);
+                        String newFileName = System.currentTimeMillis() + "_" +
+                                exchange.getProperty(BATCH_ID, String.class) + ".csv";
                         new File(mergedFile).renameTo(new File(newFileName));
                         exchange.setProperty(LOCAL_FILE_PATH, newFileName);
                     } else {
@@ -76,7 +77,7 @@ public class MergeBackRoute extends BaseRouteBuilder {
                     if (mergeList.size() == 1) {
                         exchange.setProperty(MERGE_FAILED, false);
                         exchange.setProperty(MERGE_COMPLETED, true);
-                        exchange.setProperty(RESULT_FILE, mergedFileServerName);
+                        exchange.setProperty(RESULT_FILE, Utils.getAwsFileUrl(awsS3BaseUrl,mergedFileServerName));
                     } else {
                         exchange.setProperty(MERGE_COMPLETED, false);
                     }

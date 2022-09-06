@@ -28,6 +28,7 @@ operations-app:
 cloud:
   aws:
     enabled: true
+    s3-base-url: "https://paymenthub-ee-dev.s3.us-east-2.amazonaws.com"
     credentials:
       access-key: ${AWS_ACCESS_KEY:AKIAX32JM37TZOJ5AKFB}
       secret-key: ${AWS_SECRET_KEY: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}

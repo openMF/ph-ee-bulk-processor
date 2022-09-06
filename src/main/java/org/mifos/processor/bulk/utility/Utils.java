@@ -32,4 +32,8 @@ public class Utils {
         return file1;
     }
 
+    public static String getAwsFileUrl(String baseUrl, String filename) {
+        return String.format("%s/%s", baseUrl, filename);
+    }
+
 }

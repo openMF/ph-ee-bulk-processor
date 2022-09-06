@@ -30,6 +30,9 @@ public abstract class BaseRouteBuilder extends RouteBuilder {
     @Value("#{'${tenants}'.split(',')}")
     protected List<String> tenants;
 
+    @Value("${cloud.aws.s3-base-url}")
+    protected String awsS3BaseUrl;
+
     public Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public RouteDefinition getBaseExternalApiRequestRouteDefinition(String routeId, HttpRequestMethod httpMethod) {

@@ -3,6 +3,7 @@ package org.mifos.processor.bulk.zeebe.worker;
 import org.apache.camel.Exchange;
 import org.apache.camel.support.DefaultExchange;
 import org.mifos.processor.bulk.camel.routes.RouteId;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.Map;
 
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
 
+@Component
 public class MergeBackWorker extends BaseWorker {
 
     @Override
@@ -37,6 +39,8 @@ public class MergeBackWorker extends BaseWorker {
             exchange.setProperty(MERGE_FILE_LIST, mergeFileList);
             exchange.setProperty(MERGE_ITERATION, mergeIteration);
             exchange.setProperty(BATCH_ID, variables.get(BATCH_ID));
+
+            logger.info("Merge list: {}", mergeFileList);
 
             sendToCamelRoute(RouteId.MERGE_BACK, exchange);
 
