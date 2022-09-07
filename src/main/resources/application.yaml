@@ -1,5 +1,6 @@
 camel:
   server-port: 5000
+  disable-ssl: false
   springboot:
     main-run-controller: true
     dataformat:
@@ -21,8 +22,12 @@ zeebe:
     contactpoint: "zeebe-zeebe-gateway:26500"
 
 operations-app:
-  contactpoint: "https://ops-bk.ibank.financial"
+  contactpoint: "https://ops-bk.sandbox.fynarfin.io"
+  username: "mifos"
+  password: "password"
   endpoints:
+    auth: "/oauth/token"
+    batch-summary: "/api/v1/batch"
     batch-transaction: "/api/v1/batch/transactions"
 
 cloud:
@@ -81,4 +86,6 @@ config:
     enable: false
   success-threshold-check:
     enable: false
-    success-rate: 95 # in percentage
+    success-threshold: 95 # in percentage
+    max-retry: 4
+    delay: 60 # in seconds

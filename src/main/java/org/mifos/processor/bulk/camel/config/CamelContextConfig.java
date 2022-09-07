@@ -1,12 +1,16 @@
 package org.mifos.processor.bulk.camel.config;
 
 import org.apache.camel.CamelContext;
+import org.apache.camel.component.http.HttpComponent;
 import org.apache.camel.spi.RestConfiguration;
 import org.apache.camel.spring.boot.CamelContextConfiguration;
+import org.apache.camel.support.jsse.SSLContextParameters;
+import org.apache.camel.support.jsse.TrustManagersParameters;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import javax.net.ssl.X509ExtendedTrustManager;
 import java.util.HashMap;
 
 @Configuration
@@ -14,6 +18,9 @@ public class CamelContextConfig {
 
     @Value("${camel.server-port}")
     private int serverPort;
+
+    @Value("${camel.disable-ssl}")
+    private boolean disableSSL;
 
     @Bean
     CamelContextConfiguration contextConfiguration() {
@@ -24,6 +31,12 @@ public class CamelContextConfig {
                 camelContext.setMessageHistory(false);
                 camelContext.setStreamCaching(true);
                 camelContext.disableJMX();
+
+                if (disableSSL) {
+                    HttpComponent httpComponent = camelContext.getComponent("https", HttpComponent.class);
+                    httpComponent.setHttpClientConfigurer(new HttpClientConfigurerTrustAllCACerts());
+                }
+
 
                 RestConfiguration rest = new RestConfiguration();
                 camelContext.setRestConfiguration(rest);

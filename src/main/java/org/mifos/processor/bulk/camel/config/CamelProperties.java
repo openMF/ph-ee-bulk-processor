@@ -31,4 +31,8 @@ public class CamelProperties {
 
     public static final String FILE_2 = "file2";
 
+    public static final String OPS_APP_ACCESS_TOKEN = "opsAppAccessToken";
+
+    public static final String BATCH_STATUS_FAILED = "batchStatusFailed";
+
 }

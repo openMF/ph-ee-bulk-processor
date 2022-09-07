@@ -2,8 +2,10 @@ package org.mifos.processor.bulk;
 
 import org.mifos.processor.bulk.schema.Transaction;
 import org.mifos.processor.bulk.format.Standard;
+import org.mifos.processor.bulk.zeebe.worker.WorkerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
@@ -19,17 +21,37 @@ public class ConfigurationValidator {
     @Value("${config.ordering.field}")
     private String orderingField;
 
-    @Value("${config.success-threshold-check.success-rate}")
+    @Value("${config.success-threshold-check.success-threshold}")
     private int successRate;
+
+    @Value("${config.success-threshold-check.max-retry}")
+    private int maxThresholdCheckRetry;
 
     @Value("${config.formatting.standard}")
     private String standard;
 
+    @Autowired
+    private WorkerConfig workerConfig;
+
     @PostConstruct
     private void validate() {
-        validateOrderingConfig();
-        validateSuccessThresholdConfig();
-        validateFormattingStandard();
+        if (workerConfig.isOrderingWorkerEnabled) {
+            validateOrderingConfig();
+        }
+        if (workerConfig.isSuccessThresholdCheckEnabled) {
+            validateSuccessThresholdConfig();
+            validateMaxRetryFromThresholdCheck();
+        }
+        if (workerConfig.isFormattingWorkerEnabled) {
+            validateFormattingStandard();
+        }
+    }
+
+    private void validateMaxRetryFromThresholdCheck() {
+        if (maxThresholdCheckRetry <= 0) {
+            logger.error("Invalid maxThresholdCheckRetry count set. Needs to be +ve integer");
+            throw new ConfigurationValidationException("Invalid maxThresholdCheckRetry count set. Needs to be +ve integer");
+        }
     }
 
     // validates the standard to be used for formatting
