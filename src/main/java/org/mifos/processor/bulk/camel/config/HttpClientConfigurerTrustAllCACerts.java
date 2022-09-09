@@ -38,14 +38,7 @@ public class HttpClientConfigurerTrustAllCACerts implements HttpClientConfigurer
                     return true;
                 }
             }).build();
-        } catch (KeyManagementException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (KeyStoreException e) {
-            // TODO Auto-generated catch block
+        } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
             e.printStackTrace();
         }
         clientBuilder.setSslcontext( sslContext);

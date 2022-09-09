@@ -6,6 +6,7 @@ import org.apache.camel.spi.RestConfiguration;
 import org.apache.camel.spring.boot.CamelContextConfiguration;
 import org.apache.camel.support.jsse.SSLContextParameters;
 import org.apache.camel.support.jsse.TrustManagersParameters;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +23,9 @@ public class CamelContextConfig {
     @Value("${camel.disable-ssl}")
     private boolean disableSSL;
 
+    @Autowired
+    private HttpClientConfigurerTrustAllCACerts httpClientConfigurerTrustAllCACerts;
+
     @Bean
     CamelContextConfiguration contextConfiguration() {
         return new CamelContextConfiguration() {
@@ -34,7 +38,7 @@ public class CamelContextConfig {
 
                 if (disableSSL) {
                     HttpComponent httpComponent = camelContext.getComponent("https", HttpComponent.class);
-                    httpComponent.setHttpClientConfigurer(new HttpClientConfigurerTrustAllCACerts());
+                    httpComponent.setHttpClientConfigurer(httpClientConfigurerTrustAllCACerts);
                 }
 
 

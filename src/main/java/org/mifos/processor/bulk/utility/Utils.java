@@ -21,10 +21,11 @@ public class Utils {
             // create a reader for tmpFile
             BufferedReader in = new BufferedReader(new FileReader(file2));
             String str;
-            int i = 0;
+            boolean isFirstLine = true;
             while ((str = in.readLine()) != null) {
-                if (i == 0) {
-                    i = 1;
+                if (isFirstLine) {
+                    // used for skipping header writing
+                    isFirstLine = false;
                     continue;
                 }
                 out.write(str+"\n");
@@ -32,6 +33,7 @@ public class Utils {
             in.close();
             out.close();
         } catch (IOException e) {
+            e.printStackTrace();
             return null;
         }
 
