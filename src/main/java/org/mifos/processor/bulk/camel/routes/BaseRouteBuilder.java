@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -30,6 +29,9 @@ public abstract class BaseRouteBuilder extends RouteBuilder {
     @Value("#{'${tenants}'.split(',')}")
     protected List<String> tenants;
 
+    @Value("${cloud.aws.s3-base-url}")
+    protected String awsS3BaseUrl;
+
     public Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public RouteDefinition getBaseExternalApiRequestRouteDefinition(String routeId, HttpRequestMethod httpMethod) {
@@ -39,7 +41,8 @@ public abstract class BaseRouteBuilder extends RouteBuilder {
                 .removeHeader("*")
                 .setHeader(Exchange.HTTP_METHOD, constant(httpMethod.text))
                 .setHeader("X-Date", simple(ZonedDateTime.now( ZoneOffset.UTC ).format( DateTimeFormatter.ISO_INSTANT )))
-                .setHeader("Content-Type", constant("application/json"));
+                .setHeader("Content-Type", constant("application/json;charset=UTF-8"))
+                .setHeader("Accept", constant("application/json, text/plain, */*"));
     }
 
     protected enum HttpRequestMethod {

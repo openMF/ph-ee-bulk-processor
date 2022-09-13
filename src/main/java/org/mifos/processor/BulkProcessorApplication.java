@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.camel.Processor;
+import org.mifos.processor.bulk.camel.config.HttpClientConfigurerTrustAllCACerts;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -37,6 +38,11 @@ public class BulkProcessorApplication {
     @Bean
     public CsvMapper csvMapper() {
         return new CsvMapper();
+    }
+
+    @Bean
+    public HttpClientConfigurerTrustAllCACerts httpClientConfigurer() {
+        return new HttpClientConfigurerTrustAllCACerts();
     }
 
 }

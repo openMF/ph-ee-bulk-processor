@@ -1,7 +1,7 @@
 package org.mifos.processor.bulk.camel.routes;
 
-import org.apache.camel.attachment.AttachmentMessage;
 import org.mifos.processor.bulk.file.FileTransferService;
+import org.mifos.processor.bulk.utility.Utils;
 import org.mifos.processor.bulk.zeebe.ZeebeProcessStarter;
 import org.mifos.processor.bulk.zeebe.worker.WorkerConfig;
 import org.slf4j.Logger;
@@ -12,9 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -40,6 +38,15 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
 
     @Value("${bpmn.flows.bulk-processor}")
     private String workflowId;
+
+    @Value("${config.success-threshold-check.success-threshold}")
+    private int successThreshold;
+
+    @Value("${config.success-threshold-check.max-retry}")
+    private int maxThresholdCheckRetry;
+
+    @Value("${config.success-threshold-check.delay}")
+    private int thresholdCheckDelay;
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -96,6 +103,9 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     variables.put(FORMATTING_ENABLED, workerConfig.isFormattingWorkerEnabled);
                     variables.put(SUCCESS_THRESHOLD_CHECK_ENABLED, workerConfig.isSuccessThresholdCheckEnabled);
                     variables.put(MERGE_ENABLED, workerConfig.isMergeBackWorkerEnabled);
+                    variables.put(MAX_STATUS_RETRY, maxThresholdCheckRetry);
+                    variables.put(SUCCESS_THRESHOLD, successThreshold);
+                    variables.put(THRESHOLD_DELAY, Utils.getZeebeTimerValue(thresholdCheckDelay));
 
                     zeebeProcessStarter.startZeebeWorkflow(workflowId, "", variables);
                     exchange.getIn().setBody(batchId);

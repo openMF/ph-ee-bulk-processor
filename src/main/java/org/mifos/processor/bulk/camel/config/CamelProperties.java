@@ -11,6 +11,8 @@ public class CamelProperties {
 
     public static final String LOCAL_FILE_PATH = "localFilePath";
 
+    public static final String LOCAL_FILE_PATH_LIST = "localFilePaths";
+
     public static final String SUB_BATCH_FILE_ARRAY = "subBatchFileArray";
 
     public static final String SUB_BATCH_COUNT = "subBatchCount";
@@ -24,5 +26,13 @@ public class CamelProperties {
     public static final String OVERRIDE_HEADER = "overrideHeader";
 
     public static final String TENANT_NAME = "tenantName";
+
+    public static final String FILE_1 = "file1";
+
+    public static final String FILE_2 = "file2";
+
+    public static final String OPS_APP_ACCESS_TOKEN = "opsAppAccessToken";
+
+    public static final String BATCH_STATUS_FAILED = "batchStatusFailed";
 
 }
