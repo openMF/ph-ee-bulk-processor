@@ -96,4 +96,6 @@ public class ZeebeVariables {
     public static final String ERROR_DESCRIPTION = "errorDescription";
 
     public static final String THRESHOLD_DELAY = "thresholdDelay";
+
+    public static final String PAYMENT_MODE = "paymentMode";
 }
