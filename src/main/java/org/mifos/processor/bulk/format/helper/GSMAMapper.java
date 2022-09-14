@@ -11,8 +11,8 @@ public class GSMAMapper extends BaseMapper<Transaction, GSMATransaction> {
         GSMATransaction gsmaTransaction = new GSMATransaction();
         gsmaTransaction.setId(object.getId());
         gsmaTransaction.setRequestId("test");
-        gsmaTransaction.setPaymentMode(object.getPayment_mode());
-        gsmaTransaction.setAccountNumber(object.getAccount_number());
+        gsmaTransaction.setPaymentMode(object.getPaymentMode());
+        gsmaTransaction.setAccountNumber(object.getAccountNumber());
         gsmaTransaction.setAmount(object.getAmount());
         gsmaTransaction.setNote(object.getNote());
         return gsmaTransaction;

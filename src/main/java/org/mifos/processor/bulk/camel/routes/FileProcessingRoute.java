@@ -1,15 +1,13 @@
 package org.mifos.processor.bulk.camel.routes;
 
 import com.fasterxml.jackson.databind.MappingIterator;
+import com.fasterxml.jackson.databind.SequenceWriter;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import org.mifos.processor.bulk.schema.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
@@ -64,34 +62,37 @@ public class FileProcessingRoute extends BaseRouteBuilder {
         from("direct:update-file")
                 .id("direct:update-file")
                 .log("Starting route direct:update-file")
+                .to("direct:update-file-v2")
+                .log("Update complete");
+
+        /**
+         * this is backward compatible version of update-file route for new CSV schema
+         * exchangeInput:
+         *      [LOCAL_FILE_PATH] the absolute path to the csv file
+         *      [TRANSACTION_LIST] containing the list of [Transaction]
+         *      [OVERRIDE_HEADER] if set to true will override the header or else use the existing once in csv file
+         */
+        from("direct:update-file-v2")
+                .id("direct:update-file-v2")
+                .log("Starting route direct:update-file-v2")
                 .process(exchange -> {
                     String filepath = exchange.getProperty(LOCAL_FILE_PATH, String.class);
-                    List<org.mifos.processor.bulk.schema.CsvSchema> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
+                    List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
 
                     // getting header
                     Boolean overrideHeader = exchange.getProperty(OVERRIDE_HEADER, Boolean.class);
-                    String header;
-                    if (overrideHeader == null || !overrideHeader) {
-                        BufferedReader reader = new BufferedReader(new FileReader(filepath));
-                        header = reader.readLine() + System.lineSeparator();
-                        reader.close();
+                    CsvSchema csvSchema = csvMapper.schemaFor(Transaction.class);
+                    if (overrideHeader) {
+                        csvSchema = csvSchema.withHeader();
                     } else {
-                        header = transactionList.get(0).getCsvHeader() + System.lineSeparator();
+                        csvSchema = csvSchema.withoutHeader();
                     }
 
-                    FileWriter writer = new FileWriter(filepath);
-                    writer.write(header);
-
-                    // updating file with re-ordered data
-                    transactionList.forEach(transaction -> {
-                        try {
-                            writer.write(transaction.getCsvString() + System.lineSeparator());
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
-                    writer.close();
-                    logger.info("Update complete");
+                    File file = new File(filepath);
+                    SequenceWriter writer = csvMapper.writerWithSchemaFor(Transaction.class).with(csvSchema).writeValues(file);
+                    for (Transaction transaction: transactionList) {
+                        writer.write(transaction);
+                    }
                 });
     }
 }
