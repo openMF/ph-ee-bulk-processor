@@ -35,4 +35,6 @@ public class CamelProperties {
 
     public static final String BATCH_STATUS_FAILED = "batchStatusFailed";
 
+    public static final String BATCH_REQUEST_TYPE = "batchRequestType";
+
 }
