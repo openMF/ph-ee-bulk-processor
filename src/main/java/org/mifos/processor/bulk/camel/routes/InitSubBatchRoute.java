@@ -47,7 +47,7 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 .process(exchange -> {
                     String tenantName = exchange.getProperty(TENANT_NAME, String.class);
                     List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
-                    if (transactionList.get(0).getPayment_mode().equalsIgnoreCase("slcb")) {
+                    if (transactionList.get(0).getPaymentMode().equalsIgnoreCase("slcb")) {
                         Map<String, Object> variables = new HashMap<>();
                         variables.put(BATCH_ID, exchange.getProperty(BATCH_ID));
                         variables.put(SUB_BATCH_ID, UUID.randomUUID().toString());

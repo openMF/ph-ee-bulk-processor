@@ -55,10 +55,10 @@ public class OrderingRoute extends BaseRouteBuilder {
                                 key = "" + transaction.getId();
                                 break;
                             case "request_id":
-                                key = transaction.getRequest_id();
+                                key = transaction.getRequestId();
                                 break;
                             case "account_number":
-                                key = transaction.getAccount_number();
+                                key = transaction.getAccountNumber();
                                 break;
                             case "amount":
                                 key = transaction.getAmount();
@@ -70,7 +70,7 @@ public class OrderingRoute extends BaseRouteBuilder {
                                 key = transaction.getNote();
                                 break;
                             default:
-                                key = transaction.getPayment_mode();
+                                key = transaction.getPaymentMode();
                                 break;
                         }
 

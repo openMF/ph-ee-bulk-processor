@@ -1,20 +1,52 @@
 package org.mifos.processor.bulk.schema;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.annotation.*;
+import jdk.nashorn.internal.ir.annotations.Ignore;
 
-@JsonPropertyOrder({ "id", "request_id", "payment_mode", "account_number", "amount", "currency", "note" })
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonPropertyOrder({ "id", "request_id", "payment_mode", "account_number", "payer_identifier_type", "payer_identifier", "payee_identifier_type", "payee_identifier", "amount", "currency", "note", "program_shortcode", "cycle" })
 public class Transaction implements CsvSchema {
 
+    @JsonProperty("id")
     private int id;
-    private String request_id;
-    private String payment_mode;
-    private String account_number;
-    private String amount;
-    private String currency;
-    private String note;
-    private String batchId;
 
+    @JsonProperty("request_id")
+    private String requestId;
+
+    @JsonProperty("payment_mode")
+    private String paymentMode;
+
+    @JsonProperty("account_number")
+    private String accountNumber;
+
+    @JsonProperty("amount")
+    private String amount;
+
+    @JsonProperty("currency")
+    private String currency;
+    @JsonProperty("note")
+    private String note;
+
+    @JsonProperty(value = "payer_identifier_type")
+    private String payerIdentifierType;
+
+    @JsonProperty("payer_identifier")
+    private String payerIdentifier;
+
+    @JsonProperty("payee_identifier_type")
+    private String payeeIdentifierType;
+
+    @JsonProperty("payee_identifier")
+    private String payeeIdentifier;
+
+    @JsonProperty("program_shortcode")
+    private String programShortCode;
+
+    @JsonProperty("cycle")
+    private String cycle;
+
+    @JsonIgnore
+    private String batchId;
 
     public int getId() {
         return id;
@@ -24,28 +56,28 @@ public class Transaction implements CsvSchema {
         this.id = id;
     }
 
-    public String getRequest_id() {
-        return request_id;
+    public String getRequestId() {
+        return requestId;
     }
 
-    public void setRequest_id(String request_id) {
-        this.request_id = request_id;
+    public void setRequestId(String requestId) {
+        this.requestId = requestId;
     }
 
-    public String getPayment_mode() {
-        return payment_mode;
+    public String getPaymentMode() {
+        return paymentMode;
     }
 
-    public void setPayment_mode(String payment_mode) {
-        this.payment_mode = payment_mode;
+    public void setPaymentMode(String paymentMode) {
+        this.paymentMode = paymentMode;
     }
 
-    public String getAccount_number() {
-        return account_number;
+    public String getAccountNumber() {
+        return accountNumber;
     }
 
-    public void setAccount_number(String account_number) {
-        this.account_number = account_number;
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
     }
 
     public String getAmount() {
@@ -72,10 +104,12 @@ public class Transaction implements CsvSchema {
         this.note = note;
     }
 
+    @JsonIgnore
     public String getBatchId() {
         return batchId;
     }
 
+    @JsonIgnore
     public void setBatchId(String batchId) {
         this.batchId = batchId;
     }
@@ -84,9 +118,9 @@ public class Transaction implements CsvSchema {
     public String toString() {
         return "Transaction{" +
                 "id=" + id +
-                ", request_id='" + request_id + '\'' +
-                ", payment_mode='" + payment_mode + '\'' +
-                ", account_number='" + account_number + '\'' +
+                ", request_id='" + requestId + '\'' +
+                ", payment_mode='" + paymentMode + '\'' +
+                ", account_number='" + accountNumber + '\'' +
                 ", amount='" + amount + '\'' +
                 ", currency='" + currency + '\'' +
                 ", note='" + note + '\'' +
@@ -94,10 +128,58 @@ public class Transaction implements CsvSchema {
                 '}';
     }
 
+    public String getPayerIdentifierType() {
+        return payerIdentifierType;
+    }
+
+    public void setPayerIdentifierType(String payerIdentifierType) {
+        this.payerIdentifierType = payerIdentifierType;
+    }
+
+    public String getPayerIdentifier() {
+        return payerIdentifier;
+    }
+
+    public void setPayerIdentifier(String payerIdentifier) {
+        this.payerIdentifier = payerIdentifier;
+    }
+
+    public String getPayeeIdentifierType() {
+        return payeeIdentifierType;
+    }
+
+    public void setPayeeIdentifierType(String payeeIdentifierType) {
+        this.payeeIdentifierType = payeeIdentifierType;
+    }
+
+    public String getPayeeIdentifier() {
+        return payeeIdentifier;
+    }
+
+    public void setPayeeIdentifier(String payeeIdentifier) {
+        this.payeeIdentifier = payeeIdentifier;
+    }
+
+    public String getProgramShortCode() {
+        return programShortCode;
+    }
+
+    public void setProgramShortCode(String programShortCode) {
+        this.programShortCode = programShortCode;
+    }
+
+    public String getCycle() {
+        return cycle;
+    }
+
+    public void setCycle(String cycle) {
+        this.cycle = cycle;
+    }
+
     @JsonIgnore
     @Override
     public String getCsvString() {
-        return String.format("%s,%s,%s,%s,%s,%s,%s", id, request_id, payment_mode, account_number, amount, currency, note);
+        return String.format("%s,%s,%s,%s,%s,%s,%s", id, requestId, paymentMode, accountNumber, amount, currency, note);
     }
 
     @JsonIgnore
