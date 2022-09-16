@@ -58,6 +58,8 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                         variables.put(ONGOING_AMOUNT, exchange.getProperty(ONGOING_AMOUNT));
                         variables.put(FAILED_AMOUNT, exchange.getProperty(FAILED_AMOUNT));
                         variables.put(COMPLETED_AMOUNT, exchange.getProperty(COMPLETED_AMOUNT));
+                        variables.put(RESULT_FILE, String.format("Result_%s",
+                                exchange.getProperty(SERVER_FILE_NAME)));
                         variables.put(PAYMENT_MODE, "slcb");
 
                         zeebeProcessStarter.startZeebeWorkflow(
