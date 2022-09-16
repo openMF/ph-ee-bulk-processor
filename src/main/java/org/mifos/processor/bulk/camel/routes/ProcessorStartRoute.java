@@ -105,9 +105,9 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                 .log("Validating tenant")
                 .process(exchange -> {
                     String tenantName = exchange.getIn().getHeader("Platform-TenantId", String.class);
-                    if (tenantName == null || tenantName.isEmpty() || !tenants.contains(tenantName)) {
+                    /*if (tenantName == null || tenantName.isEmpty() || !tenants.contains(tenantName)) {
                         throw new Exception("Invalid tenant value.");
-                    }
+                    }*/
                     exchange.setProperty(TENANT_NAME, tenantName);
                 })
                 .setHeader("Content-Type", constant("application/json;charset=UTF-8"))
