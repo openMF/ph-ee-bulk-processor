@@ -46,7 +46,9 @@ public class SplittingWorker extends BaseWorker {
             Boolean subBatchCreated = exchange.getProperty(SUB_BATCH_CREATED, Boolean.class);
             Optional<Boolean> subBatchCreatedOptional = Optional.ofNullable(subBatchCreated);
             List<String> serverSubBatchFileList = exchange.getProperty(SERVER_SUB_BATCH_FILE_NAME_ARRAY, List.class);
-            if (subBatchCreatedOptional.isPresent() && !subBatchCreatedOptional.get() && serverSubBatchFileList.isEmpty()) {
+            Optional<List<String>> serverSubBatchFileListOptional = Optional.ofNullable(serverSubBatchFileList);
+            if (subBatchCreatedOptional.isPresent() && !subBatchCreatedOptional.get() &&
+                    serverSubBatchFileListOptional.isPresent() && serverSubBatchFileList.isEmpty()) {
                 // if no sub-batches is created, insert the original filename in sub batch array
                 serverSubBatchFileList.add(filename);
                 subBatchCreated = false;

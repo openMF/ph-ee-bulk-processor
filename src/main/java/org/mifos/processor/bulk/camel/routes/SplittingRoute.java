@@ -54,6 +54,7 @@ public class SplittingRoute extends BaseRouteBuilder {
 
                     if (lines.size() <= subBatchSize) {
                         exchange.setProperty(SUB_BATCH_CREATED, false);
+                        exchange.setProperty(SERVER_SUB_BATCH_FILE_NAME_ARRAY, new ArrayList<String>());
                         logger.info("Skipping creating sub batch, as batch size is less than configured sub-batch size");
                         return;
                     }
