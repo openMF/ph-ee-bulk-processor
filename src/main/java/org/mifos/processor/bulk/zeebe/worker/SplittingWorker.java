@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
@@ -43,10 +44,12 @@ public class SplittingWorker extends BaseWorker {
             }
 
             Boolean subBatchCreated = exchange.getProperty(SUB_BATCH_CREATED, Boolean.class);
+            Optional<Boolean> subBatchCreatedOptional = Optional.ofNullable(subBatchCreated);
             List<String> serverSubBatchFileList = exchange.getProperty(SERVER_SUB_BATCH_FILE_NAME_ARRAY, List.class);
-            if (!subBatchCreated && serverSubBatchFileList.isEmpty()) {
+            if (subBatchCreatedOptional.isPresent() && !subBatchCreatedOptional.get() && serverSubBatchFileList.isEmpty()) {
                 // if no sub-batches is created, insert the original filename in sub batch array
                 serverSubBatchFileList.add(filename);
+                subBatchCreated = false;
             }
 
             variables.put(SPLITTING_FAILED, false);
