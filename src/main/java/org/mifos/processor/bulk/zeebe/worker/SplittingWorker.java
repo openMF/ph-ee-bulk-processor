@@ -4,12 +4,10 @@ import org.apache.camel.Exchange;
 import org.apache.camel.support.DefaultExchange;
 import org.mifos.processor.bulk.camel.routes.RouteId;
 import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
 
@@ -44,9 +42,9 @@ public class SplittingWorker extends BaseWorker {
             }
 
             Boolean subBatchCreated = exchange.getProperty(SUB_BATCH_CREATED, Boolean.class);
-            Optional<Boolean> subBatchCreatedOptional = Optional.ofNullable(subBatchCreated);
             List<String> serverSubBatchFileList = exchange.getProperty(SERVER_SUB_BATCH_FILE_NAME_ARRAY, List.class);
-            if (subBatchCreatedOptional.isPresent() && !subBatchCreatedOptional.get() && serverSubBatchFileList.isEmpty()) {
+            if (subBatchCreated != null && !subBatchCreated &&
+                    serverSubBatchFileList != null && serverSubBatchFileList.isEmpty()) {
                 // if no sub-batches is created, insert the original filename in sub batch array
                 serverSubBatchFileList.add(filename);
                 subBatchCreated = false;
