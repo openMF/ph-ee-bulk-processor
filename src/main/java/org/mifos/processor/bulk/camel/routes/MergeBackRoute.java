@@ -1,5 +1,7 @@
 package org.mifos.processor.bulk.camel.routes;
 
+import com.amazonaws.services.dynamodbv2.xspec.L;
+import org.apache.camel.Exchange;
 import org.mifos.processor.bulk.utility.Utils;
 import org.springframework.stereotype.Component;
 import java.io.File;
@@ -33,7 +35,8 @@ public class MergeBackRoute extends BaseRouteBuilder {
                 .process(exchange -> {
                     exchange.setProperty(MERGE_FAILED, false);
                     exchange.setProperty(MERGE_COMPLETED, true);
-                    exchange.setProperty(RESULT_FILE, exchange.getProperty(MERGE_FILE_LIST, List.class).get(0));
+                    String resultFile = (String) exchange.getProperty(MERGE_FILE_LIST, List.class).get(0);
+                    setResultFileProperty(exchange, resultFile);
                 })
                 .otherwise()
                 .to("direct:start-merge")
@@ -77,7 +80,7 @@ public class MergeBackRoute extends BaseRouteBuilder {
                     if (mergeList.size() == 1) {
                         exchange.setProperty(MERGE_FAILED, false);
                         exchange.setProperty(MERGE_COMPLETED, true);
-                        exchange.setProperty(RESULT_FILE, Utils.getAwsFileUrl(awsS3BaseUrl,mergedFileServerName));
+                        setResultFileProperty(exchange, mergedFileServerName);
                     } else {
                         exchange.setProperty(MERGE_COMPLETED, false);
                     }
@@ -106,5 +109,10 @@ public class MergeBackRoute extends BaseRouteBuilder {
                 })
                 .to("direct:download-file") // downloading second file
                 .setProperty(FILE_2, exchangeProperty(LOCAL_FILE_PATH));
+    }
+
+    // set RESULT_FILE exchange property to the file url
+    public void setResultFileProperty(Exchange exchange, String fileName) {
+        exchange.setProperty(RESULT_FILE, Utils.getAwsFileUrl(awsS3BaseUrl, fileName));
     }
 }
