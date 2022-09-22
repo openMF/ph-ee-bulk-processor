@@ -87,6 +87,8 @@ public class ZeebeVariables {
 
     public static final String RETRY = "retry";
 
+    public static final String CALLBACK_RETRY = "callbackRetryCount";
+
     public static final String SUCCESS_THRESHOLD = "successThreshold";
 
     public static final String SUCCESS_RATE = "successRate";
@@ -98,4 +100,12 @@ public class ZeebeVariables {
     public static final String THRESHOLD_DELAY = "thresholdDelay";
 
     public static final String PAYMENT_MODE = "paymentMode";
+
+    public static final String CALLBACK_SUCCESS = "callbackSuccessful";
+
+    public static final String CALLBACK_URL = "callbackUrl";
+
+    public static final String BULK_NOTIF_SUCCESS = "isNotificationsSuccessEnabled";
+
+    public static final String BULK_NOTIF_FAILURE = "isNotificationsFailureEnabled";
 }

@@ -146,6 +146,9 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
 
                     logger.info("File uploaded {}", nm);
 
+                    //extracting  and setting callback Url
+                    String callbackUrl = exchange.getIn().getHeader("Callback-Url", String.class);
+                    exchange.setProperty(CALLBACK_URL,callbackUrl);
 
                     Map<String, Object> variables = new HashMap<>();
                     variables.put(BATCH_ID, batchId);
@@ -153,6 +156,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     variables.put(REQUEST_ID, requestId);
                     variables.put(PURPOSE, purpose);
                     variables.put(TENANT_ID, exchange.getProperty(TENANT_NAME));
+                    variables.put(CALLBACK_URL,callbackUrl);
                     setConfigProperties(variables);
 
                     JSONObject response = new JSONObject();
@@ -204,6 +208,9 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
         variables.put(MAX_STATUS_RETRY, maxThresholdCheckRetry);
         variables.put(SUCCESS_THRESHOLD, successThreshold);
         variables.put(THRESHOLD_DELAY, Utils.getZeebeTimerValue(thresholdCheckDelay));
+        variables.put(BULK_NOTIF_SUCCESS,false);
+        variables.put(BULK_NOTIF_FAILURE,false);
+
         return variables;
     }
 

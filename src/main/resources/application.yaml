@@ -89,3 +89,6 @@ config:
     success-threshold: 95 # in percentage
     max-retry: 4
     delay: 60 # in seconds
+
+callback:
+  url: "http://httpstat.us/503"

@@ -8,6 +8,7 @@ public enum Worker {
     SPLITTING("splitting"),
     FORMATTING("formatting"),
     BATCH_STATUS("batchStatus"),
+    SEND_CALLBACK("sendCallback"),
     MERGE_BACK("mergeSubBatch"),
 
     INIT_SUB_BATCH("initSubBatch");
