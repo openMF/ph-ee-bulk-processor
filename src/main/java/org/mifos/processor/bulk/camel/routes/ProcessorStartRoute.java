@@ -64,6 +64,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
         from("rest:POST:/batchtransactions")
                 .id("rest:POST:/batchtransactions")
                 .log("Starting route rest:POST:/batchtransactions")
+                .unmarshal().mimeMultipart("multipart/*")
                 .to("direct:validate-tenant")
                 .process(exchange -> {
                     String filename = exchange.getIn().getHeader("filename", String.class);
@@ -105,6 +106,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                 .log("Validating tenant")
                 .process(exchange -> {
                     String tenantName = exchange.getIn().getHeader("Platform-TenantId", String.class);
+                    // validation is disabled for now
                     /*if (tenantName == null || tenantName.isEmpty() || !tenants.contains(tenantName)) {
                         throw new Exception("Invalid tenant value.");
                     }*/
