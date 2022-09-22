@@ -8,6 +8,7 @@ public enum RouteId {
     SPLITTING("direct:splitting"),
     FORMATTING("direct:formatting"),
     BATCH_STATUS("direct:batchStatus"),
+    SEND_CALLBACK("direct:sendCallback"),
     MERGE_BACK("direct:mergeSubBatch"),
     INIT_SUB_BATCH("direct:init-sub-batches");
 
