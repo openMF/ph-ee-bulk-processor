@@ -118,12 +118,18 @@ public class Transaction implements CsvSchema {
     public String toString() {
         return "Transaction{" +
                 "id=" + id +
-                ", request_id='" + requestId + '\'' +
-                ", payment_mode='" + paymentMode + '\'' +
-                ", account_number='" + accountNumber + '\'' +
+                ", requestId='" + requestId + '\'' +
+                ", paymentMode='" + paymentMode + '\'' +
+                ", accountNumber='" + accountNumber + '\'' +
                 ", amount='" + amount + '\'' +
                 ", currency='" + currency + '\'' +
                 ", note='" + note + '\'' +
+                ", payerIdentifierType='" + payerIdentifierType + '\'' +
+                ", payerIdentifier='" + payerIdentifier + '\'' +
+                ", payeeIdentifierType='" + payeeIdentifierType + '\'' +
+                ", payeeIdentifier='" + payeeIdentifier + '\'' +
+                ", programShortCode='" + programShortCode + '\'' +
+                ", cycle='" + cycle + '\'' +
                 ", batchId='" + batchId + '\'' +
                 '}';
     }
