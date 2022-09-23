@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.SequenceWriter;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import org.mifos.processor.bulk.schema.Transaction;
+import org.mifos.processor.bulk.schema.TransactionResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import java.io.*;
@@ -56,6 +57,27 @@ public class FileProcessingRoute extends BaseRouteBuilder {
          * updates the data in local file
          * exchangeInput:
          *      [LOCAL_FILE_PATH] the absolute path to the csv file
+         *      [RESULT_TRANSACTION_LIST] containing the list of [Transaction]
+         *      [OVERRIDE_HEADER] if set to true will override the header or else use the existing once in csv file
+         */
+        from("direct:update-result-file")
+                .id("direct:update-result-file")
+                .log("Starting route direct:update-result-file")
+                .process(exchange -> {
+                    String filepath = exchange.getProperty(LOCAL_FILE_PATH, String.class);
+                    List<TransactionResult> transactionList = exchange.getProperty(RESULT_TRANSACTION_LIST, List.class);
+
+                    // getting header
+                    Boolean overrideHeader = exchange.getProperty(OVERRIDE_HEADER, Boolean.class);
+
+                    csvWriter(transactionList, TransactionResult.class, csvMapper, overrideHeader, filepath);
+                })
+                .log("Update complete");
+
+        /**
+         * updates the data in local file
+         * exchangeInput:
+         *      [LOCAL_FILE_PATH] the absolute path to the csv file
          *      [TRANSACTION_LIST] containing the list of [Transaction]
          *      [OVERRIDE_HEADER] if set to true will override the header or else use the existing once in csv file
          */
@@ -94,5 +116,21 @@ public class FileProcessingRoute extends BaseRouteBuilder {
                         writer.write(transaction);
                     }
                 });
+    }
+
+    private <T> void csvWriter(List<T> data, Class<T> tClass, CsvMapper csvMapper,
+                               boolean overrideHeader, String filepath) throws IOException {
+        CsvSchema csvSchema = csvMapper.schemaFor(tClass);
+        if (overrideHeader) {
+            csvSchema = csvSchema.withHeader();
+        } else {
+            csvSchema = csvSchema.withoutHeader();
+        }
+
+        File file = new File(filepath);
+        SequenceWriter writer = csvMapper.writerWithSchemaFor(tClass).with(csvSchema).writeValues(file);
+        for (T object: data) {
+            writer.write(object);
+        }
     }
 }
