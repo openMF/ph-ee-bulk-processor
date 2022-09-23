@@ -56,8 +56,8 @@ public class InitSubBatchWorker extends BaseWorker {
 
             sendToCamelRoute(RouteId.INIT_SUB_BATCH, exchange);
 
-            boolean subBatchFailed = exchange.getProperty(INIT_SUB_BATCH_FAILED, Boolean.class);
-            if (subBatchFailed) {
+            Boolean subBatchFailed = exchange.getProperty(INIT_SUB_BATCH_FAILED, Boolean.class);
+            if (subBatchFailed != null && subBatchFailed) {
                 failureSubBatches.add(fileName);
             } else {
                 successSubBatches.add(fileName);
