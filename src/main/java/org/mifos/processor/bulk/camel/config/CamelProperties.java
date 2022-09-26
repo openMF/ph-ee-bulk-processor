@@ -39,4 +39,8 @@ public class CamelProperties {
 
     public static final String BATCH_REQUEST_TYPE = "batchRequestType";
 
+    public static final String RESULT_TRANSACTION_LIST = "resultTransactionList";
+
+    public static final String ZEEBE_VARIABLE = "zeebeVariable";
+
 }

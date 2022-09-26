@@ -1,5 +1,8 @@
 package org.mifos.processor.bulk.utility;
 
+import org.mifos.processor.bulk.schema.Transaction;
+import org.mifos.processor.bulk.schema.TransactionResult;
+
 import javax.net.ssl.*;
 import java.io.*;
 import java.net.URL;
@@ -64,6 +67,27 @@ public class Utils {
 
     public static String getZeebeTimerValue(int timer) {
         return String.format("PT%sS", timer);
+    }
+
+    public static TransactionResult mapToResultDTO(Transaction transaction) {
+        TransactionResult transactionResult = new TransactionResult();
+        transactionResult.setId(transaction.getId());
+        transactionResult.setRequestId(transaction.getRequestId());
+        transactionResult.setPaymentMode(transaction.getPaymentMode());
+        transactionResult.setPayerIdentifierType("accountNumber");
+        transactionResult.setPayerIdentifier(transaction.getPayerIdentifier());
+        transactionResult.setAmount(transaction.getAmount());
+        transactionResult.setCurrency(transactionResult.getCurrency());
+        transactionResult.setNote(transactionResult.getNote());
+        transactionResult.setPayeeIdentifierType("accountNumber");
+        if (transaction.getAccountNumber() != null) {
+            transactionResult.setPayeeIdentifier(transaction.getAccountNumber());
+        } else {
+            transactionResult.setPayeeIdentifier(transaction.getPayeeIdentifier());
+        }
+        transactionResult.setProgramShortCode(transaction.getProgramShortCode());
+        transactionResult.setCycle(transactionResult.getCycle());
+        return transactionResult;
     }
 
 }
