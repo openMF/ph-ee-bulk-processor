@@ -7,6 +7,13 @@ camel:
       json-jackson:
         auto-discover-object-mapper: true
 
+kafka:
+  bootstrapAddress: "kafka:9092"
+  topic:
+    gsma:
+      name: gsma
+    slcb:
+      name: slcb
 
 application:
   bucket-name: paymenthub-ee-dev
