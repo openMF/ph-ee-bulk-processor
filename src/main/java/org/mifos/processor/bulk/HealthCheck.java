@@ -8,7 +8,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.mifos.processor.bulk.file.FileTransferService;
-import org.mifos.processor.bulk.schema.Transaction;
+import org.mifos.processor.bulk.schema.TransactionOlder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,8 +19,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
+
 @Component
-@Deprecated
 public class HealthCheck extends RouteBuilder {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -44,6 +45,12 @@ public class HealthCheck extends RouteBuilder {
     @Value("${zeebe.client.evenly-allocated-max-jobs}")
     private int workerMaxJobs;
 
+    @Value(value = "${kafka.topic.gsma.name}")
+    private String gsmaTopicName;
+
+    @Value(value = "${kafka.topic.slcb.name}")
+    private String slcbTopicName;
+
     @Override
     public void configure() {
         from("rest:GET:/")
@@ -56,24 +63,25 @@ public class HealthCheck extends RouteBuilder {
                 .process(exchange -> {
                     String fileName = exchange.getIn().getHeader("fileName", String.class);
                     String batchId = UUID.randomUUID().toString();
+                    exchange.setProperty(BATCH_ID, batchId);
 
                     // TODO: How to get sender information? Hard coded in Channel connector?
                     byte[] csvFile = fileTransferService.downloadFile(fileName, bucketName);
 
                     CsvSchema schema = CsvSchema.emptySchema().withHeader();
-                    MappingIterator<Transaction> readValues = csvMapper.readerWithSchemaFor(Transaction.class).with(schema).readValues(csvFile);
+                    MappingIterator<TransactionOlder> readValues = csvMapper.readerWithSchemaFor(TransactionOlder.class).with(schema).readValues(csvFile);
 
-                    /*while (readValues.hasNext()) {
-                        Transaction current = readValues.next();
+                    while (readValues.hasNext()) {
+                        TransactionOlder current = readValues.next();
                         current.setBatchId(batchId);
-                        System.out.println(objectMapper.writeValueAsString(current));
-                        if (current.getPayment_mode().equals("gsma"))
+                        logger.info("Writing string in kafka {}", objectMapper.writeValueAsString(current));
+                        if (current.getPaymentMode().equals("gsma") || current.getPaymentMode().equals("afrimoney"))
                             kafkaTemplate.send(gsmaTopicName, objectMapper.writeValueAsString(current));
-                        else if (current.getPayment_mode().equals("sclb"))
+                        else if (current.getPaymentMode().equals("sclb"))
                             kafkaTemplate.send(slcbTopicName, objectMapper.writeValueAsString(current));
-                    }*/
+                    }
                 })
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(200))
-                .setBody(constant(""));
+                .setBody(exchange -> exchange.getProperty(BATCH_ID));
     }
 }
