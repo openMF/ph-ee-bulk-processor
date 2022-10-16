@@ -23,6 +23,8 @@ public class CamelProperties {
 
     public static final String TRANSACTION_LIST = "transactionList";
 
+    public static final String GSMA_CHANNEL_REQUEST = "gsmaChannelRequest";
+
     public static final String OVERRIDE_HEADER = "overrideHeader";
 
     public static final String TENANT_NAME = "tenantName";

@@ -37,6 +37,9 @@ operations-app:
     batch-summary: "/api/v1/batch"
     batch-transaction: "/api/v1/batch/transactions"
 
+channel:
+  hostname: "http://ph-ee-connector-channel"
+
 cloud:
   aws:
     enabled: true
