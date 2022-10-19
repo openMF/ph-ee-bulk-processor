@@ -32,7 +32,7 @@ public class FileProcessingRoute extends BaseRouteBuilder {
                 .id("direct:get-transaction-array")
                 .log("Starting route direct:get-transaction-array")
                 .process(exchange -> {
-                    Long totalAmount = 0L;
+                    Double totalAmount = 0.0;
                     Long failedAmount = 0L;
                     Long completedAmount = 0L;
                     String filename = exchange.getProperty(LOCAL_FILE_PATH, String.class);
@@ -43,7 +43,7 @@ public class FileProcessingRoute extends BaseRouteBuilder {
                     while (readValues.hasNext()) {
                         Transaction current = readValues.next();
                         transactionList.add(current);
-                        totalAmount += Long.parseLong(current.getAmount());
+                        totalAmount += Double.parseDouble(current.getAmount());
                     }
                     reader.close();
                     exchange.setProperty(TRANSACTION_LIST, transactionList);
