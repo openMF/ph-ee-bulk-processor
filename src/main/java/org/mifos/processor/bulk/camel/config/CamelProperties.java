@@ -45,4 +45,8 @@ public class CamelProperties {
 
     public static final String ZEEBE_VARIABLE = "zeebeVariable";
 
+    public static final String EXTERNAL_ENDPOINT_FAILED = "extEndpointFailed";
+
+    public static final String EXTERNAL_ENDPOINT = "extEndpoint";
+
 }

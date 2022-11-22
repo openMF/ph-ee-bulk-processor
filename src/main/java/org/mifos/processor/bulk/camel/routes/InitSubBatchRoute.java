@@ -4,6 +4,8 @@ package org.mifos.processor.bulk.camel.routes;
 
 import org.mifos.connector.common.gsma.dto.*;
 import org.mifos.processor.bulk.camel.config.CamelProperties;
+import org.mifos.processor.bulk.config.PaymentModeApiMapping;
+import org.mifos.processor.bulk.config.PaymentModeConfiguration;
 import org.mifos.processor.bulk.schema.TransactionResult;
 import org.mifos.processor.bulk.utility.Utils;
 import org.mifos.processor.bulk.schema.Transaction;
@@ -25,6 +27,9 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
 
     @Autowired
     private BpmnConfig bpmnConfig;
+
+    @Autowired
+    private PaymentModeConfiguration paymentModeConfiguration;
 
     @Value("${channel.hostname}")
     private String ChannelURL;
@@ -107,7 +112,7 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     return gsmaTransaction;
                 })
                 .marshal().json()
-                .toD(ChannelURL + "/channel/gsma/transfer" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
+                .to("direct:external-api-call") // loads the endpoint based on configuration and calls the external api
                 .log("Completed start of workflow for gsma")
                 .choice()
                 .when(header("CamelHttpResponseCode").isEqualTo(200))
@@ -146,6 +151,26 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 })
                 .to("direct:update-result-file")
                 .to("direct:upload-file");
+
+
+        from("direct:external-api-call")
+                .id("direct:external-api-call")
+                .log("Starting route direct:external-api-call")
+                .process(exchange -> {
+                    String paymentMde = exchange.getProperty(PAYMENT_MODE, String.class);
+                    PaymentModeApiMapping mapping = paymentModeConfiguration.getByMode(paymentMde);
+                    if (mapping == null) {
+                        exchange.setProperty(EXTERNAL_ENDPOINT_FAILED, true);
+                    } else {
+                        exchange.setProperty(EXTERNAL_ENDPOINT_FAILED, false);
+                        exchange.setProperty(EXTERNAL_ENDPOINT, mapping.getEndpoint());
+                    }
+                })
+                .choice()
+                .when(exchangeProperty(EXTERNAL_ENDPOINT_FAILED).isEqualTo(false))
+                .toD(ChannelURL + "${exchangeProperty.EXTERNAL_ENDPOINT}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
+                .otherwise()
+                .endChoice();
 
     }
 
