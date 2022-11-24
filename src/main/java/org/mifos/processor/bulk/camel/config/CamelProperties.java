@@ -49,4 +49,6 @@ public class CamelProperties {
 
     public static final String EXTERNAL_ENDPOINT = "extEndpoint";
 
+    public static final String PAYLOAD_LIST = "payloadList";
+
 }
