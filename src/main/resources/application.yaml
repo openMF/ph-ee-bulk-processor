@@ -75,6 +75,13 @@ bpmn:
     bulk-processor: "bulk_processor-ibank-usa"
     slcb: "slcb-{dfspid}"
 
+payment-mode:
+  mapping:
+    - id: "GMSA"
+      endpoint: "/channel/gsma/transfer"
+    - id: "MOJALOOP"
+      endpoint: "/channel/transfer"
+
 config:
   minimum-successful-tx-ratio: 0.90
   partylookup:
