@@ -2,6 +2,7 @@ package org.mifos.processor.bulk.camel.routes;
 
 
 
+import org.apache.camel.Exchange;
 import org.mifos.connector.common.gsma.dto.*;
 import org.mifos.processor.bulk.camel.config.CamelProperties;
 import org.mifos.processor.bulk.config.PaymentModeApiMapping;
@@ -98,13 +99,17 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     Map<String, Object> variables = exchange.getProperty(ZEEBE_VARIABLE, Map.class);
                     variables.put(PAYMENT_MODE, "gsma");
                     List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
-                    while(transactionList.size() > 0) {
-                        GSMATransaction gsmaTransaction = convertTxnToGSMA(transactionList.get(0));
-                        exchange.setProperty(GSMA_CHANNEL_REQUEST, gsmaTransaction);
-                        exchange.setProperty(INIT_SUB_BATCH_FAILED, false);
-                        transactionList.remove(0);
-                    }
+                    exchange.setProperty("length",transactionList.size());
 
+                })
+                .loop(simple("${exchangeProperty.length}"))
+                .process(exchange -> {
+                    int index = exchange.getProperty(Exchange.LOOP_INDEX, Integer.class);
+                    GSMATransaction gsmaTransaction =
+                            convertTxnToGSMA((Transaction) exchange.getProperty(TRANSACTION_LIST, List.class)
+                            .get(index));
+                    exchange.setProperty(GSMA_CHANNEL_REQUEST, gsmaTransaction);
+                    exchange.setProperty(INIT_SUB_BATCH_FAILED, false);
                 })
                 .setHeader("Platform-TenantId", exchangeProperty(TENANT_NAME))
                 .setBody(exchange-> {
@@ -114,6 +119,7 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 .marshal().json()
                 .to("direct:external-api-call") // loads the endpoint based on configuration and calls the external api
                 .log("Completed start of workflow for gsma")
+                .end()
                 .choice()
                 .when(header("CamelHttpResponseCode").isEqualTo(200))
                 .process(exchange -> {
