@@ -1,7 +1,11 @@
 package org.mifos.processor.bulk.camel.routes;
 
+import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
 import org.mifos.processor.bulk.camel.processor.GsmaApiProcessor;
-import org.mifos.processor.bulk.config.PaymentModeApiMapping;
+import org.mifos.processor.bulk.config.ExternalApiProcessor;
+import org.mifos.processor.bulk.config.PaymentModeType;
+import org.mifos.processor.bulk.config.PaymentModeMapping;
 import org.mifos.processor.bulk.config.PaymentModeConfiguration;
 import org.mifos.processor.bulk.schema.TransactionResult;
 import org.mifos.processor.bulk.utility.Utils;
@@ -28,10 +32,16 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
     private PaymentModeConfiguration paymentModeConfiguration;
 
     @Autowired
+    private ExternalApiProcessor externalApiProcessor;
+
+    @Autowired
     private GsmaApiProcessor gsmaApiProcessor;
 
     @Value("${channel.hostname}")
     private String ChannelURL;
+
+    // holds the processor instance for small instance for specific payment mode
+    private Processor localProcessorVariable;
 
 
     @Override
@@ -77,28 +87,65 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 })
                 .to("direct:start-workflow-step2");
 
-        // Loops through each transaction and start the respective workflow
+
         from("direct:start-workflow-step2")
                 .id("direct:start-flow-step2")
                 .log("Starting route direct:start-flow-step2")
+                .to("direct:validate-payment-mode")
                 .choice()
-                .when(exchangeProperty(PAYMENT_MODE).isEqualToIgnoreCase("slcb"))
+                // if invalid payment mode
+                .when(exchangeProperty(IS_PAYMENT_MODE_VALID).isEqualTo(false))
+                .to("direct:payment-mode-missing")
+                .setProperty(INIT_SUB_BATCH_FAILED, constant(true))
+                // else
+                .otherwise()
+                .to("direct:start-workflow-step3")
+                .endChoice();
+
+        from("direct:start-workflow-step3")
+                .id("direct:start-flow-step3")
+                .log("Starting route direct:start-flow-step3")
+                .choice()
+                // if type of payment mode is bulk
+                .when(exchangeProperty(PAYMENT_MODE_TYPE).isEqualTo(PaymentModeType.BULK))
                 .process(exchange -> {
+                    String paymentMode = exchange.getProperty(PAYMENT_MODE, String.class);
+                    PaymentModeMapping mapping = paymentModeConfiguration.getByMode(paymentMode);
+
                     String tenantName = exchange.getProperty(TENANT_NAME, String.class);
                     Map<String, Object> variables = exchange.getProperty(ZEEBE_VARIABLE, Map.class);
-                    variables.put(PAYMENT_MODE, "slcb");
+                    variables.put(PAYMENT_MODE, paymentMode);
                     zeebeProcessStarter.startZeebeWorkflow(
-                            Utils.getTenantSpecificWorkflowId(bpmnConfig.slcbBpmn, tenantName), variables);
+                            Utils.getBulkConnectorBpmnName(mapping.getEndpoint(), mapping.getId().toLowerCase(), tenantName),
+                            variables);
                     exchange.setProperty(INIT_SUB_BATCH_FAILED, false);
                 })
+                // if type of payment mode is payment todo // else case or else if case ?
                 .otherwise()
-                .when(exchangeProperty(PAYMENT_MODE).isEqualToIgnoreCase("gsma"))
-                .process(gsmaApiProcessor)
+                .loop(simple("${exchangeProperty." + TRANSACTION_LIST_LENGTH + "}"))
+                .process(exchange -> {
+                    int index = exchange.getProperty(Exchange.LOOP_INDEX, Integer.class);
+                    List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
+                    Transaction transaction = transactionList.get(index);
+                    exchange.setProperty(TRANSACTION_LIST_ELEMENT, transaction);
+                })
+                .setHeader("Platform-TenantId", exchangeProperty(TENANT_NAME))
+                .process(exchange -> {
+                    localProcessorVariable =
+                            externalApiProcessor.getApiProcessor(exchange.getProperty(PAYMENT_MODE, String.class));
+                })
+                // this processor sets the header and body for respective API based on payment mode
+                .process(localProcessorVariable)
                 .marshal().json()
-                // ADD LOOP AND REST OF THE CASE
-                .to("direct:external-api-call") // loads the endpoint based on configuration and calls the external api
-                .log("Completed start of workflow for gsma")
-                .end()
+                .to("direct:external-api-call")
+                .to("direct:external-api-response-handler")
+                .end() // end loop block
+                .endChoice();
+
+        // Loops through each transaction and start the respective workflow
+        from("direct:external-api-response-handler")
+                .id("direct:external-api-response-handler")
+                .log("Starting route direct:external-api-response-handler")
                 .choice()
                 .when(header("CamelHttpResponseCode").isEqualTo(200))
                 .process(exchange -> {
@@ -108,10 +155,6 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 .process(exchange -> {
                     exchange.setProperty(INIT_SUB_BATCH_FAILED, true);
                 })
-                .endChoice()
-                .otherwise()
-                .to("direct:payment-mode-missing")
-                .setProperty(INIT_SUB_BATCH_FAILED, constant(true))
                 .endChoice();
 
         from("direct:payment-mode-missing")
@@ -126,7 +169,7 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     exchange.setProperty(RESULT_TRANSACTION_LIST, transactionResultList);
                     exchange.setProperty(RESULT_FILE, resultFile);
                 })
-                // setting localfilpath as result file to make sure result file is uploaded
+                // setting localfilepath as result file to make sure result file is uploaded
                 .setProperty(LOCAL_FILE_PATH, exchangeProperty(RESULT_FILE))
                 .setProperty(OVERRIDE_HEADER, constant(true))
                 .process(exchange -> {
@@ -143,15 +186,13 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 .log("Starting route direct:external-api-call")
                 .process(exchange -> {
                     String paymentMde = exchange.getProperty(PAYMENT_MODE, String.class);
-                    PaymentModeApiMapping mapping = paymentModeConfiguration.getByMode(paymentMde);
+                    PaymentModeMapping mapping = paymentModeConfiguration.getByMode(paymentMde);
                     if (mapping == null) {
                         exchange.setProperty(EXTERNAL_ENDPOINT_FAILED, true);
                     } else {
                         exchange.setProperty(EXTERNAL_ENDPOINT_FAILED, false);
                         exchange.setProperty(EXTERNAL_ENDPOINT, mapping.getEndpoint());
                     }
-
-
                 })
                 .choice()
                 .when(exchangeProperty(EXTERNAL_ENDPOINT_FAILED).isEqualTo(false))
@@ -160,6 +201,19 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 .endChoice();
 
 
+        from("direct:validate-payment-mode")
+                .id("direct:validate-payment-mode")
+                .log("Starting route direct:validate-payment-mode")
+                .process(exchange -> {
+                    String paymentMde = exchange.getProperty(PAYMENT_MODE, String.class);
+                    PaymentModeMapping mapping = paymentModeConfiguration.getByMode(paymentMde);
+                    if (mapping == null) {
+                        exchange.setProperty(IS_PAYMENT_MODE_VALID, false);
+                    } else {
+                        exchange.setProperty(IS_PAYMENT_MODE_VALID, true);
+                        exchange.setProperty(PAYMENT_MODE_TYPE, mapping.getType());
+                    }
+                });
     }
 
     // update Transactions status to failed

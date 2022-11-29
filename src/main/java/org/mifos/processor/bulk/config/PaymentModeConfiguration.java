@@ -9,14 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-@ConfigurationProperties(prefix = "bpmn")
+@ConfigurationProperties(prefix = "payment-mode")
 @Setter
 @Getter
 public class PaymentModeConfiguration {
 
-    private List<PaymentModeApiMapping> mappings = new ArrayList<>();
+    private List<PaymentModeMapping> mappings = new ArrayList<>();
 
-    public PaymentModeApiMapping getByMode(String paymentMode) {
+    public PaymentModeMapping getByMode(String paymentMode) {
         return getMappings().stream()
                 .filter(p -> p.getId().equalsIgnoreCase(paymentMode))
                 .findFirst()

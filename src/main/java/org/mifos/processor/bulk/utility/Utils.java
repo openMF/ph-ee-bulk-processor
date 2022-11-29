@@ -24,6 +24,11 @@ public class Utils {
         return originalWorkflowName.replace("{dfspid}", tenantName);
     }
 
+    public static String getBulkConnectorBpmnName(String originalWorkflowName,
+                                                  String paymentMode, String tenantName) {
+        return originalWorkflowName.replace("{MODE}", paymentMode).replace("{dfspid}", tenantName);
+    }
+
     public static String mergeCsvFile(String file1, String file2) {
         try {
             // create a writer for permFile

@@ -78,9 +78,14 @@ bpmn:
 payment-mode:
   mapping:
     - id: "GMSA"
+      type: "PAYMENT"
       endpoint: "/channel/gsma/transfer"
     - id: "MOJALOOP"
+      type: "PAYMENT"
       endpoint: "/channel/transfer"
+    - id: "SLCB"
+      type: "BULK"
+      endpoint: "bulk_connector_{MODE}-{dfspid}"
 
 config:
   minimum-successful-tx-ratio: 0.90

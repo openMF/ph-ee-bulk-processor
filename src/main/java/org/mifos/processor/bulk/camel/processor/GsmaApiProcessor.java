@@ -18,19 +18,9 @@ public class GsmaApiProcessor implements Processor {
 
     @Override
     public void process(Exchange exchange) throws Exception {
-
-        Map<String, Object> variables = exchange.getProperty(ZEEBE_VARIABLE, Map.class);
-        variables.put(PAYMENT_MODE, "gsma");
-        List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
-        while(transactionList.size() > 0) {
-            GSMATransaction gsmaTransaction = Utils.convertTxnToGSMA(transactionList.get(0));
-            exchange.setProperty(GSMA_CHANNEL_REQUEST, gsmaTransaction);
-            exchange.setProperty(INIT_SUB_BATCH_FAILED, false);
-            transactionList.remove(0);
-        }
-
+        Transaction transaction = exchange.getProperty(TRANSACTION_LIST_ELEMENT, Transaction.class);
         exchange.getIn().setHeader("Platform-TenantId", exchange.getProperty(TENANT_NAME));
-        GSMATransaction gsmaTransaction = exchange.getProperty(GSMA_CHANNEL_REQUEST, GSMATransaction.class);
+        GSMATransaction gsmaTransaction = Utils.convertTxnToGSMA(transaction);
         exchange.getIn().setBody(gsmaTransaction);
     }
 }
