@@ -1,12 +1,7 @@
 package org.mifos.processor.bulk.camel.routes;
 
 import org.apache.camel.Exchange;
-import org.apache.camel.Processor;
-import org.mifos.processor.bulk.camel.processor.GsmaApiProcessor;
-import org.mifos.processor.bulk.config.ExternalApiProcessor;
-import org.mifos.processor.bulk.config.PaymentModeType;
-import org.mifos.processor.bulk.config.PaymentModeMapping;
-import org.mifos.processor.bulk.config.PaymentModeConfiguration;
+import org.mifos.processor.bulk.config.*;
 import org.mifos.processor.bulk.schema.TransactionResult;
 import org.mifos.processor.bulk.utility.Utils;
 import org.mifos.processor.bulk.schema.Transaction;
@@ -16,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.util.*;
+import java.util.function.Function;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
 
@@ -32,16 +28,10 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
     private PaymentModeConfiguration paymentModeConfiguration;
 
     @Autowired
-    private ExternalApiProcessor externalApiProcessor;
-
-    @Autowired
-    private GsmaApiProcessor gsmaApiProcessor;
+    private ExternalApiPayloadConfig externalApiPayloadConfig;
 
     @Value("${channel.hostname}")
     private String ChannelURL;
-
-    // holds the processor instance for small instance for specific payment mode
-    private Processor localProcessorVariable;
 
 
     @Override
@@ -130,17 +120,23 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     exchange.setProperty(TRANSACTION_LIST_ELEMENT, transaction);
                 })
                 .setHeader("Platform-TenantId", exchangeProperty(TENANT_NAME))
-                .process(exchange -> {
-                    localProcessorVariable =
-                            externalApiProcessor.getApiProcessor(exchange.getProperty(PAYMENT_MODE, String.class));
-                })
-                // this processor sets the header and body for respective API based on payment mode
-                .process(localProcessorVariable)
+                .to("direct:dynamic-payload-setter")
                 .marshal().json()
                 .to("direct:external-api-call")
                 .to("direct:external-api-response-handler")
                 .end() // end loop block
                 .endChoice();
+
+        from("direct:dynamic-payload-setter")
+                .id("direct:runtime-payload-test")
+                .log("Starting route direct:runtime-payload-test")
+                .process(exchange -> {
+                    String mode = exchange.getProperty(PAYMENT_MODE, String.class);
+                    Function<Exchange, String> localPayloadVariable = externalApiPayloadConfig.getApiPayloadSetter(mode);
+                    exchange.setProperty("body", localPayloadVariable.apply(exchange));
+                })
+                // this payload variable returns the body for respective payment modes
+                .setBody(simple("${exchangeProperty.body}"));
 
         // Loops through each transaction and start the respective workflow
         from("direct:external-api-response-handler")

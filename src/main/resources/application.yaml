@@ -76,8 +76,8 @@ bpmn:
     slcb: "slcb-{dfspid}"
 
 payment-mode:
-  mapping:
-    - id: "GMSA"
+  mappings:
+    - id: "GSMA"
       type: "PAYMENT"
       endpoint: "/channel/gsma/transfer"
     - id: "MOJALOOP"

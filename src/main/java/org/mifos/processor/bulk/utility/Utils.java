@@ -26,7 +26,7 @@ public class Utils {
 
     public static String getBulkConnectorBpmnName(String originalWorkflowName,
                                                   String paymentMode, String tenantName) {
-        return originalWorkflowName.replace("{MODE}", paymentMode).replace("{dfspid}", tenantName);
+        return originalWorkflowName.replace("{MODE}", paymentMode.toLowerCase()).replace("{dfspid}", tenantName);
     }
 
     public static String mergeCsvFile(String file1, String file2) {

@@ -59,4 +59,6 @@ public class CamelProperties {
 
     public static final String PAYMENT_MODE_TYPE = "paymentModeType";
 
+    public static final String PAYLOAD = "payload";
+
 }
