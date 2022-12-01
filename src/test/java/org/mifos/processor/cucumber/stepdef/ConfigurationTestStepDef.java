@@ -8,16 +8,14 @@ import org.apache.camel.Exchange;
 import org.mifos.processor.bulk.config.PaymentModeMapping;
 import org.mifos.processor.bulk.config.PaymentModeType;
 import org.mifos.processor.bulk.utility.Utils;
-
 import java.util.function.Function;
-
 import static com.google.common.truth.Truth.assertThat;
 
 public class ConfigurationTestStepDef extends BaseStepDef {
 
     @Given("Application context is loaded")
     public void applicationContextIsLoaded() {
-        System.out.println("Context is loaded");
+        assertThat(context).isNotNull();
     }
 
     @When("I assert the payment mode config")
@@ -28,11 +26,6 @@ public class ConfigurationTestStepDef extends BaseStepDef {
     @Then("I should get the non empty payment modes")
     public void nonEmptyPaymentModesCheck() {
         assertThat(paymentModeConfiguration.getMappings()).isNotEmpty();
-        for (PaymentModeMapping mapping : paymentModeConfiguration.getMappings()) {
-            System.out.println(mapping.getId());
-            System.out.println(mapping.getType());
-            System.out.println(mapping.getEndpoint());
-        }
     }
 
     @And("I should be able fetch the mapping for mode {string}")
@@ -60,7 +53,6 @@ public class ConfigurationTestStepDef extends BaseStepDef {
         String generatedBpmnName = Utils.getBulkConnectorBpmnName(mapping.getEndpoint(),
                 mapping.getId(), BaseStepDef.tenant);
         assertThat(bpmnName).isEqualTo(generatedBpmnName);
-        System.out.println(generatedBpmnName);
     }
 
     @And("I have tenant as {string}")

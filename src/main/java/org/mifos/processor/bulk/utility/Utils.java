@@ -5,18 +5,10 @@ import org.mifos.connector.common.gsma.dto.*;
 import org.mifos.connector.common.mojaloop.dto.MoneyData;
 import org.mifos.connector.common.mojaloop.dto.Party;
 import org.mifos.connector.common.mojaloop.dto.PartyIdInfo;
-import org.mifos.connector.common.mojaloop.dto.Payer;
 import org.mifos.connector.common.mojaloop.type.IdentifierType;
 import org.mifos.processor.bulk.schema.Transaction;
 import org.mifos.processor.bulk.schema.TransactionResult;
-
-import javax.net.ssl.*;
 import java.io.*;
-import java.net.URL;
-import java.net.URLConnection;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
 
 public class Utils {
 
