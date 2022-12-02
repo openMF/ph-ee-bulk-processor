@@ -39,8 +39,9 @@ public class ExternalApiPayloadConfig {
         }
     }
 
-    public Function<Exchange, String> getApiPayloadSetter(String id) {
-        return payloadMap.get(id);
+    public Function<Exchange, String> getApiPayloadSetter(String paymentMode) {
+        PaymentModeMapping mapping = paymentModeConfiguration.getByMode(paymentMode);
+        return payloadMap.get(mapping.getId());
     }
 
 }

@@ -133,6 +133,8 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 .process(exchange -> {
                     String mode = exchange.getProperty(PAYMENT_MODE, String.class);
                     Function<Exchange, String> localPayloadVariable = externalApiPayloadConfig.getApiPayloadSetter(mode);
+                    logger.info("MODE FOR API CALL : {}", mode);
+                    logger.info("localPayloadVariable: {}", localPayloadVariable);
                     exchange.setProperty("body", localPayloadVariable.apply(exchange));
                 })
                 // this payload variable returns the body for respective payment modes
@@ -181,18 +183,21 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 .id("direct:external-api-call")
                 .log("Starting route direct:external-api-call")
                 .process(exchange -> {
-                    String paymentMde = exchange.getProperty(PAYMENT_MODE, String.class);
-                    PaymentModeMapping mapping = paymentModeConfiguration.getByMode(paymentMde);
+                    String paymentMode = exchange.getProperty(PAYMENT_MODE, String.class);
+                    PaymentModeMapping mapping = paymentModeConfiguration.getByMode(paymentMode);
                     if (mapping == null) {
                         exchange.setProperty(EXTERNAL_ENDPOINT_FAILED, true);
+                        logger.info("Failed to get the payment mode config, check the configuration for payment mode");
                     } else {
                         exchange.setProperty(EXTERNAL_ENDPOINT_FAILED, false);
                         exchange.setProperty(EXTERNAL_ENDPOINT, mapping.getEndpoint());
+                        logger.info("Got the config with routing to endpoint {}", mapping.getEndpoint());
                     }
                 })
                 .choice()
                 .when(exchangeProperty(EXTERNAL_ENDPOINT_FAILED).isEqualTo(false))
-                .toD(ChannelURL + "${exchangeProperty.EXTERNAL_ENDPOINT}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
+                .log("Making API call to endpoint ${exchangeProperty.extEndpoint}")
+                .toD(ChannelURL + "${exchangeProperty.extEndpoint}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
                 .otherwise()
                 .endChoice();
 
