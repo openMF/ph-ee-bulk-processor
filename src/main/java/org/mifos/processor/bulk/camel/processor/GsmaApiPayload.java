@@ -25,7 +25,7 @@ public class GsmaApiPayload implements Function<Exchange, String> {
         try {
             return objectMapper.writeValueAsString(gsmaTransaction);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new DTOJsonConversionException(GSMATransaction.class);
         }
     }
 }

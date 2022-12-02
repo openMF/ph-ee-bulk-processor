@@ -24,7 +24,7 @@ public class MojaloopApiPayload implements Function<Exchange, String> {
         try {
             return objectMapper.writeValueAsString(inboundTransferPayload);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new DTOJsonConversionException(MojaloopApiPayload.class);
         }
     }
 }
