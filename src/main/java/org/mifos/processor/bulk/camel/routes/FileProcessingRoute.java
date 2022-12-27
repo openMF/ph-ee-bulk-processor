@@ -47,6 +47,7 @@ public class FileProcessingRoute extends BaseRouteBuilder {
                     }
                     reader.close();
                     exchange.setProperty(TRANSACTION_LIST, transactionList);
+                    exchange.setProperty(TRANSACTION_LIST_LENGTH, transactionList.size());
                     exchange.setProperty(TOTAL_AMOUNT, totalAmount);
                     exchange.setProperty(ONGOING_AMOUNT, totalAmount); // initially ongoing amount is same as total amount
                     exchange.setProperty(FAILED_AMOUNT, failedAmount);

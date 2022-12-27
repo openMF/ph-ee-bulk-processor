@@ -23,6 +23,10 @@ public class CamelProperties {
 
     public static final String TRANSACTION_LIST = "transactionList";
 
+    public static final String TRANSACTION_LIST_LENGTH = "transactionListLength";
+
+    public static final String TRANSACTION_LIST_ELEMENT = "transactionListElement";
+
     public static final String GSMA_CHANNEL_REQUEST = "gsmaChannelRequest";
 
     public static final String OVERRIDE_HEADER = "overrideHeader";
@@ -48,5 +52,13 @@ public class CamelProperties {
     public static final String EXTERNAL_ENDPOINT_FAILED = "extEndpointFailed";
 
     public static final String EXTERNAL_ENDPOINT = "extEndpoint";
+
+    public static final String PAYLOAD_LIST = "payloadList";
+
+    public static final String IS_PAYMENT_MODE_VALID = "isPaymentModeValid";
+
+    public static final String PAYMENT_MODE_TYPE = "paymentModeType";
+
+    public static final String PAYLOAD = "payload";
 
 }

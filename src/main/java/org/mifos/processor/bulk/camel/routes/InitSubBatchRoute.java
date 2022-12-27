@@ -1,12 +1,7 @@
 package org.mifos.processor.bulk.camel.routes;
 
-
-
 import org.apache.camel.Exchange;
-import org.mifos.connector.common.gsma.dto.*;
-import org.mifos.processor.bulk.camel.config.CamelProperties;
-import org.mifos.processor.bulk.config.PaymentModeApiMapping;
-import org.mifos.processor.bulk.config.PaymentModeConfiguration;
+import org.mifos.processor.bulk.config.*;
 import org.mifos.processor.bulk.schema.TransactionResult;
 import org.mifos.processor.bulk.utility.Utils;
 import org.mifos.processor.bulk.schema.Transaction;
@@ -16,8 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.util.*;
+import java.util.function.Function;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.GSMA_CHANNEL_REQUEST;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
 
 @Component
@@ -31,6 +26,9 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
 
     @Autowired
     private PaymentModeConfiguration paymentModeConfiguration;
+
+    @Autowired
+    private ExternalApiPayloadConfig externalApiPayloadConfig;
 
     @Value("${channel.hostname}")
     private String ChannelURL;
@@ -79,47 +77,73 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 })
                 .to("direct:start-workflow-step2");
 
-        // Loops through each transaction and start the respective workflow
+
         from("direct:start-workflow-step2")
                 .id("direct:start-flow-step2")
                 .log("Starting route direct:start-flow-step2")
+                .to("direct:validate-payment-mode")
                 .choice()
-                .when(exchangeProperty(PAYMENT_MODE).isEqualToIgnoreCase("slcb"))
+                // if invalid payment mode
+                .when(exchangeProperty(IS_PAYMENT_MODE_VALID).isEqualTo(false))
+                .to("direct:payment-mode-missing")
+                .setProperty(INIT_SUB_BATCH_FAILED, constant(true))
+                // else
+                .otherwise()
+                .to("direct:start-workflow-step3")
+                .endChoice();
+
+        from("direct:start-workflow-step3")
+                .id("direct:start-flow-step3")
+                .log("Starting route direct:start-flow-step3")
+                .choice()
+                // if type of payment mode is bulk
+                .when(exchangeProperty(PAYMENT_MODE_TYPE).isEqualTo(PaymentModeType.BULK))
                 .process(exchange -> {
+                    String paymentMode = exchange.getProperty(PAYMENT_MODE, String.class);
+                    PaymentModeMapping mapping = paymentModeConfiguration.getByMode(paymentMode);
+
                     String tenantName = exchange.getProperty(TENANT_NAME, String.class);
                     Map<String, Object> variables = exchange.getProperty(ZEEBE_VARIABLE, Map.class);
-                    variables.put(PAYMENT_MODE, "slcb");
+                    variables.put(PAYMENT_MODE, paymentMode);
                     zeebeProcessStarter.startZeebeWorkflow(
-                            Utils.getTenantSpecificWorkflowId(bpmnConfig.slcbBpmn, tenantName), variables);
+                            Utils.getBulkConnectorBpmnName(mapping.getEndpoint(), mapping.getId().toLowerCase(), tenantName),
+                            variables);
                     exchange.setProperty(INIT_SUB_BATCH_FAILED, false);
                 })
+                // if type of payment mode is payment todo // else case or else if case ?
                 .otherwise()
-                .when(exchangeProperty(PAYMENT_MODE).isEqualToIgnoreCase("gsma"))
-                .process(exchange -> {
-                    Map<String, Object> variables = exchange.getProperty(ZEEBE_VARIABLE, Map.class);
-                    variables.put(PAYMENT_MODE, "gsma");
-                    List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
-                    exchange.setProperty("length",transactionList.size());
-
-                })
-                .loop(simple("${exchangeProperty.length}"))
+                .loop(simple("${exchangeProperty." + TRANSACTION_LIST_LENGTH + "}"))
                 .process(exchange -> {
                     int index = exchange.getProperty(Exchange.LOOP_INDEX, Integer.class);
-                    GSMATransaction gsmaTransaction =
-                            convertTxnToGSMA((Transaction) exchange.getProperty(TRANSACTION_LIST, List.class)
-                            .get(index));
-                    exchange.setProperty(GSMA_CHANNEL_REQUEST, gsmaTransaction);
-                    exchange.setProperty(INIT_SUB_BATCH_FAILED, false);
+                    List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
+                    Transaction transaction = transactionList.get(index);
+                    exchange.setProperty(TRANSACTION_LIST_ELEMENT, transaction);
                 })
                 .setHeader("Platform-TenantId", exchangeProperty(TENANT_NAME))
-                .setBody(exchange-> {
-                    GSMATransaction gsmaTransaction = exchange.getProperty(GSMA_CHANNEL_REQUEST, GSMATransaction.class);
-                    return gsmaTransaction;
-                })
+                .to("direct:dynamic-payload-setter")
                 .marshal().json()
-                .to("direct:external-api-call") // loads the endpoint based on configuration and calls the external api
-                .log("Completed start of workflow for gsma")
-                .end()
+                .to("direct:external-api-call")
+                .to("direct:external-api-response-handler")
+                .end() // end loop block
+                .endChoice();
+
+        from("direct:dynamic-payload-setter")
+                .id("direct:runtime-payload-test")
+                .log("Starting route direct:runtime-payload-test")
+                .process(exchange -> {
+                    String mode = exchange.getProperty(PAYMENT_MODE, String.class);
+                    Function<Exchange, String> localPayloadVariable = externalApiPayloadConfig.getApiPayloadSetter(mode);
+                    logger.info("MODE FOR API CALL : {}", mode);
+                    logger.info("localPayloadVariable: {}", localPayloadVariable);
+                    exchange.setProperty("body", localPayloadVariable.apply(exchange));
+                })
+                // this payload variable returns the body for respective payment modes
+                .setBody(simple("${exchangeProperty.body}"));
+
+        // Loops through each transaction and start the respective workflow
+        from("direct:external-api-response-handler")
+                .id("direct:external-api-response-handler")
+                .log("Starting route direct:external-api-response-handler")
                 .choice()
                 .when(header("CamelHttpResponseCode").isEqualTo(200))
                 .process(exchange -> {
@@ -129,10 +153,6 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 .process(exchange -> {
                     exchange.setProperty(INIT_SUB_BATCH_FAILED, true);
                 })
-                .endChoice()
-                .otherwise()
-                .to("direct:payment-mode-missing")
-                .setProperty(INIT_SUB_BATCH_FAILED, constant(true))
                 .endChoice();
 
         from("direct:payment-mode-missing")
@@ -147,7 +167,7 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     exchange.setProperty(RESULT_TRANSACTION_LIST, transactionResultList);
                     exchange.setProperty(RESULT_FILE, resultFile);
                 })
-                // setting localfilpath as result file to make sure result file is uploaded
+                // setting localfilepath as result file to make sure result file is uploaded
                 .setProperty(LOCAL_FILE_PATH, exchangeProperty(RESULT_FILE))
                 .setProperty(OVERRIDE_HEADER, constant(true))
                 .process(exchange -> {
@@ -163,117 +183,38 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 .id("direct:external-api-call")
                 .log("Starting route direct:external-api-call")
                 .process(exchange -> {
-                    String paymentMde = exchange.getProperty(PAYMENT_MODE, String.class);
-                    PaymentModeApiMapping mapping = paymentModeConfiguration.getByMode(paymentMde);
+                    String paymentMode = exchange.getProperty(PAYMENT_MODE, String.class);
+                    PaymentModeMapping mapping = paymentModeConfiguration.getByMode(paymentMode);
                     if (mapping == null) {
                         exchange.setProperty(EXTERNAL_ENDPOINT_FAILED, true);
+                        logger.info("Failed to get the payment mode config, check the configuration for payment mode");
                     } else {
                         exchange.setProperty(EXTERNAL_ENDPOINT_FAILED, false);
                         exchange.setProperty(EXTERNAL_ENDPOINT, mapping.getEndpoint());
+                        logger.info("Got the config with routing to endpoint {}", mapping.getEndpoint());
                     }
                 })
                 .choice()
                 .when(exchangeProperty(EXTERNAL_ENDPOINT_FAILED).isEqualTo(false))
-                .toD(ChannelURL + "${exchangeProperty.EXTERNAL_ENDPOINT}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
+                .log("Making API call to endpoint ${exchangeProperty.extEndpoint}")
+                .toD(ChannelURL + "${exchangeProperty.extEndpoint}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
                 .otherwise()
                 .endChoice();
 
-    }
 
-    private GSMATransaction convertTxnToGSMA(Transaction transaction) {
-        GSMATransaction gsmaTransaction = new GSMATransaction();
-        gsmaTransaction.setAmount(transaction.getAmount());
-        gsmaTransaction.setCurrency(transaction.getCurrency());
-        GsmaParty payer = new GsmaParty();
-        //logger.info("Payer {} {}", transaction.getPayerIdentifier(),payer[0].);
-        payer.setKey("msisdn");
-        payer.setValue(transaction.getPayerIdentifier());
-        GsmaParty payee = new GsmaParty();
-        payee.setKey("msisdn");
-        payee.setValue(transaction.getPayeeIdentifier());
-        GsmaParty[] debitParty = new GsmaParty[1];
-        GsmaParty[] creditParty = new GsmaParty[1];
-        debitParty[0] = payer;
-        creditParty[0] = payee;
-        gsmaTransaction.setDebitParty(debitParty);
-        gsmaTransaction.setCreditParty(creditParty);
-        gsmaTransaction.setRequestingOrganisationTransactionReference("string");
-        gsmaTransaction.setSubType("string");
-        gsmaTransaction.setDescriptionText("string");
-        Fee fees = new Fee();
-        fees.setFeeType(transaction.getAmount());
-        fees.setFeeCurrency(transaction.getCurrency());
-        fees.setFeeType("string");
-        Fee[] fee = new Fee[1];
-        fee[0] = fees;
-        gsmaTransaction.setFees(fee);
-        gsmaTransaction.setGeoCode("37.423825,-122.082900");
-        InternationalTransferInformation internationalTransferInformation =
-                new InternationalTransferInformation();
-        internationalTransferInformation.setQuotationReference("string");
-        internationalTransferInformation.setQuoteId("string");
-        internationalTransferInformation.setDeliveryMethod("directtoaccount");
-        internationalTransferInformation.setOriginCountry("USA");
-        internationalTransferInformation.setReceivingCountry("USA");
-        internationalTransferInformation.setRelationshipSender("string");
-        internationalTransferInformation.setRemittancePurpose("string");
-        gsmaTransaction.setInternationalTransferInformation(internationalTransferInformation);
-        gsmaTransaction.setOneTimeCode("string");
-        IdDocument idDocument = new IdDocument();
-        idDocument.setIdType("passport");
-        idDocument.setIdNumber("string");
-        idDocument.setIssuerCountry("USA");
-        idDocument.setExpiryDate("2022-09-28T12:51:19.260+00:00");
-        idDocument.setIssueDate("2022-09-28T12:51:19.260+00:00");
-        idDocument.setIssuer("string");
-        idDocument.setIssuerPlace("string");
-        IdDocument[] idDocuments = new IdDocument[1];
-        idDocuments[0] = idDocument;
-        PostalAddress postalAddress = new PostalAddress();
-        postalAddress.setAddressLine1("string");
-        postalAddress.setAddressLine2("string");
-        postalAddress.setAddressLine3("string");
-        postalAddress.setCity("string");
-        postalAddress.setCountry("USA");
-        postalAddress.setPostalCode("string");
-        postalAddress.setStateProvince("string");
-        SubjectName subjectName = new SubjectName();
-        subjectName.setFirstName("string");
-        subjectName.setLastName("string");
-        subjectName.setMiddleName("string");
-        subjectName.setTitle("string");
-        subjectName.setNativeName("string");
-        Kyc recieverKyc = new Kyc();
-        recieverKyc.setBirthCountry("USA");
-        recieverKyc.setDateOfBirth("2000-11-20");
-        recieverKyc.setContactPhone("string");
-        recieverKyc.setEmailAddress("string");
-        recieverKyc.setEmployerName("string");
-        recieverKyc.setGender('m');
-        recieverKyc.setIdDocument(idDocuments);
-        recieverKyc.setNationality("USA");
-        recieverKyc.setOccupation("string");
-        recieverKyc.setPostalAddress(postalAddress);
-        recieverKyc.setSubjectName(subjectName);
-        Kyc senderKyc = new Kyc();
-        senderKyc.setBirthCountry("USA");
-        senderKyc.setDateOfBirth("2000-11-20");
-        senderKyc.setContactPhone("string");
-        senderKyc.setEmailAddress("string");
-        senderKyc.setEmployerName("string");
-        senderKyc.setGender('m');
-        senderKyc.setIdDocument(idDocuments);
-        senderKyc.setNationality("USA");
-        senderKyc.setOccupation("string");
-        senderKyc.setPostalAddress(postalAddress);
-        senderKyc.setSubjectName(subjectName);
-        gsmaTransaction.setReceiverKyc(recieverKyc);
-        gsmaTransaction.setSenderKyc(senderKyc);
-        gsmaTransaction.setServicingIdentity("string");
-        gsmaTransaction.setRequestDate("2022-09-28T12:51:19.260+00:00");
-
-
-        return gsmaTransaction;
+        from("direct:validate-payment-mode")
+                .id("direct:validate-payment-mode")
+                .log("Starting route direct:validate-payment-mode")
+                .process(exchange -> {
+                    String paymentMde = exchange.getProperty(PAYMENT_MODE, String.class);
+                    PaymentModeMapping mapping = paymentModeConfiguration.getByMode(paymentMde);
+                    if (mapping == null) {
+                        exchange.setProperty(IS_PAYMENT_MODE_VALID, false);
+                    } else {
+                        exchange.setProperty(IS_PAYMENT_MODE_VALID, true);
+                        exchange.setProperty(PAYMENT_MODE_TYPE, mapping.getType());
+                    }
+                });
     }
 
     // update Transactions status to failed
