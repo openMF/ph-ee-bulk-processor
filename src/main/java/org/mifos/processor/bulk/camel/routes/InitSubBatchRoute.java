@@ -121,7 +121,6 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 })
                 .setHeader("Platform-TenantId", exchangeProperty(TENANT_NAME))
                 .to("direct:dynamic-payload-setter")
-                .marshal().json()
                 .to("direct:external-api-call")
                 .to("direct:external-api-response-handler")
                 .end() // end loop block
