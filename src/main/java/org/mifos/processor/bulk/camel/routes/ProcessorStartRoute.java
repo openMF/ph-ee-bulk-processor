@@ -4,6 +4,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.json.JSONObject;
 import org.mifos.processor.bulk.file.FileTransferService;
+import org.mifos.processor.bulk.utility.PhaseUtils;
 import org.mifos.processor.bulk.utility.Utils;
 import org.mifos.processor.bulk.zeebe.ZeebeProcessStarter;
 import org.mifos.processor.bulk.zeebe.worker.WorkerConfig;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -43,16 +45,22 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
     @Value("${bpmn.flows.bulk-processor}")
     private String workflowId;
 
-    @Value("${config.success-threshold-check.success-threshold}")
-    private int successThreshold;
+    @Value("${config.completion-threshold-check.completion-threshold}")
+    private int completionThreshold;
 
-    @Value("${config.success-threshold-check.max-retry}")
+    @Value("${config.completion-threshold-check.max-retry}")
     private int maxThresholdCheckRetry;
 
-    @Value("${config.success-threshold-check.delay}")
+    @Value("${config.completion-threshold-check.delay}")
     private int thresholdCheckDelay;
 
+    @Value("${callback.max-retry}")
+    private int maxCallbackRetry;
+
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    @Autowired
+    PhaseUtils phaseUtils;
 
     @Override
     public void configure() {
@@ -149,9 +157,11 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     logger.info("File uploaded {}", nm);
 
                     //extracting  and setting callback Url
-                    String callbackUrl = exchange.getIn().getHeader("Callback-Url", String.class);
+                    String callbackUrl = exchange.getIn().getHeader("X-Callback-URL", String.class);
                     exchange.setProperty(CALLBACK_URL,callbackUrl);
 
+                    List<Integer> phases = phaseUtils.getValues();
+                    logger.info(phases.toString());
                     Map<String, Object> variables = new HashMap<>();
                     variables.put(BATCH_ID, batchId);
                     variables.put(FILE_NAME, fileName);
@@ -159,12 +169,16 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     variables.put(PURPOSE, purpose);
                     variables.put(TENANT_ID, exchange.getProperty(TENANT_NAME));
                     variables.put(CALLBACK_URL,callbackUrl);
+                    variables.put(PHASES,phases);
+                    variables.put(PHASE_COUNT,phases.size());
                     setConfigProperties(variables);
 
                     JSONObject response = new JSONObject();
 
                     try {
-                        String txnId = zeebeProcessStarter.startZeebeWorkflow(workflowId, "", variables);
+                        String tenantSpecificWorkflowId = workflowId.replace("{dfspid}",
+                                exchange.getProperty(TENANT_NAME).toString());
+                        String txnId = zeebeProcessStarter.startZeebeWorkflow(tenantSpecificWorkflowId, "", variables);
                         if (txnId == null || txnId.isEmpty()) {
                             response.put("errorCode", 500);
                             response.put("errorDescription", "Unable to start zeebe workflow");
@@ -205,13 +219,14 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
         variables.put(ORDERING_ENABLED, workerConfig.isOrderingWorkerEnabled);
         variables.put(SPLITTING_ENABLED, workerConfig.isSplittingWorkerEnabled);
         variables.put(FORMATTING_ENABLED, workerConfig.isFormattingWorkerEnabled);
-        variables.put(SUCCESS_THRESHOLD_CHECK_ENABLED, workerConfig.isSuccessThresholdCheckEnabled);
+        variables.put(COMPLETION_THRESHOLD_CHECK_ENABLED, workerConfig.isCompletionThresholdCheckEnabled);
         variables.put(MERGE_ENABLED, workerConfig.isMergeBackWorkerEnabled);
         variables.put(MAX_STATUS_RETRY, maxThresholdCheckRetry);
-        variables.put(SUCCESS_THRESHOLD, successThreshold);
+        variables.put(COMPLETION_THRESHOLD, completionThreshold);
         variables.put(THRESHOLD_DELAY, Utils.getZeebeTimerValue(thresholdCheckDelay));
         variables.put(BULK_NOTIF_SUCCESS,false);
         variables.put(BULK_NOTIF_FAILURE,false);
+        variables.put(MAX_CALLBACK_RETRY,maxCallbackRetry);
 
         return variables;
     }

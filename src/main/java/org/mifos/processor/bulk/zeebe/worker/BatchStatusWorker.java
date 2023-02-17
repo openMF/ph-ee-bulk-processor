@@ -17,7 +17,7 @@ public class BatchStatusWorker extends BaseWorker {
             Map<String, Object> variables = job.getVariablesAsMap();
 
             int retry = (int) variables.getOrDefault(RETRY, 0);
-            int successRate = (int) variables.getOrDefault(SUCCESS_RATE, 0);
+            int successRate = (int) variables.getOrDefault(COMPLETION_RATE, 0);
 
             Exchange exchange = new DefaultExchange(camelContext);
             exchange.setProperty(BATCH_ID, variables.get(BATCH_ID));
@@ -27,14 +27,14 @@ public class BatchStatusWorker extends BaseWorker {
 
             Boolean batchStatusFailed = exchange.getProperty(BATCH_STATUS_FAILED, Boolean.class);
             if (batchStatusFailed == null || !batchStatusFailed) {
-                successRate = exchange.getProperty(SUCCESS_RATE, Long.class).intValue();
+                successRate = exchange.getProperty(COMPLETION_RATE, Long.class).intValue();
             } else {
                 variables.put(ERROR_CODE, exchange.getProperty(ERROR_CODE));
                 variables.put(ERROR_DESCRIPTION, exchange.getProperty(ERROR_DESCRIPTION));
                 logger.info("Error: {}, {}", variables.get(ERROR_CODE), variables.get(ERROR_DESCRIPTION));
             }
 
-            variables.put(SUCCESS_RATE, successRate);
+            variables.put(COMPLETION_RATE, successRate);
             variables.put(RETRY, ++retry);
 
             logger.info("Retry: {} and Success Rate: {}", retry, successRate);

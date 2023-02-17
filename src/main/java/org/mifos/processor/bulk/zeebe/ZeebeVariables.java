@@ -55,7 +55,7 @@ public class ZeebeVariables {
 
     public static final String FORMATTING_ENABLED = "formattingEnabled";
 
-    public static final String SUCCESS_THRESHOLD_CHECK_ENABLED = "successThresholdCheckEnabled";
+    public static final String COMPLETION_THRESHOLD_CHECK_ENABLED = "completionThresholdCheckEnabled";
 
     public static final String MERGE_ENABLED = "mergeEnabled";
 
@@ -89,9 +89,9 @@ public class ZeebeVariables {
 
     public static final String CALLBACK_RETRY = "callbackRetryCount";
 
-    public static final String SUCCESS_THRESHOLD = "successThreshold";
+    public static final String COMPLETION_THRESHOLD = "completionThreshold";
 
-    public static final String SUCCESS_RATE = "successRate";
+    public static final String COMPLETION_RATE = "completionRate";
 
     public static final String ERROR_CODE = "errorCode";
 
@@ -105,7 +105,13 @@ public class ZeebeVariables {
 
     public static final String CALLBACK_URL = "callbackUrl";
 
+    public static final String MAX_CALLBACK_RETRY = "maxCallbackRetry";
+
     public static final String BULK_NOTIF_SUCCESS = "isNotificationsSuccessEnabled";
 
     public static final String BULK_NOTIF_FAILURE = "isNotificationsFailureEnabled";
+
+    public static final String PHASES = "phases";
+
+    public static final String PHASE_COUNT = "phaseCount";
 }
