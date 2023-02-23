@@ -13,8 +13,8 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
 @Component
 public class BatchStatusRoute extends BaseRouteBuilder {
 
-    @Value("${config.success-threshold-check.success-threshold}")
-    private int successThreshold;
+    @Value("${config.completion-threshold-check.completion-threshold}")
+    private int completionThreshold;
 
     @Override
     public void configure() throws Exception {
@@ -65,14 +65,14 @@ public class BatchStatusRoute extends BaseRouteBuilder {
                 .process(exchange -> {
                     BatchDTO batchSummary = exchange.getIn().getBody(BatchDTO.class);
 
-                    long percentage = (batchSummary.getSuccessful()/batchSummary.getTotal())*100;
+                    long percentage =(long)(((double)batchSummary.getSuccessful()/batchSummary.getTotal())*100);
 
-                    if (percentage >= successThreshold) {
+                    if (percentage >= completionThreshold) {
                         logger.info("Batch success threshold reached. Expected rate: {}, Actual Rate: {}",
-                                successThreshold, percentage);
+                                completionThreshold, percentage);
                     }
 
-                    exchange.setProperty(SUCCESS_RATE, percentage);
+                    exchange.setProperty(COMPLETION_RATE, percentage);
 
                 })
                 .otherwise()

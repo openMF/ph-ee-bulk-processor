@@ -72,7 +72,7 @@ bpmn:
     international-remittance-payee: "international_remittance_payee_process-{dfspid}"
     international-remittance-payer: "international_remittance_payer_process-{dfspid}"
     debit-party-process: "debit_party_process-{dfspid}"
-    bulk-processor: "bulk_processor-ibank-usa"
+    bulk-processor: "bulk_processor-{dfspid}"
     slcb: "slcb-{dfspid}"
 
 payment-mode:
@@ -106,11 +106,21 @@ config:
     enable: false
   backpressure:
     enable: false
-  success-threshold-check:
+  completion-threshold-check:
     enable: false
-    success-threshold: 95 # in percentage
-    max-retry: 4
+    completion-threshold: 95 # in percentage
+    max-retry: 4 #can be as high as 30
     delay: 60 # in seconds
 
 callback:
+  max-retry: 3
   url: "http://httpstat.us/503"
+
+
+callback_phases:
+  values:
+    - 20
+    - 40
+    - 60
+    - 80
+    - 100

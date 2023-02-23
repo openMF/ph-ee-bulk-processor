@@ -21,10 +21,10 @@ public class ConfigurationValidator {
     @Value("${config.ordering.field}")
     private String orderingField;
 
-    @Value("${config.success-threshold-check.success-threshold}")
-    private int successRate;
+    @Value("${config.completion-threshold-check.completion-threshold}")
+    private int completionRate;
 
-    @Value("${config.success-threshold-check.max-retry}")
+    @Value("${config.completion-threshold-check.max-retry}")
     private int maxThresholdCheckRetry;
 
     @Value("${config.formatting.standard}")
@@ -38,8 +38,8 @@ public class ConfigurationValidator {
         if (workerConfig.isOrderingWorkerEnabled) {
             validateOrderingConfig();
         }
-        if (workerConfig.isSuccessThresholdCheckEnabled) {
-            validateSuccessThresholdConfig();
+        if (workerConfig.isCompletionThresholdCheckEnabled) {
+            validateCompletionThresholdConfig();
             validateMaxRetryFromThresholdCheck();
         }
         if (workerConfig.isFormattingWorkerEnabled) {
@@ -87,13 +87,13 @@ public class ConfigurationValidator {
     }
 
     // validates the success threshold related configuration
-    private void validateSuccessThresholdConfig() {
-        if (successRate <= 0 || successRate > 100) {
-            throw new ConfigurationValidationException("Invalid success threshold value configured (value=" + successRate + ").");
+    private void validateCompletionThresholdConfig() {
+        if (completionRate <= 0 || completionRate > 100) {
+            throw new ConfigurationValidationException("Invalid completion threshold value configured (value=" + completionRate + ").");
         }
 
-        if (successRate < 50) {
-            logger.warn("It is advised to set the success threshold greater than 50. Currently configured as {}", successRate);
+        if (completionRate < 50) {
+            logger.warn("It is advised to set the completion threshold greater than 50. Currently configured as {}", completionRate);
         }
     }
 

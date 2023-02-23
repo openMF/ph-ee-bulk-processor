@@ -19,13 +19,15 @@ public class SendCallbackWorker extends BaseWorker {
         newWorker(Worker.SEND_CALLBACK, (client, job) -> {
             Map<String, Object> variables = job.getVariablesAsMap();
 
-            int retry = (int) variables.getOrDefault(CALLBACK_RETRY, 0);
-
+            int retry = variables.getOrDefault(CALLBACK_RETRY, 0).equals(variables.get(MAX_STATUS_RETRY))?0:
+                            (int) variables.getOrDefault(CALLBACK_RETRY, 0);
             Exchange exchange = new DefaultExchange(camelContext);
-            exchange.setProperty(MAX_STATUS_RETRY,variables.get(MAX_STATUS_RETRY));
+            exchange.setProperty(MAX_CALLBACK_RETRY,variables.get(MAX_CALLBACK_RETRY));
             exchange.setProperty(CALLBACK_RETRY,retry);
             exchange.setProperty(CALLBACK_URL,variables.get(CALLBACK_URL));
-            exchange.setProperty(SUCCESS_RATE,variables.get(SUCCESS_RATE));
+            exchange.setProperty(COMPLETION_RATE,variables.get(COMPLETION_RATE));
+            exchange.setProperty(PHASES,variables.get(PHASES));
+            exchange.setProperty(PHASE_COUNT,variables.get(PHASE_COUNT));
             sendToCamelRoute(RouteId.SEND_CALLBACK, exchange);
 
             Boolean callbackSuccess = exchange.getProperty(CALLBACK_SUCCESS, Boolean.class);
@@ -39,8 +41,10 @@ public class SendCallbackWorker extends BaseWorker {
 
             variables.put(CALLBACK_RETRY,exchange.getProperty(CALLBACK_RETRY));
             variables.put(CALLBACK_RESPONSE_CODE,exchange.getProperty(CALLBACK_RESPONSE_CODE));
+            variables.put(PHASE_COUNT,exchange.getProperty(PHASE_COUNT));
+            variables.put(PHASES,exchange.getProperty(PHASES));
 
-            logger.info("Retry: {} and Response Code {}", exchange.getProperty(CALLBACK_RETRY), exchange.getProperty(CALLBACK_RESPONSE_CODE));
+            logger.debug("Retry: {} and Response Code {}", exchange.getProperty(CALLBACK_RETRY), exchange.getProperty(CALLBACK_RESPONSE_CODE));
             client.newCompleteCommand(job.getKey()).variables(variables).send();
         });
     }
