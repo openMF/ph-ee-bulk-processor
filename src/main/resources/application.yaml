@@ -117,7 +117,7 @@ callback:
   url: "http://httpstat.us/503"
 
 
-callback_phases:
+callback-phases:
   values:
     - 20
     - 40
