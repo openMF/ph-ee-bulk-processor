@@ -61,4 +61,6 @@ public class CamelProperties {
 
     public static final String PAYLOAD = "payload";
 
+    public static final String BATCH_ID_HEADER = "X-BatchID";
+
 }
