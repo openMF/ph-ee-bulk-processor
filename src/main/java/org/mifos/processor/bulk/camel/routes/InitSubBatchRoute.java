@@ -196,7 +196,7 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 })
                 .choice()
                 .when(exchangeProperty(EXTERNAL_ENDPOINT_FAILED).isEqualTo(false))
-                .log("Making API call to endpoint ${exchangeProperty.extEndpoint} and body: ${body}")
+                .log(LoggingLevel.DEBUG, "Making API call to endpoint ${exchangeProperty.extEndpoint} and body: ${body}")
                 .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
                 .setHeader(BATCH_ID_HEADER, simple("${exchangeProperty." + BATCH_ID + "}"))
                 .toD(ChannelURL + "${exchangeProperty.extEndpoint}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
