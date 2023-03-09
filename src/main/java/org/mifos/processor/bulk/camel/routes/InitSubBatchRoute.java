@@ -1,6 +1,7 @@
 package org.mifos.processor.bulk.camel.routes;
 
 import org.apache.camel.Exchange;
+import org.apache.camel.LoggingLevel;
 import org.mifos.processor.bulk.config.*;
 import org.mifos.processor.bulk.schema.TransactionResult;
 import org.mifos.processor.bulk.utility.Utils;
@@ -195,8 +196,11 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 })
                 .choice()
                 .when(exchangeProperty(EXTERNAL_ENDPOINT_FAILED).isEqualTo(false))
-                .log("Making API call to endpoint ${exchangeProperty.extEndpoint}")
+                .log(LoggingLevel.DEBUG, "Making API call to endpoint ${exchangeProperty.extEndpoint} and body: ${body}")
+                .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
+                .setHeader(BATCH_ID_HEADER, simple("${exchangeProperty." + BATCH_ID + "}"))
                 .toD(ChannelURL + "${exchangeProperty.extEndpoint}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
+                .log(LoggingLevel.DEBUG, "Response body: ${body}")
                 .otherwise()
                 .endChoice();
 
