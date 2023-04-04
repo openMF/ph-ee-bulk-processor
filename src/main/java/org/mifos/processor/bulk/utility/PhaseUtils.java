@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConfigurationProperties(prefix = "callback-phases")
+@ConfigurationProperties(prefix = "callbackphases")
 public class PhaseUtils {
 
     private List<Integer> values;
