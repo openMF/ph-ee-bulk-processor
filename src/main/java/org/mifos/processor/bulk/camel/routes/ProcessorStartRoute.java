@@ -69,7 +69,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
 
     private void setup() {
 
-        from("rest:POST:/batchtransactions")
+        from("direct:post-batch-transactions")
                 .id("rest:POST:/batchtransactions")
                 .log("Starting route rest:POST:/batchtransactions")
                 .unmarshal().mimeMultipart("multipart/*")
@@ -95,7 +95,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                 .log("Completed execution of route rest:POST:/batchtransactions");
 
 
-        from("rest:POST:/bulk/transfer/{requestId}/{fileName}")
+        from("direct:post-bulk-transfer")
                 .unmarshal().mimeMultipart("multipart/*")
                 .to("direct:validate-tenant")
                 .process(exchange -> {

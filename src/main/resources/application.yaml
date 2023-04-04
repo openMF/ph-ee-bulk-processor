@@ -124,3 +124,6 @@ callback-phases:
     - 60
     - 80
     - 100
+
+server:
+  port: 8080
