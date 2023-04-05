@@ -129,3 +129,8 @@ callback-phases:
 
 server:
   port: 8080
+
+
+security:
+  jws:
+    enable: true

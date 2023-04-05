@@ -7,12 +7,16 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.camel.Processor;
+import org.mifos.connector.common.interceptor.annotation.EnableJsonWebSignature;
 import org.mifos.processor.bulk.camel.config.HttpClientConfigurerTrustAllCACerts;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
+@EnableJsonWebSignature
 public class BulkProcessorApplication {
 
     public static void main(String[] args) {
