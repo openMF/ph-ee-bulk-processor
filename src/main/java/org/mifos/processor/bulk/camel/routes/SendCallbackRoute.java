@@ -20,7 +20,7 @@ public class SendCallbackRoute extends BaseRouteBuilder {
     @Override
     public void configure() throws Exception {
 
-        from("rest:get:test/send/callback")
+        from("direct:send-Callback")
                 .to(RouteId.SEND_CALLBACK.getValue());
 
         /**

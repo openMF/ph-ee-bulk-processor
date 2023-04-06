@@ -1,13 +1,7 @@
 package org.mifos.processor.bulk.API;
 
-import com.amazonaws.services.dynamodbv2.xspec.S;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import org.apache.camel.util.json.JsonObject;
-import org.json.JSONObject;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import javax.mail.Multipart;
 
 import java.io.IOException;
 

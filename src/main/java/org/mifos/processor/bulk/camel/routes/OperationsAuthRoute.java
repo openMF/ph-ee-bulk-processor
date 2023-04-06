@@ -15,7 +15,7 @@ public class OperationsAuthRoute extends BaseRouteBuilder {
     @Override
     public void configure() throws Exception {
 
-        from("rest:get:test/auth")
+        from("direct:get-accessToken")
                 .to("direct:get-access-token");
 
         /**
