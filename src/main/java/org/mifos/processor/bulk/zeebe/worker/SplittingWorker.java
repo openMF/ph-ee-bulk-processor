@@ -25,7 +25,7 @@ public class SplittingWorker extends BaseWorker {
          * 4. Sets zeebeVariable [SPLITTING_FAILED, SUB_BATCHES, SUB_BATCH_CREATED]
          */
         newWorker(Worker.SPLITTING, (client, job) -> {
-            logger.info("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
+            logger.debug("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
             Map<String, Object> variables = job.getVariablesAsMap();
             if (workerConfig.isSplittingWorkerEnabled) {
                 variables.put(SPLITTING_FAILED, false);

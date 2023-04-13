@@ -13,7 +13,7 @@ public class PartyLookupWorker extends BaseWorker {
     @Override
     public void setup() {
         newWorker(Worker.PARTY_LOOKUP, (client, job) -> {
-            logger.info("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
+            logger.debug("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
             Map<String, Object> variables = job.getVariablesAsMap();
 
             if (workerConfig.isPartyLookUpWorkerEnabled) {
