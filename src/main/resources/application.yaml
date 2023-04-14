@@ -116,6 +116,8 @@ callback:
   max-retry: 3
   url: "http://httpstat.us/503"
 
+pollingApi:
+  timer: "120"
 
 callback-phases:
   values:
