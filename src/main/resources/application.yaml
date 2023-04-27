@@ -134,3 +134,5 @@ server:
 security:
   jws:
     enable: true
+    response:
+      enable: true
