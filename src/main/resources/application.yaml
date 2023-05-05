@@ -128,7 +128,13 @@ callback-phases:
     - 100
 
 server:
-  port: 8080
+  ssl:
+    key-alias: "tomcat-https"
+    key-store: "classpath:keystore.jks"
+    key-store-type: JKS
+    key-password: "<replace-with-password>"
+    key-store-password: "<replace-with-password>"
+  port: 8443
 
 
 security:
