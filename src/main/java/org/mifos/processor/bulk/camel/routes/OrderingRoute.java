@@ -60,6 +60,9 @@ public class OrderingRoute extends BaseRouteBuilder {
                             case "account_number":
                                 key = transaction.getAccountNumber();
                                 break;
+                            case "payee_identifier":
+                                key = transaction.getPayeeIdentifier();
+                                break;
                             case "amount":
                                 key = transaction.getAmount();
                                 break;
