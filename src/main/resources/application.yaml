@@ -94,8 +94,8 @@ config:
   approval:
     enable: true
   ordering:
-    enable: false
-    field: "payment_mode"
+    enable: true
+    field: "payee_identifier"
   splitting:
     enable: false
     sub-batch-size: 5
