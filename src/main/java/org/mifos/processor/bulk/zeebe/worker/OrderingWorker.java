@@ -27,27 +27,24 @@ public class OrderingWorker extends BaseWorker {
          */
         newWorker(Worker.ORDERING, (client, job) -> {
             Map<String, Object> variables = job.getVariablesAsMap();
+            Exchange exchange = new DefaultExchange(camelContext);
+
             if (workerConfig.isOrderingWorkerEnabled) {
                 variables.put(ORDERING_FAILED, false);
+                String filename = (String) variables.get(FILE_NAME);
+                exchange.setProperty(SERVER_FILE_NAME, filename);
+
+                try {
+                    sendToCamelRoute(RouteId.ORDERING, exchange);
+                    assert !exchange.getProperty(ORDERING_FAILED, Boolean.class);
+                } catch (Exception e) {
+                    variables.put(ORDERING_FAILED, true);
+                }
+                variables.put(ORDERING_FAILED, false);
+                variables.put(ORDERED_BY, exchange.getProperty(ORDERED_BY));
             }
-
-            String filename = (String) variables.get(FILE_NAME);
-            Exchange exchange = new DefaultExchange(camelContext);
-            exchange.setProperty(SERVER_FILE_NAME, filename);
-
-            try {
-                sendToCamelRoute(RouteId.ORDERING, exchange);
-                assert !exchange.getProperty(ORDERING_FAILED, Boolean.class);
-            } catch (Exception e) {
-                variables.put(ORDERING_FAILED, true);
-            }
-
             List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
-
             variables.put(TRANSACTION_LIST, removeDuplicates(transactionList, workerConfig.isOrderingWorkerEnabled));
-            variables.put(ORDERING_FAILED, false);
-            variables.put(ORDERED_BY, exchange.getProperty(ORDERED_BY));
-
             client.newCompleteCommand(job.getKey()).variables(variables).send();
         });
     }
@@ -57,11 +54,9 @@ public class OrderingWorker extends BaseWorker {
             return removeDuplicatesIfOrderingEnabled(transactionList);
         }
         return removeDuplicatesIfOrderingDisabled(transactionList);
-
     }
 
     private List<Transaction> removeDuplicatesIfOrderingEnabled(List<Transaction> transactionList){
-
         List<Transaction> uniqueTransactions = new ArrayList<>();
 
         for (int i = 0; i <transactionList.size()-1; i++) {
@@ -74,7 +69,6 @@ public class OrderingWorker extends BaseWorker {
                 uniqueTransactions.add(currentTransaction);
             }
         }
-
         uniqueTransactions.add(transactionList.get(transactionList.size()-1));
         return uniqueTransactions;
     }
