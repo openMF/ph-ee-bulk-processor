@@ -44,47 +44,46 @@ public class OrderingWorker extends BaseWorker {
                 variables.put(ORDERED_BY, exchange.getProperty(ORDERED_BY));
             }
             List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
-            variables.put(TRANSACTION_LIST, removeDuplicates(transactionList, workerConfig.isOrderingWorkerEnabled));
+            removeDuplicates(transactionList, workerConfig.isOrderingWorkerEnabled);
+            variables.put(TRANSACTION_LIST, transactionList);
             client.newCompleteCommand(job.getKey()).variables(variables).send();
         });
     }
 
-    private List<Transaction> removeDuplicates(List<Transaction> transactionList, boolean orderingEnabled){
+    private void removeDuplicates(List<Transaction> transactionList, boolean orderingEnabled){
         if(orderingEnabled){
-            return removeDuplicatesIfOrderingEnabled(transactionList);
+            removeDuplicatesIfOrderingEnabled(transactionList);
+            return;
         }
-        return removeDuplicatesIfOrderingDisabled(transactionList);
+        removeDuplicatesIfOrderingDisabled(transactionList);
     }
 
-    private List<Transaction> removeDuplicatesIfOrderingEnabled(List<Transaction> transactionList){
-        List<Transaction> uniqueTransactions = new ArrayList<>();
+    private void removeDuplicatesIfOrderingEnabled(List<Transaction> transactionList){
 
         for (int i = 0; i <transactionList.size()-1; i++) {
             Transaction currentTransaction = transactionList.get(i);
-            Transaction previousTransaction = transactionList.get(i + 1);
-
+            Transaction nextTransaction = transactionList.get(i + 1);
             String currentPayeeDetail = fetchPayeeDetail(currentTransaction);
-            String previousPayeeDetail = fetchPayeeDetail(previousTransaction);
-            if (!currentPayeeDetail.equals(previousPayeeDetail)) {
-                uniqueTransactions.add(currentTransaction);
+            String nextPayeeDetail = fetchPayeeDetail(nextTransaction);
+
+            if (currentPayeeDetail.equals(nextPayeeDetail)) {
+                currentTransaction.setNote("Duplicate transaction.");
             }
         }
-        uniqueTransactions.add(transactionList.get(transactionList.size()-1));
-        return uniqueTransactions;
     }
 
-    private List<Transaction> removeDuplicatesIfOrderingDisabled(List<Transaction> transactionList){
+    private void removeDuplicatesIfOrderingDisabled(List<Transaction> transactionList){
         Set<String> set = new HashSet<>();
-        List<Transaction> uniqueTransactions = new ArrayList<>();
 
         for(Transaction transaction : transactionList){
             String payeeDetail = fetchPayeeDetail(transaction);
-            if(!set.contains(payeeDetail)){
-                uniqueTransactions.add(transaction);
+            if(set.contains(payeeDetail)){
+                transaction.setNote("Duplicate transaction.");
+            }
+            else{
                 set.add(payeeDetail);
             }
         }
-        return uniqueTransactions;
     }
 
     private String fetchPayeeDetail(Transaction transaction){
