@@ -66,6 +66,10 @@ public class OrderingWorker extends BaseWorker {
         for (int i = 0; i <transactionList.size()-1; i++) {
             Transaction currentTransaction = transactionList.get(i);
             Transaction nextTransaction = transactionList.get(i + 1);
+
+            if (currentTransaction == null || nextTransaction == null) {
+                continue;
+            }
             String currentPayeeDetail = fetchPayeeDetail(currentTransaction);
             String nextPayeeDetail = fetchPayeeDetail(nextTransaction);
 
@@ -77,6 +81,10 @@ public class OrderingWorker extends BaseWorker {
 
     private void removeDuplicatesIfOrderingDisabled(List<Transaction> transactionList){
         Set<String> set = new HashSet<>();
+
+        if(Objects.isNull(transactionList)){
+            return;
+        }
 
         for(Transaction transaction : transactionList){
             String payeeDetail = fetchPayeeDetail(transaction);
@@ -90,6 +98,9 @@ public class OrderingWorker extends BaseWorker {
     }
 
     private String fetchPayeeDetail(Transaction transaction){
+        if(Objects.isNull(transaction)){
+            return null;
+        }
         String payeeIdentifier = transaction.getPayeeIdentifier();
         String payeeIdentifierType = transaction.getPayeeIdentifierType();
         String amount = transaction.getAmount();
