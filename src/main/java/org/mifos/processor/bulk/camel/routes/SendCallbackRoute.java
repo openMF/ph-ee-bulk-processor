@@ -40,6 +40,7 @@ public class SendCallbackRoute extends BaseRouteBuilder {
                     callbackUrl = exchange.getProperty(CALLBACK_URL).toString();
                     return body;
                 })
+                .to("direct:set-jws-signature")
                 .toD("${header.callbackUrl}?bridgeEndpoint=true&throwExceptionOnFailure=false")
                 .choice()
                 .when(header("CamelHttpResponseCode").startsWith("2"))
