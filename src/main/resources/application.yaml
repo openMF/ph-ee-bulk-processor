@@ -132,8 +132,8 @@ server:
     key-alias: "tomcat-https"
     key-store: "classpath:keystore.jks"
     key-store-type: JKS
-    key-password: "<replace-with-password>"
-    key-store-password: "<replace-with-password>"
+    key-password: "password"
+    key-store-password: "password"
   port: 8443
 
 
