@@ -24,6 +24,7 @@ public class OrderingWorker extends BaseWorker {
          * 4. Uploads the updated file in cloud
          */
         newWorker(Worker.ORDERING, (client, job) -> {
+            logger.debug("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
             Map<String, Object> variables = job.getVariablesAsMap();
             if (workerConfig.isOrderingWorkerEnabled) {
                 variables.put(ORDERING_FAILED, false);
