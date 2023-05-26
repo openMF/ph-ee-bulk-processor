@@ -82,6 +82,10 @@ configurations {
     }
 }
 
+tasks.withType(JavaExec) {
+    jvmArgs = ['-Xms400m', '-Xmx400m','-XX:MinHeapFreeRatio=30']
+}
+
 task cucumberCli() {
     dependsOn assemble, testClasses
     doLast {
