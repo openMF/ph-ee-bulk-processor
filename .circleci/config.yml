@@ -25,7 +25,7 @@ jobs:
       - aws-ecr/build-and-push-image:
           aws-access-key-id: AWS_ACCESS_KEY_ID
           aws-secret-access-key: AWS_SECRET_ACCESS_KEY
-          context: AWS
+          # context: AWS
           extra-build-args: '--compress'
           push-image: true
           region: ap-south-1
@@ -42,5 +42,6 @@ workflows:
     jobs:
       - build:
           context:
+            - AWS
             - slack
       
