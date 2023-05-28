@@ -6,7 +6,7 @@ plugins {
     id 'java'
     id 'maven-publish'
     id 'eclipse'
-    id 'org.springframework.boot' version '2.1.9.RELEASE'
+    id 'org.springframework.boot' version '2.6.2'
 }
 
 repositories {
@@ -27,21 +27,24 @@ repositories {
 dependencies {
     implementation 'com.google.code.gson:gson:2.8.9'
     implementation 'org.json:json:20210307'
-    implementation 'org.mifos:ph-ee-connector-common:1.0.0-SNAPSHOT'
+    implementation 'org.mifos:ph-ee-connector-common:1.4.1-SNAPSHOT'
     implementation 'org.apache.camel.springboot:camel-spring-boot-starter:3.4.0'
     implementation 'org.apache.camel:camel-undertow:3.4.0'
-    implementation 'org.springframework.boot:spring-boot-starter:2.5.2'
-    implementation 'org.springframework.boot:spring-boot-starter-web:2.5.2'
+    implementation 'org.springframework.boot:spring-boot-starter:2.6.2'
+    implementation 'org.springframework.boot:spring-boot-starter-web:2.6.2'
     implementation 'org.springframework:spring-web:5.3.19'
     implementation 'org.apache.camel:camel-http:3.4.0'
-    implementation 'com.amazonaws:aws-java-sdk:1.11.486'
+    implementation 'com.amazonaws:aws-java-sdk-s3:1.11.486'
+    //To be removed
+    implementation 'com.amazonaws:aws-java-sdk-dynamodb:1.11.486'
+
     implementation 'com.azure:azure-storage-blob:12.12.0'
     implementation 'io.camunda:zeebe-client-java:1.1.0'
-    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.12.0'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.12.3'
     implementation 'org.springframework.kafka:spring-kafka:2.5.8.RELEASE'
-    implementation 'org.apache.camel:camel-jackson:3.4.0'
+
     implementation 'org.apache.camel.springboot:camel-mail-starter:3.4.0'
-    compileOnly 'org.projectlombok:lombok:1.18.24'
+    implementation 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
 
     testImplementation 'org.apache.camel:camel-test-spring-junit5:3.4.0'
@@ -49,7 +52,7 @@ dependencies {
     testImplementation 'io.cucumber:cucumber-spring:7.8.1'
     testImplementation 'io.cucumber:cucumber-java:7.8.1'
     testImplementation 'org.apache.camel:camel-test:3.4.0'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test:2.5.4'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test:2.6.2'
     testImplementation "com.google.truth:truth:1.1.3"
     testImplementation 'com.google.code.gson:gson:2.9.0'
 }
@@ -71,28 +74,30 @@ tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
 
-tasks.named('test') {
-    useJUnitPlatform()
-}
 
 
-configurations {
-    cucumberRuntime {
-        extendsFrom testImplementation
-    }
-}
+// tasks.named('test') {
+//     useJUnitPlatform()
+// }
 
-task cucumberCli() {
-    dependsOn assemble, testClasses
-    doLast {
-        javaexec {
-            main = "io.cucumber.core.cli.Main"
-            classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
-            args = [
-                    '--plugin', 'pretty',
-                    '--plugin', 'html:target/cucumber-report.html',
-                    '--glue', 'org.mifos.processor.cucumber',
-                    'src/test/java/resources']
-        }
-    }
-}
+
+// configurations {
+//     cucumberRuntime {
+//         extendsFrom testImplementation
+//     }
+// }
+
+// task cucumberCli() {
+//     dependsOn assemble, testClasses
+//     doLast {
+//         javaexec {
+//             main = "io.cucumber.core.cli.Main"
+//             classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
+//             args = [
+//                     '--plugin', 'pretty',
+//                     '--plugin', 'html:target/cucumber-report.html',
+//                     '--glue', 'org.mifos.processor.cucumber',
+//                     'src/test/java/resources']
+//         }
+//     }
+// }
