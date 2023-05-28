@@ -6,7 +6,6 @@ jobs:
   build:
     docker:
       - image: cimg/openjdk:17.0.0
-      - image: docker:17.05.0-ce-git
     working_directory: ~/repo
     environment:
       # Customize the JVM maximum heap limit
@@ -14,7 +13,6 @@ jobs:
       TERM: dumb
     steps:
       - checkout
-      - setup_remote_docker
           
 #       - slack/notify:
 #           event: fail
