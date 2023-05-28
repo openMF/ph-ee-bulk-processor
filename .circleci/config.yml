@@ -23,13 +23,16 @@ jobs:
 #       - slack/notify:
 #           event: pass
 #           template: basic_success_1
-          
+      - run: ./gradlew build          
       # - run: ./gradlew cucumberCli
       # run tests! Slack Success/Fail Notification Step
       #- run: ./gradlew test
 workflows:
   build_and_push_image:
     jobs:
+      - build:
+          context:
+            - slack
       - aws-ecr/build-and-push-image:
           aws-access-key-id: AWS_ACCESS_KEY_ID
           aws-secret-access-key: AWS_SECRET_ACCESS_KEY
@@ -42,6 +45,3 @@ workflows:
           repo-scan-on-push: true
           role-arn: arn:aws:iam::419830066942:role/CustomAdmin
           tag: latest
-      - build:
-          context: 
-            - slack
