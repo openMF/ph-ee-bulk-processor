@@ -28,12 +28,12 @@ jobs:
       # run tests! Slack Success/Fail Notification Step
       #- run: ./gradlew test
 workflows:
-  build:
+  build_and_push_image:
     jobs:
       - aws-ecr/build-and-push-image:
           aws-access-key-id: AWS_ACCESS_KEY_ID
           aws-secret-access-key: AWS_SECRET_ACCESS_KEY
-          context: aws
+          context: AWS
           extra-build-args: '--compress'
           push-image: true
           region: ap-south-1
@@ -45,4 +45,3 @@ workflows:
       - build:
           context: 
             - slack
-            - aws
