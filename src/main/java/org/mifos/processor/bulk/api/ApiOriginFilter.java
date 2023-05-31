@@ -27,7 +27,7 @@ public class ApiOriginFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
         String tenant = req.getHeader("Platform-TenantId");
-        logger.info("Tenant Name is : {}", tenant);
+        logger.debug("Tenant Name is : {}", tenant);
     }
 
     @Override
