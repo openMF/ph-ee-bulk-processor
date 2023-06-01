@@ -17,6 +17,7 @@ public class SendCallbackWorker extends BaseWorker {
     @Override
     public void setup() {
         newWorker(Worker.SEND_CALLBACK, (client, job) -> {
+            logger.debug("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
             Map<String, Object> variables = job.getVariablesAsMap();
 
             int retry = variables.getOrDefault(CALLBACK_RETRY, 0).equals(variables.get(MAX_STATUS_RETRY))?0:

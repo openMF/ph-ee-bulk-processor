@@ -11,6 +11,7 @@ public class ApprovalWorker extends BaseWorker {
     @Override
     public void setup() {
         newWorker(Worker.APPROVAL, (client, job) -> {
+            logger.debug("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
             Map<String, Object> variables = job.getVariablesAsMap();
 
             if (workerConfig.isApprovalWorkerEnabled) {

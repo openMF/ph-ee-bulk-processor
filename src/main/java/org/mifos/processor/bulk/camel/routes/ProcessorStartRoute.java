@@ -57,6 +57,9 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
     @Value("${callback.max-retry}")
     private int maxCallbackRetry;
 
+    @Value("${pollingApi.timer}")
+    private String pollApiTimer;
+
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
@@ -73,26 +76,14 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                 .id("rest:POST:/batchtransactions")
                 .log("Starting route rest:POST:/batchtransactions")
                 .unmarshal().mimeMultipart("multipart/*")
-                .to("direct:validate-tenant")
                 .process(exchange -> {
-                    String filename = exchange.getIn().getHeader("filename", String.class);
-                    String requestId = exchange.getIn().getHeader("X-CorrelationID", String.class);
-                    String purpose = exchange.getIn().getHeader("Purpose", String.class);
-                    String type = exchange.getIn().getHeader("Type", String.class);
-                    exchange.setProperty(FILE_NAME, filename);
-                    exchange.setProperty(REQUEST_ID, requestId);
-                    exchange.setProperty(PURPOSE, purpose);
-                    exchange.setProperty(BATCH_REQUEST_TYPE, type);
+                    String batchId = UUID.randomUUID().toString();
+                    exchange.setProperty(BATCH_ID,batchId);
+
                 })
-                .choice()
-                .when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("raw"))
-                .to("direct:start-batch-process-raw")
-                .when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("csv"))
-                .unmarshal().mimeMultipart("multipart/*")
-                .to("direct:start-batch-process-csv")
-                .otherwise()
-                .setBody(exchange -> getUnsupportedTypeJson(exchange.getProperty(BATCH_REQUEST_TYPE, String.class)).toString())
-                .log("Completed execution of route rest:POST:/batchtransactions");
+                .wireTap("direct:executeBatch")
+                .to("direct:pollingOutput");
+
 
 
         from("rest:POST:/bulk/transfer/{requestId}/{fileName}")
@@ -102,12 +93,14 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     String fileName = System.currentTimeMillis() + "_" +  exchange.getIn().getHeader("fileName", String.class);
                     String requestId = exchange.getIn().getHeader("requestId", String.class);
                     String purpose = exchange.getIn().getHeader("purpose", String.class);
-
+                    String batchId = UUID.randomUUID().toString();
+                    exchange.setProperty(BATCH_ID,batchId);
                     exchange.setProperty(FILE_NAME, fileName);
                     exchange.setProperty(REQUEST_ID, requestId);
                     exchange.setProperty(PURPOSE, purpose);
                 })
-                .to("direct:start-batch-process-csv");
+                .wireTap("direct:start-batch-process-csv")
+                .to("direct:pollingOutput");
 
         from("direct:validate-tenant")
                 .id("direct:validate-tenant")
@@ -130,7 +123,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     String fileName = exchange.getProperty(FILE_NAME, String.class);
                     String requestId = exchange.getProperty(REQUEST_ID, String.class);
                     String purpose = exchange.getProperty(PURPOSE, String.class);
-                    String batchId = UUID.randomUUID().toString();
+                    String batchId = exchange.getProperty(BATCH_ID,String.class);
 
 
                     if (purpose == null || purpose.isEmpty()) {
@@ -211,6 +204,46 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     exchange.getIn().setBody(response.toString());
                 })
                 .log("Completed route direct:start-batch-process-raw");
+
+        from("direct:executeBatch")
+                .id("direct:executeBatch")
+                .log("Starting route direct:executeBatch")
+                .to("direct:validate-tenant")
+                .process(exchange -> {
+                    String filename = exchange.getIn().getHeader("filename", String.class);
+                    String requestId = exchange.getIn().getHeader("X-CorrelationID", String.class);
+                    String purpose = exchange.getIn().getHeader("Purpose", String.class);
+                    String type = exchange.getIn().getHeader("Type", String.class);
+                    exchange.setProperty(FILE_NAME, filename);
+                    exchange.setProperty(REQUEST_ID, requestId);
+                    exchange.setProperty(PURPOSE, purpose);
+                    exchange.setProperty(BATCH_REQUEST_TYPE, type);
+                })
+                .choice()
+                .when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("raw"))
+                .to("direct:start-batch-process-raw")
+                .when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("csv"))
+                .unmarshal().mimeMultipart("multipart/*")
+                .to("direct:start-batch-process-csv")
+                .otherwise()
+                .setBody(exchange -> getUnsupportedTypeJson(exchange.getProperty(BATCH_REQUEST_TYPE, String.class)).toString())
+                .log("Completed execution of route rest:POST:/batchtransactions");
+
+        from("direct:pollingOutput")
+                .id("direct:pollingOutput")
+                .log("Started pollingOutput route")
+                .process(exchange -> {
+//                   String response = "PollingPath: /batch/Summary/{batchId} and SuggestedCallbackSeconds: # seconds";
+//                    response = response.replace("#",pollApiTimer).replace("{batchId}", (CharSequence) exchange.getProperty(BATCH_ID));
+//                    ObjectMapper mapper = new ObjectMapper();
+                    JSONObject json = new JSONObject();
+                    json.put("PollingPath", "/batch/Summary/"+exchange.getProperty(BATCH_ID));
+                    json.put("SuggestedCallbackSeconds",pollApiTimer);
+                    exchange.getIn().setBody(json.toString());
+
+
+                });
+
     }
 
     private Map<String, Object> setConfigProperties(Map<String, Object> variables) {

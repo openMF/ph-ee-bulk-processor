@@ -23,6 +23,7 @@ public class FormattingWorker extends BaseWorker {
          * 4. Uploads the updated file in cloud
          */
         newWorker(Worker.FORMATTING, (client, job) -> {
+            logger.debug("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
             Map<String, Object> variables = job.getVariablesAsMap();
             if (workerConfig.isFormattingWorkerEnabled) {
                 variables.put(FORMATTING_FAILED, false);

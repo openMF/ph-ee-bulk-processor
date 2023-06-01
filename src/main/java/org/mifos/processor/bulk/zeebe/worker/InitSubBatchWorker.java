@@ -25,6 +25,7 @@ public class InitSubBatchWorker extends BaseWorker {
          * 3. Initiates workflow based on the payment_mode
          */
         newWorker(Worker.INIT_SUB_BATCH, (client, job) -> {
+            logger.debug("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
             Map<String, Object> variables = job.getVariablesAsMap();
 
             List<String> subBatches = (List<String>) variables.get(SUB_BATCHES);
