@@ -1,5 +1,7 @@
 package org.mifos.processor.bulk.zeebe;
 
+import com.amazonaws.services.dynamodbv2.xspec.S;
+
 public class ZeebeVariables {
 
     private ZeebeVariables() {
@@ -114,6 +116,12 @@ public class ZeebeVariables {
     public static final String PHASES = "phases";
 
     public static final String PHASE_COUNT = "phaseCount";
+
+    public static final String INITIATOR_FSP_ID = "initiatorFspId";
+    public static final String ACCOUNT_LOOKUP_RETRY_COUNT = "accountLookupRetryCount";
+    public static final String ACCOUNT_LOOKUP_FAILED = "accountLookupFailed";
+    public static final String ORIGIN_CHANNEL_REQUEST = "originChannelRequest";
+    public static final String CALLBACK = "X-CallbackURL";
 
     public static final String DEBULKINGDFSPID = "debulkingDfspid";
 
