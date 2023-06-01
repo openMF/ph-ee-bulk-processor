@@ -116,9 +116,17 @@ public class ZeebeVariables {
     public static final String PHASES = "phases";
 
     public static final String PHASE_COUNT = "phaseCount";
+
     public static final String INITIATOR_FSP_ID = "initiatorFspId";
     public static final String ACCOUNT_LOOKUP_RETRY_COUNT = "accountLookupRetryCount";
     public static final String ACCOUNT_LOOKUP_FAILED = "accountLookupFailed";
     public static final String ORIGIN_CHANNEL_REQUEST = "originChannelRequest";
     public static final String CALLBACK = "X-CallbackURL";
+
+    public static final String DEBULKINGDFSPID = "debulkingDfspid";
+
+    public static final String FILE_VALIDITY = "isFileValid";
+
+    public static final String NOTE = "note";
+
 }

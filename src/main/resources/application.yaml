@@ -122,3 +122,7 @@ identity-account-mapper:
 
 bulk-processor:
   hostname : "https://bulk-connector.sandbox.mifos.io"
+
+csv:
+  columnNames: "id,request_id,payment_mode,payer_identifier_type,payer_identifier,payee_identifier_type,payee_identifier,amount,currency,note"
+  size : 100000 # in bytes
