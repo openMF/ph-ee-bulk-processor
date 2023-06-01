@@ -116,3 +116,9 @@ callback-phases:
     - 60
     - 80
     - 100
+
+identity-account-mapper:
+  hostname : "https://identity.sandbox.mifosio"
+
+bulk-processor:
+  hostname : "https://bulk-connector.sandbox.fynarfin.io"
