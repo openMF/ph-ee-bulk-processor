@@ -75,17 +75,7 @@ bpmn:
     bulk-processor: "bulk_processor-{dfspid}"
     slcb: "slcb-{dfspid}"
 
-payment-mode:
-  mappings:
-    - id: "GSMA"
-      type: "PAYMENT"
-      endpoint: "/channel/gsma/transfer"
-    - id: "MOJALOOP"
-      type: "PAYMENT"
-      endpoint: "/channel/transfer"
-    - id: "SLCB"
-      type: "BULK"
-      endpoint: "bulk_connector_{MODE}-{dfspid}"
+#payment mode moved to a separate application property file for helm rewrite
 
 config:
   minimum-successful-tx-ratio: 0.90
