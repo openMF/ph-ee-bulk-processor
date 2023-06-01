@@ -29,7 +29,7 @@ zeebe:
     contactpoint: "zeebe-zeebe-gateway:26500"
 
 operations-app:
-  contactpoint: "https://ops-bk.sandbox.fynarfin.io"
+  contactpoint: "https://ops-bk.sandbox.mifos.io"
   username: "mifos"
   password: "password"
   endpoints:
@@ -118,7 +118,7 @@ callback-phases:
     - 100
 
 identity-account-mapper:
-  hostname : "https://identity.sandbox.mifosio"
+  hostname : "https://identity.sandbox.mifos.io"
 
 bulk-processor:
-  hostname : "https://bulk-connector.sandbox.fynarfin.io"
+  hostname : "https://bulk-connector.sandbox.mifos.io"
