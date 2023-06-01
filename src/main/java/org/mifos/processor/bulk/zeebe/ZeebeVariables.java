@@ -114,4 +114,6 @@ public class ZeebeVariables {
     public static final String PHASES = "phases";
 
     public static final String PHASE_COUNT = "phaseCount";
+
+    public static final String DEBULKINGDFSPID = "debulkingDfspid";
 }
