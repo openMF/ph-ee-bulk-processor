@@ -38,13 +38,14 @@ public class AccountLookupCallbackWorker extends BaseWorker{
                     PartyIdInfo partyIdInfo = new PartyIdInfo(transactionChannelRequestDTO.getPayee().getPartyIdInfo().getPartyIdType(), payeeId);
                     Party payee =new Party(partyIdInfo);
                     transactionChannelRequestDTO.setPayee(payee);
-                    existingVariables.put(CHANNEL_REQUEST, transactionChannelRequestDTO);
+                    existingVariables.put(CHANNEL_REQUEST, objectMapper.writeValueAsString(transactionChannelRequestDTO));
                     client.newCompleteCommand(job.getKey())
                             .variables(existingVariables)
                             .send()
+                            .join()
                     ;
                 })
-                .name(String.valueOf(ACCOUNT_LOOKUP_CALLBACK))
+                .name(ACCOUNT_LOOKUP_CALLBACK.getValue())
                 .open();
     }
 }
