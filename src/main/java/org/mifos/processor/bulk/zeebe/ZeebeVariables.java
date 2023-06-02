@@ -128,5 +128,6 @@ public class ZeebeVariables {
     public static final String FILE_VALIDITY = "isFileValid";
 
     public static final String NOTE = "note";
+    public static final String PARTY_LOOKUP_FSP_ID = "partyLookupFspId";
 
 }
