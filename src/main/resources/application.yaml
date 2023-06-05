@@ -1,5 +1,5 @@
 camel:
-  server-port: 5000
+  server-port: 5002
   disable-ssl: false
   springboot:
     main-run-controller: true
@@ -7,8 +7,11 @@ camel:
       json-jackson:
         auto-discover-object-mapper: true
 
+server:
+  port: 8081
+
 kafka:
-  bootstrapAddress: "kafka:9092"
+#  bootstrapAddress: "kafka:9092"
   topic:
     gsma:
       name: gsma
@@ -26,7 +29,8 @@ zeebe:
     #    number-of-workers: 8
     #    evenly-allocated-max-jobs: "#{${zeebe.client.max-execution-threads} / ${zeebe.client.number-of-workers}}"
   broker:
-    contactpoint: "zeebe-zeebe-gateway:26500"
+#    contactpoint: "zeebe-zeebe-gateway:26500"
+    contactpoint: "localhost:26500"
 
 operations-app:
   contactpoint: "https://ops-bk.sandbox.fynarfin.io"
@@ -45,8 +49,10 @@ cloud:
     enabled: true
     s3-base-url: "https://paymenthub-ee-dev.s3.us-east-2.amazonaws.com"
     credentials:
-      access-key: ${AWS_ACCESS_KEY:access_key_from_aws}
-      secret-key: ${AWS_SECRET_KEY:secret_key_from_aws}
+#      access-key: ${AWS_ACCESS_KEY:access_key_from_aws}
+      access-key: AKIAX32JM37TZOJ5AKFB
+#      secret-key: ${AWS_SECRET_KEY:secret_key_from_aws}
+      secret-key: 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
     region:
       static: us-east-2
     stack:
@@ -86,6 +92,10 @@ payment-mode:
     - id: "SLCB"
       type: "BULK"
       endpoint: "bulk_connector_{MODE}-{dfspid}"
+    - id: "CLOSEDLOOP"
+      type: "BULK"
+      endpoint: "bulk_connector_{MODE}-{dfspid}"
+      debulkingDfspid: "rhino"
 
 config:
   minimum-successful-tx-ratio: 0.90
@@ -126,3 +136,7 @@ callback-phases:
     - 60
     - 80
     - 100
+
+#logging:
+#  level:
+#    root: ERROR

@@ -164,6 +164,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     variables.put(CALLBACK_URL,callbackUrl);
                     variables.put(PHASES,phases);
                     variables.put(PHASE_COUNT,phases.size());
+                    variables.put("isFileValid", true);
                     setConfigProperties(variables);
 
                     JSONObject response = new JSONObject();
