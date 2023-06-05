@@ -6,7 +6,11 @@ import org.mifos.processor.bulk.camel.routes.RouteId;
 import org.mifos.processor.bulk.schema.Transaction;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Objects;
 
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST;
