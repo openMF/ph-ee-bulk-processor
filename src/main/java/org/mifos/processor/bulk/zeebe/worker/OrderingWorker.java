@@ -103,14 +103,12 @@ public class OrderingWorker extends BaseWorker {
     }
 
     private String fetchPayeeDetail(Transaction transaction){
-        if(Objects.isNull(transaction)){
-            return null;
-        }
         String payeeIdentifier = transaction.getPayeeIdentifier();
         String payeeIdentifierType = transaction.getPayeeIdentifierType();
         String amount = transaction.getAmount();
         String currency = transaction.getCurrency();
-        return payeeIdentifierType + payeeIdentifier + amount + currency;
+
+        return String.format("%s%s%s%s", payeeIdentifier, payeeIdentifierType, amount, currency);
     }
 
 }
