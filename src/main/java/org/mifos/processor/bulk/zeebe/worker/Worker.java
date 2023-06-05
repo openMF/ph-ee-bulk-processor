@@ -11,7 +11,9 @@ public enum Worker {
     SEND_CALLBACK("sendCallback"),
     MERGE_BACK("mergeSubBatch"),
 
-    INIT_SUB_BATCH("initSubBatch");
+    INIT_SUB_BATCH("initSubBatch"),
+    ACCOUNT_LOOKUP("accountLookup"),
+    ACCOUNT_LOOKUP_CALLBACK("accountLookupCallback");
 
     private final String value;
 

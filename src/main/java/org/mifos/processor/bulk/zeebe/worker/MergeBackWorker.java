@@ -17,6 +17,7 @@ public class MergeBackWorker extends BaseWorker {
     @Override
     public void setup() {
         newWorker(Worker.MERGE_BACK, (client, job) -> {
+            logger.debug("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
             Map<String, Object> variables = job.getVariablesAsMap();
             if (workerConfig.isMergeBackWorkerEnabled) {
                 variables.put(MERGE_FAILED, false);
