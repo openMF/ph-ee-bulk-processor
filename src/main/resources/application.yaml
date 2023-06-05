@@ -84,8 +84,8 @@ config:
   approval:
     enable: true
   ordering:
-    enable: false
-    field: "payment_mode"
+    enable: true
+    field: "payee_identifier"
   splitting:
     enable: false
     sub-batch-size: 5
@@ -101,6 +101,8 @@ config:
     completion-threshold: 95 # in percentage
     max-retry: 4 #can be as high as 30
     delay: 60 # in seconds
+  deduplication:
+    enabled: true
 
 callback:
   max-retry: 3
