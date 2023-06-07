@@ -1,9 +1,9 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
-import org.springframework.stereotype.Component;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.APPROVAL_FAILED;
 
 import java.util.Map;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.APPROVAL_FAILED;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ApprovalWorker extends BaseWorker {

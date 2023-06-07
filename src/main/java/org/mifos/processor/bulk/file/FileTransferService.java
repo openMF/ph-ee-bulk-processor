@@ -1,9 +1,8 @@
 package org.mifos.processor.bulk.file;
 
+import java.io.File;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
 
 @Service
 public interface FileTransferService {

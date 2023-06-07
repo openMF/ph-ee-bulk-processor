@@ -1,15 +1,16 @@
 package org.mifos.processor.bulk.camel.processor;
 
+import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST_ELEMENT;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.function.Function;
 import org.apache.camel.Exchange;
 import org.mifos.connector.common.gsma.dto.GSMATransaction;
 import org.mifos.processor.bulk.schema.Transaction;
 import org.mifos.processor.bulk.utility.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import java.util.function.Function;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST_ELEMENT;
 
 @Component
 public class GsmaApiPayload implements Function<Exchange, String> {

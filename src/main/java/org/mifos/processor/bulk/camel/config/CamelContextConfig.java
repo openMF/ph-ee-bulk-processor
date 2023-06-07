@@ -1,18 +1,14 @@
 package org.mifos.processor.bulk.camel.config;
 
+import java.util.HashMap;
 import org.apache.camel.CamelContext;
 import org.apache.camel.component.http.HttpComponent;
 import org.apache.camel.spi.RestConfiguration;
 import org.apache.camel.spring.boot.CamelContextConfiguration;
-import org.apache.camel.support.jsse.SSLContextParameters;
-import org.apache.camel.support.jsse.TrustManagersParameters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import javax.net.ssl.X509ExtendedTrustManager;
-import java.util.HashMap;
 
 @Configuration
 public class CamelContextConfig {
@@ -29,6 +25,7 @@ public class CamelContextConfig {
     @Bean
     CamelContextConfiguration contextConfiguration() {
         return new CamelContextConfiguration() {
+
             @Override
             public void beforeApplicationStart(CamelContext camelContext) {
                 camelContext.setTracing(false);
@@ -40,7 +37,6 @@ public class CamelContextConfig {
                     HttpComponent httpComponent = camelContext.getComponent("https", HttpComponent.class);
                     httpComponent.setHttpClientConfigurer(httpClientConfigurerTrustAllCACerts);
                 }
-
 
                 RestConfiguration rest = new RestConfiguration();
                 camelContext.setRestConfiguration(rest);

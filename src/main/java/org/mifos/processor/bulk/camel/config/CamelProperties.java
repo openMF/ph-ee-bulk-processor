@@ -5,7 +5,8 @@ public class CamelProperties {
     private CamelProperties() {}
 
     public static final String AUTH_TYPE = "authType";
-    public static final String IS_BATCH_READY = "isBatchReady"; // camel property to check if batch is ready for sampling
+    public static final String IS_BATCH_READY = "isBatchReady"; // camel property to check if batch is ready for
+                                                                // sampling
 
     public static final String SERVER_FILE_NAME = "serverFileName";
 
