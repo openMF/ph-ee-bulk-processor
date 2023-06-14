@@ -28,6 +28,7 @@ public class ApiOriginFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request;
         String tenant = req.getHeader("Platform-TenantId");
         logger.debug("Tenant Name is : {}", tenant);
+        logger.info("Client IP Address: {}",req.getRemoteHost());
     }
 
     @Override
