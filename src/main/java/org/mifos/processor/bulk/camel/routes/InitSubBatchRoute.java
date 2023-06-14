@@ -1,20 +1,53 @@
 package org.mifos.processor.bulk.camel.routes;
 
+import static org.mifos.processor.bulk.camel.config.CamelProperties.BATCH_ID_HEADER;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.EXTERNAL_ENDPOINT;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.EXTERNAL_ENDPOINT_FAILED;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.IS_PAYMENT_MODE_VALID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.LOCAL_FILE_PATH;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.OVERRIDE_HEADER;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.PAYMENT_MODE_TYPE;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.RESULT_TRANSACTION_LIST;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.TENANT_NAME;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST_ELEMENT;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST_LENGTH;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.ZEEBE_VARIABLE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETED_AMOUNT;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.DEBULKINGDFSPID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FAILED_AMOUNT;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.INIT_SUB_BATCH_FAILED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ONGOING_AMOUNT;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYMENT_MODE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REQUEST_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.RESULT_FILE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SUB_BATCH_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TOTAL_AMOUNT;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.function.Function;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
-import org.mifos.processor.bulk.config.*;
+import org.mifos.processor.bulk.config.ExternalApiPayloadConfig;
+import org.mifos.processor.bulk.config.PaymentModeConfiguration;
+import org.mifos.processor.bulk.config.PaymentModeMapping;
+import org.mifos.processor.bulk.config.PaymentModeType;
+import org.mifos.processor.bulk.schema.Transaction;
 import org.mifos.processor.bulk.schema.TransactionResult;
 import org.mifos.processor.bulk.utility.Utils;
-import org.mifos.processor.bulk.schema.Transaction;
 import org.mifos.processor.bulk.zeebe.BpmnConfig;
 import org.mifos.processor.bulk.zeebe.ZeebeProcessStarter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import java.util.*;
-import java.util.function.Function;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
 
 @Component
 public class InitSubBatchRoute extends BaseRouteBuilder {
@@ -34,27 +67,19 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
     @Value("${channel.hostname}")
     private String ChannelURL;
 
-
     @Override
     public void configure() throws Exception {
 
         /**
-         * Base route for kicking off init sub batch logic. Performs below tasks.
-         * 1. Downloads the csv form cloud.
-         * 2. Builds the [Transaction] array using [direct:get-transaction-array] route.
-         * 3. Loops through each transaction and start the respective workflow
+         * Base route for kicking off init sub batch logic. Performs below tasks. 1. Downloads the csv form cloud. 2.
+         * Builds the [Transaction] array using [direct:get-transaction-array] route. 3. Loops through each transaction
+         * and start the respective workflow
          */
-        from(RouteId.INIT_SUB_BATCH.getValue())
-                .id(RouteId.INIT_SUB_BATCH.getValue())
-                .log("Starting route " + RouteId.INIT_SUB_BATCH.name())
-                .to("direct:download-file")
-                .to("direct:get-transaction-array")
-                .to("direct:start-workflow-step1");
+        from(RouteId.INIT_SUB_BATCH.getValue()).id(RouteId.INIT_SUB_BATCH.getValue()).log("Starting route " + RouteId.INIT_SUB_BATCH.name())
+                .to("direct:download-file").to("direct:get-transaction-array").to("direct:start-workflow-step1");
 
         // crates the zeebe variables map and starts the workflow by calling >> direct:start-workflow-step2
-        from("direct:start-workflow-step1")
-                .id("direct:start-flow-step1")
-                .log("Starting route direct:start-flow-step1")
+        from("direct:start-workflow-step1").id("direct:start-flow-step1").log("Starting route direct:start-flow-step1")
                 .process(exchange -> {
                     List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
 
@@ -68,71 +93,47 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     variables.put(ONGOING_AMOUNT, exchange.getProperty(ONGOING_AMOUNT));
                     variables.put(FAILED_AMOUNT, exchange.getProperty(FAILED_AMOUNT));
                     variables.put(COMPLETED_AMOUNT, exchange.getProperty(COMPLETED_AMOUNT));
-                    variables.put(RESULT_FILE, String.format("Result_%s",
-                            exchange.getProperty(SERVER_FILE_NAME)));
+                    variables.put(RESULT_FILE, String.format("Result_%s", exchange.getProperty(SERVER_FILE_NAME)));
 
                     exchange.setProperty(ZEEBE_VARIABLE, variables);
                     exchange.setProperty(PAYMENT_MODE, transactionList.get(0).getPaymentMode());
 
+                }).to("direct:start-workflow-step2");
 
-                })
-                .to("direct:start-workflow-step2");
-
-
-        from("direct:start-workflow-step2")
-                .id("direct:start-flow-step2")
-                .log("Starting route direct:start-flow-step2")
-                .to("direct:validate-payment-mode")
-                .choice()
+        from("direct:start-workflow-step2").id("direct:start-flow-step2").log("Starting route direct:start-flow-step2")
+                .to("direct:validate-payment-mode").choice()
                 // if invalid payment mode
-                .when(exchangeProperty(IS_PAYMENT_MODE_VALID).isEqualTo(false))
-                .to("direct:payment-mode-missing")
+                .when(exchangeProperty(IS_PAYMENT_MODE_VALID).isEqualTo(false)).to("direct:payment-mode-missing")
                 .setProperty(INIT_SUB_BATCH_FAILED, constant(true))
                 // else
-                .otherwise()
-                .to("direct:start-workflow-step3")
-                .endChoice();
+                .otherwise().to("direct:start-workflow-step3").endChoice();
 
-        from("direct:start-workflow-step3")
-                .id("direct:start-flow-step3")
-                .log("Starting route direct:start-flow-step3")
-                .choice()
+        from("direct:start-workflow-step3").id("direct:start-flow-step3").log("Starting route direct:start-flow-step3").choice()
                 // if type of payment mode is bulk
-                .when(exchangeProperty(PAYMENT_MODE_TYPE).isEqualTo(PaymentModeType.BULK))
-                .process(exchange -> {
+                .when(exchangeProperty(PAYMENT_MODE_TYPE).isEqualTo(PaymentModeType.BULK)).process(exchange -> {
                     String paymentMode = exchange.getProperty(PAYMENT_MODE, String.class);
                     PaymentModeMapping mapping = paymentModeConfiguration.getByMode(paymentMode);
 
                     String tenantName = exchange.getProperty(TENANT_NAME, String.class);
-                    tenantName = mapping.getDebulkingDfspid()==null ? tenantName : mapping.getDebulkingDfspid();
+                    tenantName = mapping.getDebulkingDfspid() == null ? tenantName : mapping.getDebulkingDfspid();
                     Map<String, Object> variables = exchange.getProperty(ZEEBE_VARIABLE, Map.class);
                     variables.put(PAYMENT_MODE, paymentMode);
-                    variables.put(DEBULKINGDFSPID,
-                            mapping.getDebulkingDfspid()==null ? tenantName : mapping.getDebulkingDfspid());
+                    variables.put(DEBULKINGDFSPID, mapping.getDebulkingDfspid() == null ? tenantName : mapping.getDebulkingDfspid());
                     zeebeProcessStarter.startZeebeWorkflow(
-                            Utils.getBulkConnectorBpmnName(mapping.getEndpoint(), mapping.getId().toLowerCase(), tenantName),
-                            variables);
+                            Utils.getBulkConnectorBpmnName(mapping.getEndpoint(), mapping.getId().toLowerCase(), tenantName), variables);
                     exchange.setProperty(INIT_SUB_BATCH_FAILED, false);
                 })
                 // if type of payment mode is payment todo // else case or else if case ?
-                .otherwise()
-                .loop(simple("${exchangeProperty." + TRANSACTION_LIST_LENGTH + "}"))
-                .process(exchange -> {
+                .otherwise().loop(simple("${exchangeProperty." + TRANSACTION_LIST_LENGTH + "}")).process(exchange -> {
                     int index = exchange.getProperty(Exchange.LOOP_INDEX, Integer.class);
                     List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
                     Transaction transaction = transactionList.get(index);
                     exchange.setProperty(TRANSACTION_LIST_ELEMENT, transaction);
-                })
-                .setHeader("Platform-TenantId", exchangeProperty(TENANT_NAME))
-                .to("direct:dynamic-payload-setter")
-                .to("direct:external-api-call")
-                .to("direct:external-api-response-handler")
-                .end() // end loop block
+                }).setHeader("Platform-TenantId", exchangeProperty(TENANT_NAME)).to("direct:dynamic-payload-setter")
+                .to("direct:external-api-call").to("direct:external-api-response-handler").end() // end loop block
                 .endChoice();
 
-        from("direct:dynamic-payload-setter")
-                .id("direct:runtime-payload-test")
-                .log("Starting route direct:runtime-payload-test")
+        from("direct:dynamic-payload-setter").id("direct:runtime-payload-test").log("Starting route direct:runtime-payload-test")
                 .process(exchange -> {
                     String mode = exchange.getProperty(PAYMENT_MODE, String.class);
                     Function<Exchange, String> localPayloadVariable = externalApiPayloadConfig.getApiPayloadSetter(mode);
@@ -144,23 +145,16 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 .setBody(simple("${exchangeProperty.body}"));
 
         // Loops through each transaction and start the respective workflow
-        from("direct:external-api-response-handler")
-                .id("direct:external-api-response-handler")
-                .log("Starting route direct:external-api-response-handler")
-                .choice()
-                .when(header("CamelHttpResponseCode").isEqualTo(200))
+        from("direct:external-api-response-handler").id("direct:external-api-response-handler")
+                .log("Starting route direct:external-api-response-handler").choice().when(header("CamelHttpResponseCode").isEqualTo(200))
                 .process(exchange -> {
                     logger.info("reached here");
-                    exchange.setProperty(INIT_SUB_BATCH_FAILED, false);})
-                .otherwise()
-                .process(exchange -> {
+                    exchange.setProperty(INIT_SUB_BATCH_FAILED, false);
+                }).otherwise().process(exchange -> {
                     exchange.setProperty(INIT_SUB_BATCH_FAILED, true);
-                })
-                .endChoice();
+                }).endChoice();
 
-        from("direct:payment-mode-missing")
-                .id("direct:payment-mode-missing")
-                .log("Starting route direct:payment-mode-missing")
+        from("direct:payment-mode-missing").id("direct:payment-mode-missing").log("Starting route direct:payment-mode-missing")
                 .process(exchange -> {
                     String serverFileName = exchange.getProperty(SERVER_FILE_NAME, String.class);
                     String resultFile = String.format("Result_%s", serverFileName);
@@ -171,46 +165,32 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     exchange.setProperty(RESULT_FILE, resultFile);
                 })
                 // setting localfilepath as result file to make sure result file is uploaded
-                .setProperty(LOCAL_FILE_PATH, exchangeProperty(RESULT_FILE))
-                .setProperty(OVERRIDE_HEADER, constant(true))
+                .setProperty(LOCAL_FILE_PATH, exchangeProperty(RESULT_FILE)).setProperty(OVERRIDE_HEADER, constant(true))
                 .process(exchange -> {
                     logger.info("A1 {}", exchange.getProperty(RESULT_FILE));
                     logger.info("A2 {}", exchange.getProperty(LOCAL_FILE_PATH));
                     logger.info("A3 {}", exchange.getProperty(OVERRIDE_HEADER));
-                })
-                .to("direct:update-result-file")
-                .to("direct:upload-file");
+                }).to("direct:update-result-file").to("direct:upload-file");
 
-
-        from("direct:external-api-call")
-                .id("direct:external-api-call")
-                .log("Starting route direct:external-api-call")
-                .process(exchange -> {
-                    String paymentMode = exchange.getProperty(PAYMENT_MODE, String.class);
-                    PaymentModeMapping mapping = paymentModeConfiguration.getByMode(paymentMode);
-                    if (mapping == null) {
-                        exchange.setProperty(EXTERNAL_ENDPOINT_FAILED, true);
-                        logger.info("Failed to get the payment mode config, check the configuration for payment mode");
-                    } else {
-                        exchange.setProperty(EXTERNAL_ENDPOINT_FAILED, false);
-                        exchange.setProperty(EXTERNAL_ENDPOINT, mapping.getEndpoint());
-                        logger.info("Got the config with routing to endpoint {}", mapping.getEndpoint());
-                    }
-                })
-                .choice()
-                .when(exchangeProperty(EXTERNAL_ENDPOINT_FAILED).isEqualTo(false))
+        from("direct:external-api-call").id("direct:external-api-call").log("Starting route direct:external-api-call").process(exchange -> {
+            String paymentMode = exchange.getProperty(PAYMENT_MODE, String.class);
+            PaymentModeMapping mapping = paymentModeConfiguration.getByMode(paymentMode);
+            if (mapping == null) {
+                exchange.setProperty(EXTERNAL_ENDPOINT_FAILED, true);
+                logger.info("Failed to get the payment mode config, check the configuration for payment mode");
+            } else {
+                exchange.setProperty(EXTERNAL_ENDPOINT_FAILED, false);
+                exchange.setProperty(EXTERNAL_ENDPOINT, mapping.getEndpoint());
+                logger.info("Got the config with routing to endpoint {}", mapping.getEndpoint());
+            }
+        }).choice().when(exchangeProperty(EXTERNAL_ENDPOINT_FAILED).isEqualTo(false))
                 .log(LoggingLevel.DEBUG, "Making API call to endpoint ${exchangeProperty.extEndpoint} and body: ${body}")
                 .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
                 .setHeader(BATCH_ID_HEADER, simple("${exchangeProperty." + BATCH_ID + "}"))
                 .toD(ChannelURL + "${exchangeProperty.extEndpoint}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
-                .log(LoggingLevel.DEBUG, "Response body: ${body}")
-                .otherwise()
-                .endChoice();
+                .log(LoggingLevel.DEBUG, "Response body: ${body}").otherwise().endChoice();
 
-
-        from("direct:validate-payment-mode")
-                .id("direct:validate-payment-mode")
-                .log("Starting route direct:validate-payment-mode")
+        from("direct:validate-payment-mode").id("direct:validate-payment-mode").log("Starting route direct:validate-payment-mode")
                 .process(exchange -> {
                     String paymentMde = exchange.getProperty(PAYMENT_MODE, String.class);
                     PaymentModeMapping mapping = paymentModeConfiguration.getByMode(paymentMde);

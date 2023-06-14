@@ -1,10 +1,8 @@
 package org.mifos.processor.bulk.utility;
 
-
+import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 @ConfigurationProperties(prefix = "callback-phases")
@@ -20,6 +18,5 @@ public class PhaseUtils {
         this.values = values;
 
     }
-
 
 }

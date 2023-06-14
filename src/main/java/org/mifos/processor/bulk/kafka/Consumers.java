@@ -1,7 +1,23 @@
 package org.mifos.processor.bulk.kafka;
 
+import static org.mifos.connector.common.mojaloop.type.InitiatorType.CONSUMER;
+import static org.mifos.connector.common.mojaloop.type.Scenario.TRANSFER;
+import static org.mifos.connector.common.mojaloop.type.TransactionRole.PAYER;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.GSMA_CHANNEL_REQUEST;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.INITIATOR_FSPID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.IS_RTP_REQUEST;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_ID_TYPE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_LOOKUP_FSPID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TRANSACTION_TYPE;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.HashMap;
+import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.mifos.connector.common.channel.dto.TransactionChannelRequestDTO;
 import org.mifos.connector.common.gsma.dto.GSMATransaction;
 import org.mifos.connector.common.gsma.dto.GsmaParty;
@@ -17,26 +33,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.mifos.connector.common.mojaloop.type.InitiatorType.CONSUMER;
-import static org.mifos.connector.common.mojaloop.type.Scenario.TRANSFER;
-import static org.mifos.connector.common.mojaloop.type.TransactionRole.PAYER;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.GSMA_CHANNEL_REQUEST;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.INITIATOR_FSPID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.IS_RTP_REQUEST;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_ID_TYPE;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_LOOKUP_FSPID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TRANSACTION_TYPE;
-
 @Service
+@Slf4j
 public class Consumers {
-
 
     @Value("${bpmn.flows.international-remittance-payer}")
     private String internationalRemittancePayer;
@@ -49,8 +48,7 @@ public class Consumers {
 
     @KafkaListener(topics = "${kafka.topic.gsma.name}", groupId = "group_id")
     public void listenTopicGsma(String message) throws JsonProcessingException {
-        System.out.println("Received Message in topic GSMA and group group_id: " + message);
-
+        log.debug("Received Message in topic GSMA and group group_id: {}", message);
         TransactionOlder transaction = objectMapper.readValue((String) message, TransactionOlder.class);
         String tenantId = "ibank-usa";
 
@@ -65,9 +63,9 @@ public class Consumers {
         GsmaParty debitParty = new GsmaParty();
         debitParty.setKey("msisdn");
         debitParty.setValue(transaction.getAccountNumber());
-        gsmaChannelRequest.setCreditParty(new GsmaParty[]{creditParty});
-        gsmaChannelRequest.setDebitParty(new GsmaParty[]{debitParty});
-//        gsmaChannelRequest.setInternationalTransferInformation().setReceivingAmount(gsmaChannelRequest.getAmount());
+        gsmaChannelRequest.setCreditParty(new GsmaParty[] { creditParty });
+        gsmaChannelRequest.setDebitParty(new GsmaParty[] { debitParty });
+        // gsmaChannelRequest.setInternationalTransferInformation().setReceivingAmount(gsmaChannelRequest.getAmount());
 
         TransactionChannelRequestDTO channelRequest = new TransactionChannelRequestDTO(); // Fineract Object
         Party payee = new Party(new PartyIdInfo(IdentifierType.MSISDN, transaction.getAccountNumber()));
@@ -96,7 +94,8 @@ public class Consumers {
         String tenantSpecificBpmn = internationalRemittancePayer.replace("{dfspid}", tenantId);
         channelRequest.setTransactionType(transactionType);
 
-        PartyIdInfo requestedParty = (boolean)extraVariables.get(IS_RTP_REQUEST) ? channelRequest.getPayer().getPartyIdInfo() : channelRequest.getPayee().getPartyIdInfo();
+        PartyIdInfo requestedParty = (boolean) extraVariables.get(IS_RTP_REQUEST) ? channelRequest.getPayer().getPartyIdInfo()
+                : channelRequest.getPayee().getPartyIdInfo();
         extraVariables.put(PARTY_ID_TYPE, requestedParty.getPartyIdType());
         extraVariables.put(PARTY_ID, requestedParty.getPartyIdentifier());
 
@@ -104,15 +103,14 @@ public class Consumers {
         extraVariables.put(PARTY_LOOKUP_FSPID, gsmaChannelRequest.getReceivingLei());
         extraVariables.put(INITIATOR_FSPID, gsmaChannelRequest.getRequestingLei());
 
-        String transactionId = zeebeProcessStarter.startZeebeWorkflow(tenantSpecificBpmn,
-                objectMapper.writeValueAsString(channelRequest),
+        String transactionId = zeebeProcessStarter.startZeebeWorkflow(tenantSpecificBpmn, objectMapper.writeValueAsString(channelRequest),
                 extraVariables);
 
-        System.out.println("GSMA Transaction Started with: " + transactionId);
+        log.debug("GSMA Transaction Started with:{} ", transactionId);
     }
 
     @KafkaListener(topics = "${kafka.topic.slcb.name}", groupId = "group_id")
     public void listenTopicSlcb(String message) {
-        System.out.println("Received Message in topic SLCB and group group_id: " + message);
+        log.debug("Received Message in topic SLCB and group group_id:{} ", message);
     }
 }

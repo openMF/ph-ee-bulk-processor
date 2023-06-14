@@ -1,15 +1,16 @@
 package org.mifos.processor.cucumber.stepdef;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import java.util.function.Function;
 import org.apache.camel.Exchange;
 import org.mifos.processor.bulk.config.PaymentModeMapping;
 import org.mifos.processor.bulk.config.PaymentModeType;
 import org.mifos.processor.bulk.utility.Utils;
-import java.util.function.Function;
-import static com.google.common.truth.Truth.assertThat;
 
 public class ConfigurationTestStepDef extends BaseStepDef {
 
@@ -50,8 +51,7 @@ public class ConfigurationTestStepDef extends BaseStepDef {
     @Then("I should get the bulk connector bpmn name {string}")
     public void validateBulkConnectorBpmnName(String bpmnName) {
         PaymentModeMapping mapping = BaseStepDef.paymentModeMapping;
-        String generatedBpmnName = Utils.getBulkConnectorBpmnName(mapping.getEndpoint(),
-                mapping.getId(), BaseStepDef.tenant);
+        String generatedBpmnName = Utils.getBulkConnectorBpmnName(mapping.getEndpoint(), mapping.getId(), BaseStepDef.tenant);
         assertThat(bpmnName).isEqualTo(generatedBpmnName);
     }
 

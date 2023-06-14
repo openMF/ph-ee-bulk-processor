@@ -2,8 +2,7 @@ package org.mifos.processor.bulk.format;
 
 public enum Standard {
 
-    GSMA(StandardValue.GSMA),
-    DEFAULT(StandardValue.DEFAULT);
+    GSMA(StandardValue.GSMA), DEFAULT(StandardValue.DEFAULT);
 
     private final String value;
 
@@ -16,4 +15,3 @@ public enum Standard {
     }
 
 }
-

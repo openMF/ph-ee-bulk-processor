@@ -1,11 +1,8 @@
 package org.mifos.processor.bulk.zeebe;
 
-import com.amazonaws.services.dynamodbv2.xspec.S;
-
 public class ZeebeVariables {
 
-    private ZeebeVariables() {
-    }
+    private ZeebeVariables() {}
 
     public static final String ACCOUNT = "account";
     public static final String AUTH_RETRIES_LEFT = "authRetriesLeft";

@@ -1,12 +1,18 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
+import static org.mifos.processor.bulk.camel.config.CamelProperties.BATCH_STATUS_FAILED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETION_RATE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ERROR_CODE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ERROR_DESCRIPTION;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.RETRY;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
+
+import java.util.Map;
 import org.apache.camel.Exchange;
 import org.apache.camel.support.DefaultExchange;
 import org.mifos.processor.bulk.camel.routes.RouteId;
 import org.springframework.stereotype.Component;
-import java.util.Map;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.BATCH_STATUS_FAILED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
 
 @Component
 public class BatchStatusWorker extends BaseWorker {

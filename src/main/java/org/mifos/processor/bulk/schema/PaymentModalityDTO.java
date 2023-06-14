@@ -10,6 +10,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PaymentModalityDTO {
+
     private String paymentModality;
     private String financialAddress;
     private String bankingInstitutionCode;

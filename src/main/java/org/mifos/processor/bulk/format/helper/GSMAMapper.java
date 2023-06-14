@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class GSMAMapper extends BaseMapper<Transaction, GSMATransaction> {
+
     @Override
     public GSMATransaction convert(Transaction object) {
         GSMATransaction gsmaTransaction = new GSMATransaction();

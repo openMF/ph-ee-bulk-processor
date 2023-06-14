@@ -13,7 +13,6 @@ public class GSMATransaction implements CsvSchema {
 
     private String note;
 
-
     public int getId() {
         return id;
     }

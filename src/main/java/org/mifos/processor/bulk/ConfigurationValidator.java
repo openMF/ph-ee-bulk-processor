@@ -1,17 +1,17 @@
 package org.mifos.processor.bulk;
 
-import org.mifos.processor.bulk.schema.Transaction;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.PostConstruct;
 import org.mifos.processor.bulk.format.Standard;
+import org.mifos.processor.bulk.schema.Transaction;
 import org.mifos.processor.bulk.zeebe.worker.WorkerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import javax.annotation.PostConstruct;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 public class ConfigurationValidator {
@@ -65,24 +65,24 @@ public class ConfigurationValidator {
             e.printStackTrace();
         }
         List<String> possibleStandards = new ArrayList<>();
-        for (Field f: Standard.class.getFields()) {
+        for (Field f : Standard.class.getFields()) {
             possibleStandards.add(f.getName());
         }
-        throw new ConfigurationValidationException("Invalid standard configured for formatting data. Possible values are ["
-        + String.join(",", possibleStandards) + "]");
+        throw new ConfigurationValidationException(
+                "Invalid standard configured for formatting data. Possible values are [" + String.join(",", possibleStandards) + "]");
     }
 
     // validates the ordering configuration
     private void validateOrderingConfig() {
         List<String> possibleOrderingFields = new ArrayList<>();
 
-        for (Field field: Transaction.class.getDeclaredFields()) {
+        for (Field field : Transaction.class.getDeclaredFields()) {
             possibleOrderingFields.add(field.getName());
         }
 
         if (!possibleOrderingFields.contains(orderingField)) {
-            throw new ConfigurationValidationException("Invalid ordering field, possible values are ["
-                    + String.join(",", possibleOrderingFields) + "]");
+            throw new ConfigurationValidationException(
+                    "Invalid ordering field, possible values are [" + String.join(",", possibleOrderingFields) + "]");
         }
     }
 
@@ -99,6 +99,9 @@ public class ConfigurationValidator {
 
     // this exception is thrown when unexpected application config is set, and can't pass the ConfigurationValidator
     public static class ConfigurationValidationException extends RuntimeException {
-        ConfigurationValidationException(String message) { super(message); }
+
+        ConfigurationValidationException(String message) {
+            super(message);
+        }
     }
 }

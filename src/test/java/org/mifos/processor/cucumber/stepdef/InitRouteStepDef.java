@@ -1,17 +1,18 @@
 package org.mifos.processor.cucumber.stepdef;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST_ELEMENT;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYMENT_MODE;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import java.util.UUID;
 import org.mifos.connector.common.channel.dto.TransactionChannelRequestDTO;
 import org.mifos.connector.common.gsma.dto.GSMATransaction;
 import org.mifos.processor.bulk.schema.Transaction;
-import java.util.UUID;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST_ELEMENT;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYMENT_MODE;
 
 public class InitRouteStepDef extends BaseStepDef {
 
@@ -47,17 +48,20 @@ public class InitRouteStepDef extends BaseStepDef {
     public void callRuntimePayloadTestRoute(String paymentMode) {
         exchange = template.send("direct:dynamic-payload-setter", exchange -> {
             exchange.setProperty(PAYMENT_MODE, paymentMode);
-            exchange.setProperty(TRANSACTION_LIST_ELEMENT, new Transaction(){{
-                setId(0);
-                setRequestId(UUID.randomUUID().toString());
-                setPaymentMode(paymentMode);
-                setAmount("100");
-                setPayerIdentifierType("MSISDN");
-                setPayeeIdentifierType("MSISDN");
-                setPayerIdentifier("1234567890");
-                setPayeeIdentifier("0987654321");
-                setCurrency("INR");
-            }});
+            exchange.setProperty(TRANSACTION_LIST_ELEMENT, new Transaction() {
+
+                {
+                    setId(0);
+                    setRequestId(UUID.randomUUID().toString());
+                    setPaymentMode(paymentMode);
+                    setAmount("100");
+                    setPayerIdentifierType("MSISDN");
+                    setPayeeIdentifierType("MSISDN");
+                    setPayerIdentifier("1234567890");
+                    setPayeeIdentifier("0987654321");
+                    setCurrency("INR");
+                }
+            });
         });
     }
 

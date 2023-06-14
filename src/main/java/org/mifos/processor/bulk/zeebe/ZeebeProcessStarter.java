@@ -2,17 +2,15 @@ package org.mifos.processor.bulk.zeebe;
 
 import io.camunda.zeebe.client.ZeebeClient;
 import io.camunda.zeebe.client.api.response.ProcessInstanceEvent;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
 
 @Component
 public class ZeebeProcessStarter {
@@ -46,18 +44,13 @@ public class ZeebeProcessStarter {
 
         Map<String, Object> variables = new HashMap<>();
         variables.put(ZeebeVariables.ORIGIN_DATE, Instant.now().toEpochMilli());
-        if(extraVariables != null) {
+        if (extraVariables != null) {
             variables.putAll(extraVariables);
         }
 
         // TODO if successful transfer response arrives in X timeout return it otherwise do callback
-        ProcessInstanceEvent join = zeebeClient.newCreateInstanceCommand()
-                .bpmnProcessId(workflowId)
-                .latestVersion()
-                .variables(variables)
-                .send()
-                .join();
-
+        ProcessInstanceEvent join = zeebeClient.newCreateInstanceCommand().bpmnProcessId(workflowId).latestVersion().variables(variables)
+                .send().join();
 
         logger.info("zeebee workflow instance from process {}", workflowId);
     }
@@ -69,18 +62,13 @@ public class ZeebeProcessStarter {
         variables.put(ZeebeVariables.TRANSACTION_ID, transactionId);
         variables.put(ZeebeVariables.CHANNEL_REQUEST, request);
         variables.put(ZeebeVariables.ORIGIN_DATE, Instant.now().toEpochMilli());
-        if(extraVariables != null) {
+        if (extraVariables != null) {
             variables.putAll(extraVariables);
         }
 
         // TODO if successful transfer response arrives in X timeout return it otherwise do callback
-        ProcessInstanceEvent join = zeebeClient.newCreateInstanceCommand()
-                .bpmnProcessId(workflowId)
-                .latestVersion()
-                .variables(variables)
-                .send()
-                .join();
-
+        ProcessInstanceEvent join = zeebeClient.newCreateInstanceCommand().bpmnProcessId(workflowId).latestVersion().variables(variables)
+                .send().join();
 
         logger.info("zeebee workflow instance from process {} started with transactionId {}", workflowId, transactionId);
         return transactionId;
