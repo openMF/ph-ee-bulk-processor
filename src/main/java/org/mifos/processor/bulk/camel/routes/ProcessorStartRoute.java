@@ -111,9 +111,30 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
 
     private void setup() {
 
-        from("rest:POST:/batchtransactions").id("rest:POST:/batchtransactions").log("Starting route rest:POST:/batchtransactions")
-                .to("direct:validate-file").choice().when(header("CamelHttpResponseCode").isNotEqualTo("200"))
-                .log(LoggingLevel.ERROR, "File upload failed").otherwise().unmarshal().mimeMultipart("multipart/*").process(exchange -> {
+        from("rest:POST:/batchtransaction")
+                .id("rest:POST:/batchtransaction")
+                .log("Starting route for batch txn")
+                .choice()
+                .when(header("type").isEqualTo("csv"))
+                        .to("direct:format-raw-to-csv")
+                    .choice()
+                        .when(header("CamelHttpResponseCode").startsWith("2"))
+                            .to("direct:batch-process")
+                        .otherwise()
+                            .log(LoggingLevel.ERROR, "File conversion from JSON to CSV failed")
+                    .endChoice()
+                .when(header("type").isEqualTo("raw"))
+                    .to("direct:batch-process")
+                .endChoice();
+
+        from("direct:batch-process")
+                .to("direct:validate-file")
+                .choice()
+                .when(header("CamelHttpResponseCode").isNotEqualTo("200"))
+                .log(LoggingLevel.ERROR, "File upload failed")
+                .otherwise()
+                .unmarshal().mimeMultipart("multipart/*")
+                .process(exchange -> {
                     String batchId = UUID.randomUUID().toString();
                     exchange.setProperty(BATCH_ID, batchId);
 
@@ -213,7 +234,45 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
 
                     exchange.getIn().setBody(response.toString());
 
-                }).log("Completed route direct:start-batch-process-csv");
+                })
+                .log("Completed route direct:start-batch-process-csv");
+
+        from("direct:format-raw-to-csv")
+                .id("direct:format-raw-to-csv")
+                .log("Starting route direct:format-raw-to-csv")
+                .process(e->{
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    CsvMapper csvMapper = new CsvMapper();
+                    String bulkString = e.getIn().getBody(String.class);
+
+                    try {
+                        // Read JSON data from file or string
+                        JsonNode jsonNode = objectMapper.readTree(bulkString);
+
+                        // Define CSV schema with headers
+                        CsvSchema.Builder csvSchemaBuilder = CsvSchema.builder().setUseHeader(true);
+
+                        Map<String, String> fieldMappings = new HashMap<>();
+                        fieldMappings.put("request_id", "request_id");
+                        fieldMappings.put("payment_mode", "payment_mode");
+                        fieldMappings.put("payer.partyIdInfo.partyIdType", "payer_identifier_type");
+                        fieldMappings.put("payer.partyIdInfo.partyIdentifier", "payer_identifier");
+                        fieldMappings.put("payee.partyIdInfo.partyIdType", "payee_identifier_type");
+                        fieldMappings.put("payee.partyIdInfo.partyIdentifier", "payee_identifier");
+                        fieldMappings.put("amount.amount", "amount");
+                        fieldMappings.put("amount.currency", "currency");
+                        fieldMappings.put("note", "note");
+
+                        // Add the CSV headers based on the mapped field names
+                        for (String fieldName : fieldMappings.values()) {
+                            csvSchemaBuilder.addColumn(fieldName);
+                        }
+
+
+                    } catch (IOException exception) {
+                        exception.printStackTrace();
+                    }
+                });
 
         from("direct:start-batch-process-raw").id("direct:start-batch-process-raw").log("Starting route direct:start-batch-process-raw")
                 .process(exchange -> {
@@ -234,10 +293,9 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     exchange.setProperty(REQUEST_ID, requestId);
                     exchange.setProperty(PURPOSE, purpose);
                     exchange.setProperty(BATCH_REQUEST_TYPE, type);
-                }).choice().when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("raw"))
-                .to("direct:start-batch-process-raw")
-                .when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("csv")).unmarshal()
-                .mimeMultipart("multipart/*").to("direct:start-batch-process-csv").otherwise()
+                })
+                .unmarshal().mimeMultipart("multipart/*")
+                .to("direct:start-batch-process-csv")
                 .setBody(exchange -> getUnsupportedTypeJson(exchange.getProperty(BATCH_REQUEST_TYPE, String.class)).toString())
                 .log("Completed execution of route rest:POST:/batchtransactions");
 
