@@ -59,6 +59,19 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.activation.DataHandler;
+import javax.mail.internet.MimeBodyPart;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.mifos.processor.bulk.camel.config.CamelProperties.BATCH_REQUEST_TYPE;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.TENANT_NAME;
+import static org.mifos.processor.bulk.utility.Utils.convertJsonToCsv;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
+
+
 @Component
 public class ProcessorStartRoute extends BaseRouteBuilder {
 
@@ -142,7 +155,19 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                 .when(header("CamelHttpResponseCode").isNotEqualTo("200")).log(LoggingLevel.ERROR, "File upload failed").otherwise()
                 .unmarshal().mimeMultipart("multipart/*").wireTap("direct:executeBatch").to("direct:pollingOutput").endChoice().endChoice();
 
-        from("rest:POST:/bulk/transfer/{requestId}/{fileName}").unmarshal().mimeMultipart("multipart/*").to("direct:validate-tenant")
+        from("direct:format-raw-to-csv")
+                .id("direct:format-raw-to-csv")
+                .log("Starting route direct:format-raw-to-csv")
+                .process(e->{
+                    String bulkProcessorData = e.getIn().getBody(String.class);
+                    String csv = convertJsonToCsv(bulkProcessorData);
+                    e.getIn().setHeader(Exchange.CONTENT_TYPE, constant("multipart/form-data"));
+                    e.getIn().setBody(csv);
+                });
+
+        from("rest:POST:/bulk/transfer/{requestId}/{fileName}")
+                .unmarshal().mimeMultipart("multipart/*")
+                .to("direct:validate-tenant")
                 .process(exchange -> {
                     String fileName = System.currentTimeMillis() + "_" + exchange.getIn().getHeader("fileName", String.class);
                     String requestId = exchange.getIn().getHeader("requestId", String.class);
@@ -237,44 +262,9 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                 })
                 .log("Completed route direct:start-batch-process-csv");
 
-        from("direct:format-raw-to-csv")
-                .id("direct:format-raw-to-csv")
-                .log("Starting route direct:format-raw-to-csv")
-                .process(e->{
-                    ObjectMapper objectMapper = new ObjectMapper();
-                    CsvMapper csvMapper = new CsvMapper();
-                    String bulkString = e.getIn().getBody(String.class);
-
-                    try {
-                        // Read JSON data from file or string
-                        JsonNode jsonNode = objectMapper.readTree(bulkString);
-
-                        // Define CSV schema with headers
-                        CsvSchema.Builder csvSchemaBuilder = CsvSchema.builder().setUseHeader(true);
-
-                        Map<String, String> fieldMappings = new HashMap<>();
-                        fieldMappings.put("request_id", "request_id");
-                        fieldMappings.put("payment_mode", "payment_mode");
-                        fieldMappings.put("payer.partyIdInfo.partyIdType", "payer_identifier_type");
-                        fieldMappings.put("payer.partyIdInfo.partyIdentifier", "payer_identifier");
-                        fieldMappings.put("payee.partyIdInfo.partyIdType", "payee_identifier_type");
-                        fieldMappings.put("payee.partyIdInfo.partyIdentifier", "payee_identifier");
-                        fieldMappings.put("amount.amount", "amount");
-                        fieldMappings.put("amount.currency", "currency");
-                        fieldMappings.put("note", "note");
-
-                        // Add the CSV headers based on the mapped field names
-                        for (String fieldName : fieldMappings.values()) {
-                            csvSchemaBuilder.addColumn(fieldName);
-                        }
-
-
-                    } catch (IOException exception) {
-                        exception.printStackTrace();
-                    }
-                });
-
-        from("direct:start-batch-process-raw").id("direct:start-batch-process-raw").log("Starting route direct:start-batch-process-raw")
+        from("direct:start-batch-process-raw")
+                .id("direct:start-batch-process-raw")
+                .log("Starting route direct:start-batch-process-raw")
                 .process(exchange -> {
                     JSONObject response = new JSONObject();
                     response.put("batch_id", UUID.randomUUID().toString());

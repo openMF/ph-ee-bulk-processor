@@ -229,4 +229,44 @@ public class Utils {
         return requestDTO;
     }
 
+    public static String convertJsonToCsv(String bulkProcessorData){
+        ObjectMapper objectMapper = new ObjectMapper();
+        CsvMapper csvMapper = new CsvMapper();
+        StringBuilder csvData = new StringBuilder();
+        try {
+            JsonNode jsonNode = objectMapper.readTree(bulkProcessorData);
+
+            CsvSchema.Builder csvSchemaBuilder = CsvSchema.builder().setUseHeader(true);
+
+            // Define the mapping between JSON keys and CSV headers
+            Map<String, String> fieldMappings = new HashMap<>();
+            fieldMappings.put("request_id", "Request ID");
+            fieldMappings.put("payment_mode", "Payment Mode");
+            fieldMappings.put("payer.partyIdInfo.partyIdType", "Payer ID Type");
+            fieldMappings.put("payer.partyIdInfo.partyIdentifier", "Payer ID");
+            fieldMappings.put("payee.partyIdInfo.partyIdType", "Payee ID Type");
+            fieldMappings.put("payee.partyIdInfo.partyIdentifier", "Payee ID");
+            fieldMappings.put("amount.amount", "Amount");
+            fieldMappings.put("amount.currency", "Currency");
+            fieldMappings.put("note", "Note");
+
+            // Add the CSV headers based on the mapped field names
+            for (String fieldName : fieldMappings.values()) {
+                csvSchemaBuilder.addColumn(fieldName);
+            }
+
+            CsvSchema csvSchema = csvSchemaBuilder.build().withHeader();
+
+
+            csvData.append(csvMapper.writerFor(JsonNode.class).with(csvSchema).writeValueAsString(jsonNode));
+
+            return csvData.toString();
+
+
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
+        return csvData.toString();
+    }
+
 }
