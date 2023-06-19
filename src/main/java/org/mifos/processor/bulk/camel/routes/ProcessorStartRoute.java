@@ -255,8 +255,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
 
                     exchange.getIn().setBody(response.toString());
 
-                })
-                .log("Completed route direct:start-batch-process-csv");
+                }).log("Completed route direct:start-batch-process-csv");
 
         from("direct:start-batch-process-raw").id("direct:start-batch-process-raw").log("Starting route direct:start-batch-process-raw")
                 .process(exchange -> {
