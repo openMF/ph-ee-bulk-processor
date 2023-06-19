@@ -124,9 +124,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
 
     private void setup() {
 
-        from("rest:POST:/batchtransaction")
-                .id("rest:POST:/batchtransaction")
-                .log("Starting route for batch txn")
+        from("rest:POST:/batchtransaction").id("rest:POST:/batchtransaction").log("Starting route for batch txn")
                 .choice()
                 .when(header("type").isEqualTo("csv"))
                         .to("direct:format-raw-to-csv")
