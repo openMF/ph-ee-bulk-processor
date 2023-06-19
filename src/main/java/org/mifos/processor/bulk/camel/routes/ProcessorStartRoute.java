@@ -165,9 +165,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     e.getIn().setBody(csv);
                 });
 
-        from("rest:POST:/bulk/transfer/{requestId}/{fileName}")
-                .unmarshal().mimeMultipart("multipart/*")
-                .to("direct:validate-tenant")
+        from("rest:POST:/bulk/transfer/{requestId}/{fileName}").unmarshal().mimeMultipart("multipart/*").to("direct:validate-tenant")
                 .process(exchange -> {
                     String fileName = System.currentTimeMillis() + "_" + exchange.getIn().getHeader("fileName", String.class);
                     String requestId = exchange.getIn().getHeader("requestId", String.class);
@@ -262,9 +260,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                 })
                 .log("Completed route direct:start-batch-process-csv");
 
-        from("direct:start-batch-process-raw")
-                .id("direct:start-batch-process-raw")
-                .log("Starting route direct:start-batch-process-raw")
+        from("direct:start-batch-process-raw").id("direct:start-batch-process-raw").log("Starting route direct:start-batch-process-raw")
                 .process(exchange -> {
                     JSONObject response = new JSONObject();
                     response.put("batch_id", UUID.randomUUID().toString());

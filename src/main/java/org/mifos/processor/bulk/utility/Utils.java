@@ -247,15 +247,15 @@ public class Utils {
 
             // Define the mapping between JSON keys and CSV headers
             Map<String, String> fieldMappings = new HashMap<>();
-            fieldMappings.put("request_id", "Request ID");
-            fieldMappings.put("payment_mode", "Payment Mode");
-            fieldMappings.put("payer.partyIdInfo.partyIdType", "Payer ID Type");
-            fieldMappings.put("payer.partyIdInfo.partyIdentifier", "Payer ID");
-            fieldMappings.put("payee.partyIdInfo.partyIdType", "Payee ID Type");
-            fieldMappings.put("payee.partyIdInfo.partyIdentifier", "Payee ID");
-            fieldMappings.put("amount.amount", "Amount");
-            fieldMappings.put("amount.currency", "Currency");
-            fieldMappings.put("note", "Note");
+            fieldMappings.put("request_id", "request_id");
+            fieldMappings.put("payment_mode", "payment_mode");
+            fieldMappings.put("payer.partyIdInfo.partyIdType", "payer_identifier_type");
+            fieldMappings.put("payer.partyIdInfo.partyIdentifier", "payer_identifier");
+            fieldMappings.put("payee.partyIdInfo.partyIdType", "payee_identifier_type");
+            fieldMappings.put("payee.partyIdInfo.partyIdentifier", "payee_identifier");
+            fieldMappings.put("amount.amount", "amount");
+            fieldMappings.put("amount.currency", "currency");
+            fieldMappings.put("note", "note");
 
             // Add the CSV headers based on the mapped field names
             for (String fieldName : fieldMappings.values()) {
