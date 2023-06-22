@@ -27,7 +27,7 @@ public class WorkerConfig {
     @Value("${config.completion-threshold-check.enable}")
     public boolean isCompletionThresholdCheckEnabled;
 
-    @Value("config.deduplication.enabled")
+    @Value("${config.deduplication.enabled}")
     public boolean isTransactionDeduplicationEnabled;
 
 }
