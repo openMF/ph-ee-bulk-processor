@@ -194,9 +194,9 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     JSONObject response = new JSONObject();
 
                     try {
-                        logger.debug("Tenant name {}", exchange.getProperty(TENANT_NAME).toString());
+                        logger.info("Tenant name {}", exchange.getProperty(TENANT_NAME).toString());
                         String tenantSpecificWorkflowId = workflowId.replace("{dfspid}", exchange.getProperty(TENANT_NAME).toString());
-                        logger.debug("Starting workflow with id {}", tenantSpecificWorkflowId);
+                        logger.info("Starting workflow with id {}", tenantSpecificWorkflowId);
                         String txnId = zeebeProcessStarter.startZeebeWorkflow(tenantSpecificWorkflowId, "", variables);
                         if (txnId == null || txnId.isEmpty()) {
                             response.put("errorCode", 500);
