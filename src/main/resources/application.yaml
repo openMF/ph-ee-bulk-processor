@@ -29,13 +29,15 @@ zeebe:
     contactpoint: "zeebe-zeebe-gateway:26500"
 
 operations-app:
-  contactpoint: "https://ops-bk.sandbox.mifos.io"
+#  contactpoint: "https://ops-bk.sandbox.mifos.io"
+  contactpoint: "http://localhost:5002"
   username: "mifos"
   password: "password"
   endpoints:
     auth: "/oauth/token"
     batch-summary: "/api/v1/batch"
     batch-transaction: "/api/v1/batch/transactions"
+    batch-aggregate: "/api/v1/batch/"
 
 channel:
   hostname: "http://ph-ee-connector-channel"
