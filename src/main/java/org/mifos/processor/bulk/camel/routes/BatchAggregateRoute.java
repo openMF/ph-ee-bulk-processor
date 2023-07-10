@@ -38,13 +38,13 @@ public class BatchAggregateRoute extends BaseRouteBuilder {
                 .choice()
                 .when(exchange -> exchange.getProperty(OPS_APP_ACCESS_TOKEN, String.class) != null)
                 .log(LoggingLevel.INFO, "Got access token, moving on to API call")
-                .to("direct:batch-aggregate")
+                .to("direct:batch-aggregate-api-call")
                 .to("direct:batch-aggregate-response-handler")
                 .otherwise()
                 .log(LoggingLevel.INFO, "Authentication failed.")
                 .endChoice();
 
-        getBaseExternalApiRequestRouteDefinition("batch-aggregate", HttpRequestMethod.GET)
+        getBaseExternalApiRequestRouteDefinition("batch-aggregate-api-call", HttpRequestMethod.GET)
 //                .setHeader(Exchange.REST_HTTP_QUERY, simple("batchId=${exchangeProperty." + BATCH_ID + "}"))
                 .setHeader("Authorization", simple("Bearer ${exchangeProperty." + OPS_APP_ACCESS_TOKEN + "}"))
                 .setHeader("Platform-TenantId", simple("${exchangeProperty." + TENANT_ID + "}"))
