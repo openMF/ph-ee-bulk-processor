@@ -24,7 +24,7 @@ public class BatchAggregateRoute extends BaseRouteBuilder {
     @Override
     public void configure() throws Exception {
 
-        from("rest:get:test/batch/summary").to(RouteId.BATCH_STATUS.getValue());
+        from("rest:get:test/batch/summary").to(RouteId.BATCH_AGGREGATE.getValue());
 
         /**
          * Base route for kicking off ordering logic. Performs below tasks. 1. Downloads the csv form cloud. 2. Builds
