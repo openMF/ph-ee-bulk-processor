@@ -52,7 +52,7 @@ public class BatchStatusRoute extends BaseRouteBuilder {
                 .unmarshal().json(JsonLibrary.Jackson, BatchDTO.class).process(exchange -> {
                     BatchDTO batchSummary = exchange.getIn().getBody(BatchDTO.class);
 
-                    long percentage = (long) (((double) batchSummary.getSuccessful() / batchSummary.getTotal()) * 100);
+                    int percentage = (int) (((double) batchSummary.getSuccessful() / batchSummary.getTotal()) * 100);
 
                     if (percentage >= completionThreshold) {
                         logger.info("Batch success threshold reached. Expected rate: {}, Actual Rate: {}", completionThreshold, percentage);
