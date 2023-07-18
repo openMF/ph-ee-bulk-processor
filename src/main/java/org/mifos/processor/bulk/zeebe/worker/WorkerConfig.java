@@ -30,4 +30,7 @@ public class WorkerConfig {
     @Value("${config.deduplication.enabled}")
     public boolean isTransactionDeduplicationEnabled;
 
+    @Value("${config.authorization.enabled}")
+    public boolean isAuthorizationWorkerEnabled;
+
 }

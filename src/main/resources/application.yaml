@@ -81,6 +81,8 @@ config:
   minimum-successful-tx-ratio: 0.90
   partylookup:
     enable: true
+  authorization:
+    enabled: true
   approval:
     enable: true
   ordering:
