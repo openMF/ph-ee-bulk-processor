@@ -1,7 +1,5 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.mifos.processor.bulk.file.FileTransferService;
 import org.mifos.processor.bulk.schema.AuthorizationRequest;
 import org.mifos.processor.bulk.schema.AuthorizationResponse;
@@ -9,10 +7,7 @@ import org.mifos.processor.bulk.schema.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -27,6 +22,7 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
 @Component
 public class AuthorizationWorker extends BaseWorker{
 
+    private static final String AUTHORIZATION_ACCEPTED = "authorizationAccepted";
     @Autowired
     @Qualifier("awsStorage")
     private FileTransferService fileTransferService;
@@ -48,7 +44,6 @@ public class AuthorizationWorker extends BaseWorker{
                 client.newCompleteCommand(job.getKey()).variables(variables).send();
                 return;
             }
-
             String batchId = (String) variables.get(BATCH_ID);
             String fileName = (String) variables.get(FILE_NAME);
             String clientCorrelationId = Long.toString(job.getKey());
@@ -59,17 +54,9 @@ public class AuthorizationWorker extends BaseWorker{
             String payerIdentifier = getPayerIdentifierFromFirstTransaction(transactionList.get(0));
 
             AuthorizationRequest requestPayload = new AuthorizationRequest(batchId, payerIdentifier, currency, amount);
-            AuthorizationResponse authorizationResponse = invokeBatchAuthorizationApi(batchId,
-                                                            requestPayload, clientCorrelationId);
+            HttpStatus httpStatus = invokeBatchAuthorizationApi(batchId, requestPayload, clientCorrelationId);
 
-            String expectedAuthorizationStatus = "Y";
-            boolean isAuthorizationSuccessful = Objects.nonNull(authorizationResponse) &&
-                                                expectedAuthorizationStatus.equals(authorizationResponse.getStatus());
-            variables.put(AUTHORIZATION_SUCCESSFUL, isAuthorizationSuccessful);
-
-            if(!isAuthorizationSuccessful){
-                variables.put(AUTHORIZATION_FAIL_REASON, authorizationResponse.getReason());
-            }
+            variables.put(AUTHORIZATION_ACCEPTED, httpStatus.is2xxSuccessful());
             client.newCompleteCommand(job.getKey()).variables(variables).send();
         });
     }
@@ -121,8 +108,8 @@ public class AuthorizationWorker extends BaseWorker{
         return totalAmount.toPlainString();
     }
 
-    private AuthorizationResponse invokeBatchAuthorizationApi(String batchId, AuthorizationRequest requestPayload,
-                                                              String clientCorrelationId) {
+    private HttpStatus invokeBatchAuthorizationApi(String batchId, AuthorizationRequest requestPayload,
+                                                   String clientCorrelationId) {
         RestTemplate restTemplate = new RestTemplate();
         AuthorizationResponse authResponse = null;
         HttpHeaders headers = new HttpHeaders();
@@ -137,12 +124,8 @@ public class AuthorizationWorker extends BaseWorker{
                 requestEntity,
                 String.class
         );
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            authResponse = objectMapper.readValue(responseEntity.getBody(), AuthorizationResponse.class);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        return authResponse;
+
+        return responseEntity.getStatusCode();
+
     }
 }
