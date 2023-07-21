@@ -51,7 +51,7 @@ public class AuthorizationWorker extends BaseWorker{
 
             String batchId = (String) variables.get(BATCH_ID);
             String fileName = (String) variables.get(FILE_NAME);
-            String clientCorrelationId = (String) variables.get("clientCorrelationId");
+            String clientCorrelationId = Long.toString(job.getKey());
 
             List<Transaction> transactionList = fetchTransactionList(fileName);
             String amount = calculateTotalAmountToBeTransferred(transactionList);
