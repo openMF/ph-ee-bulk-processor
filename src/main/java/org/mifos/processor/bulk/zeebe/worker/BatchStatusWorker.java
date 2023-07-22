@@ -34,6 +34,7 @@ public class BatchStatusWorker extends BaseWorker {
 
             Boolean batchStatusFailed = exchange.getProperty(BATCH_STATUS_FAILED, Boolean.class);
             if (batchStatusFailed == null || !batchStatusFailed) {
+                logger.info("Completion rate: {}", exchange.getProperty(COMPLETION_RATE));
                 successRate = exchange.getProperty(COMPLETION_RATE, Integer.class);
             } else {
                 variables.put(ERROR_CODE, exchange.getProperty(ERROR_CODE));
