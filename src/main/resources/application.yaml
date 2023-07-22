@@ -128,3 +128,19 @@ bulk-processor:
 csv:
   columnNames: "id,request_id,payment_mode,payer_identifier_type,payer_identifier,payee_identifier_type,payee_identifier,amount,currency,note"
   size : 100000 # in bytes
+
+payment-mode:
+  mappings:
+    - id: "GSMA"
+      type: "PAYMENT"
+      endpoint: "/channel/gsma/transfer"
+    - id: "MOJALOOP"
+      type: "PAYMENT"
+      endpoint: "/channel/transfer"
+    - id: "SLCB"
+      type: "BULK"
+      endpoint: "bulk_connector_{MODE}-{dfspid}"
+    - id: "CLOSEDLOOP"
+      type: "BULK"
+      endpoint: "bulk_connector_{MODE}-{dfspid}"
+      debulkingDfspid: "lion"
