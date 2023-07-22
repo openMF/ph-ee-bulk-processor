@@ -235,9 +235,12 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     exchange.setProperty(PURPOSE, purpose);
                     exchange.setProperty(BATCH_REQUEST_TYPE, type);
                 }).choice().when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("raw"))
+                .log("Processing raw batch request")
                 .to("direct:start-batch-process-raw")
-                .when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("csv")).unmarshal()
+                .when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("csv"))
+                .log("Processing raw batch request").unmarshal()
                 .mimeMultipart("multipart/*").to("direct:start-batch-process-csv").otherwise()
+                .log("Unsupported batch request type: ${exchangeProperty.BATCH_REQUEST_TYPE}")
                 .setBody(exchange -> getUnsupportedTypeJson(exchange.getProperty(BATCH_REQUEST_TYPE, String.class)).toString())
                 .log("Completed execution of route rest:POST:/batchtransactions");
 
