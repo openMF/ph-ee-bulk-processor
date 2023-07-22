@@ -38,7 +38,8 @@ operations-app:
     batch-transaction: "/api/v1/batch/transactions"
 
 channel:
-  hostname: "http://ph-ee-connector-channel"
+  hostname: "https://channel.sandbox.fynarfin.io/"
+#  hostname: "http://ph-ee-connector-channel"
 
 cloud:
   aws:

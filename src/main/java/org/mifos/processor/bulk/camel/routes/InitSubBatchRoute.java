@@ -120,6 +120,7 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     Map<String, Object> variables = exchange.getProperty(ZEEBE_VARIABLE, Map.class);
                     variables.put(PAYMENT_MODE, paymentMode);
                     variables.put(DEBULKINGDFSPID, mapping.getDebulkingDfspid() == null ? tenantName : mapping.getDebulkingDfspid());
+                    logger.info("BPMN: {}", Utils.getBulkConnectorBpmnName(mapping.getEndpoint(), mapping.getId().toLowerCase(), tenantName));
                     zeebeProcessStarter.startZeebeWorkflow(
                             Utils.getBulkConnectorBpmnName(mapping.getEndpoint(), mapping.getId().toLowerCase(), tenantName), variables);
                     exchange.setProperty(INIT_SUB_BATCH_FAILED, false);
