@@ -94,6 +94,7 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     variables.put(FAILED_AMOUNT, exchange.getProperty(FAILED_AMOUNT));
                     variables.put(COMPLETED_AMOUNT, exchange.getProperty(COMPLETED_AMOUNT));
                     variables.put(RESULT_FILE, String.format("Result_%s", exchange.getProperty(SERVER_FILE_NAME)));
+                    logger.info("Sub batch ID: {}", variables.get(SUB_BATCH_ID));
 
                     exchange.setProperty(ZEEBE_VARIABLE, variables);
                     exchange.setProperty(PAYMENT_MODE, transactionList.get(0).getPaymentMode());
