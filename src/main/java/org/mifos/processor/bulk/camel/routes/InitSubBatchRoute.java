@@ -188,7 +188,8 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
                 .setHeader(BATCH_ID_HEADER, simple("${exchangeProperty." + BATCH_ID + "}"))
                 .toD(ChannelURL + "${exchangeProperty.extEndpoint}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
-                .log(LoggingLevel.DEBUG, "Response body: ${body}").otherwise().endChoice();
+                .log(LoggingLevel.DEBUG, "Response body: ${body}").otherwise()
+                .log("No action taken,").endChoice();
 
         from("direct:validate-payment-mode").id("direct:validate-payment-mode").log("Starting route direct:validate-payment-mode")
                 .process(exchange -> {
