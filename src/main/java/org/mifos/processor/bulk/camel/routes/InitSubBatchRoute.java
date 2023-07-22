@@ -184,11 +184,11 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 logger.info("Got the config with routing to endpoint {}", mapping.getEndpoint());
             }
         }).choice().when(exchangeProperty(EXTERNAL_ENDPOINT_FAILED).isEqualTo(false))
-                .log(LoggingLevel.DEBUG, "Making API call to endpoint ${exchangeProperty.extEndpoint} and body: ${body}")
+                .log(LoggingLevel.INFO, "Making API call to endpoint ${exchangeProperty.extEndpoint} and body: ${body}")
                 .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
                 .setHeader(BATCH_ID_HEADER, simple("${exchangeProperty." + BATCH_ID + "}"))
                 .toD(ChannelURL + "${exchangeProperty.extEndpoint}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
-                .log(LoggingLevel.DEBUG, "Response body: ${body}").otherwise()
+                .log(LoggingLevel.INFO, "Response body: ${body}").otherwise()
                 .log("No action taken,").endChoice();
 
         from("direct:validate-payment-mode").id("direct:validate-payment-mode").log("Starting route direct:validate-payment-mode")
