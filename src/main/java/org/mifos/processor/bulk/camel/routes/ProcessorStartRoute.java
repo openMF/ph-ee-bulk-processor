@@ -230,6 +230,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     String requestId = exchange.getIn().getHeader("X-CorrelationID", String.class);
                     String purpose = exchange.getIn().getHeader("Purpose", String.class);
                     String type = exchange.getIn().getHeader("Type", String.class);
+                    type = "csv";
                     exchange.setProperty(FILE_NAME, filename);
                     exchange.setProperty(REQUEST_ID, requestId);
                     exchange.setProperty(PURPOSE, purpose);
