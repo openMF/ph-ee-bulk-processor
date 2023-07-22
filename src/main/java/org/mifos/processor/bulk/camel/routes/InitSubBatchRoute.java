@@ -193,7 +193,9 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
         from("direct:validate-payment-mode").id("direct:validate-payment-mode").log("Starting route direct:validate-payment-mode")
                 .process(exchange -> {
                     String paymentMde = exchange.getProperty(PAYMENT_MODE, String.class);
+                    logger.info("Payment mode: {}", paymentMde);
                     PaymentModeMapping mapping = paymentModeConfiguration.getByMode(paymentMde);
+                    logger.info("Mapping: {}",  mapping);
                     if (mapping == null) {
                         exchange.setProperty(IS_PAYMENT_MODE_VALID, false);
                     } else {
