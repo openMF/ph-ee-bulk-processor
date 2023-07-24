@@ -36,16 +36,19 @@ public class MergeBackWorker extends BaseWorker {
             List<String> failureSubBatches = (List<String>) variables.get(INIT_FAILURE_SUB_BATCHES);
 
             for (int i = 0; i < successSubBatches.size(); i++) {
+                logger.info("Successful sub batches");
                 String initFile = successSubBatches.remove(i);
                 successSubBatches.add(i, String.format("Result_%s", initFile));
             }
             for (int i = 0; i < failureSubBatches.size(); i++) {
+                logger.info("Failed sub batches");
                 String initFile = failureSubBatches.remove(i);
                 failureSubBatches.add(i, String.format("Result_%s", initFile));
             }
 
             List<String> mergeFileList = (List<String>) variables.get(MERGE_FILE_LIST);
             if (mergeFileList == null) {
+                logger.info("merge file list empty");
                 mergeFileList = new ArrayList<>();
                 mergeFileList.addAll(successSubBatches);
                 mergeFileList.addAll(failureSubBatches);
