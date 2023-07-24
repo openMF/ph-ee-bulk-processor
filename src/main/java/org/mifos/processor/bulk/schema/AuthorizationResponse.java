@@ -8,7 +8,7 @@ public class AuthorizationResponse {
 
     private String reason;
 
-    public AuthorizationResponse(){}
+    public AuthorizationResponse() {}
 
     public String getClientCorrelationId() {
         return clientCorrelationId;

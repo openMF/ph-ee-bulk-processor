@@ -1,11 +1,10 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
+import java.util.Map;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-
 @Component
-public class AuthorizationResponseWorker extends BaseWorker{
+public class AuthorizationResponseWorker extends BaseWorker {
 
     private static final String AUTHORIZATION_ACCEPTED = "authorizationAccepted";
 
@@ -18,10 +17,10 @@ public class AuthorizationResponseWorker extends BaseWorker{
 
             Map<String, Object> variables = job.getVariablesAsMap();
 
-            if((boolean) variables.get(AUTHORIZATION_ACCEPTED)){
+            if ((boolean) variables.get(AUTHORIZATION_ACCEPTED)) {
                 variables.put("authorizationSuccessful", "Y".equals(variables.get("authorizationStatus")));
             }
-            else{
+            else {
                 variables.put("authorizationSuccessful", false);
             }
             client.newCompleteCommand(job.getKey()).variables(variables).send();

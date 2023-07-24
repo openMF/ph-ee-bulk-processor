@@ -1,5 +1,11 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.mifos.processor.bulk.file.FileTransferService;
 import org.mifos.processor.bulk.schema.AuthorizationRequest;
 import org.mifos.processor.bulk.schema.AuthorizationResponse;
@@ -7,20 +13,16 @@ import org.mifos.processor.bulk.schema.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
-
 @Component
-public class AuthorizationWorker extends BaseWorker{
+public class AuthorizationWorker extends BaseWorker {
 
     private static final String AUTHORIZATION_ACCEPTED = "authorizationAccepted";
     @Autowired
@@ -61,7 +63,7 @@ public class AuthorizationWorker extends BaseWorker{
         });
     }
 
-    private List<Transaction> fetchTransactionList(String fileName){
+    private List<Transaction> fetchTransactionList(String fileName) {
         byte[] fileInBytes = fileTransferService.downloadFile(fileName, bucketName);
         String csvData = new String(fileInBytes);
         return parseCSVDataToList(csvData);
@@ -71,7 +73,7 @@ public class AuthorizationWorker extends BaseWorker{
         List<Transaction> transactionList = new ArrayList<>();
         String[] lines = csvData.split("\n");
 
-        for(int i=1; i<lines.length; i++){
+        for (int i = 1; i < lines.length; i++) {
             String transactionString = lines[i];
             String[] transactionFields = transactionString.split(",");
 
@@ -91,18 +93,18 @@ public class AuthorizationWorker extends BaseWorker{
         return transactionList;
     }
 
-    private String getCurrencyFromFirstTransaction(Transaction transaction){
+    private String getCurrencyFromFirstTransaction(Transaction transaction) {
         return transaction.getCurrency();
     }
 
-    private String getPayerIdentifierFromFirstTransaction(Transaction transaction){
+    private String getPayerIdentifierFromFirstTransaction(Transaction transaction) {
         return transaction.getPayerIdentifier();
     }
 
     private String calculateTotalAmountToBeTransferred(List<Transaction> transactionList) {
         BigDecimal totalAmount = BigDecimal.ZERO;
 
-        for(Transaction transaction : transactionList){
+        for (Transaction transaction : transactionList) {
             totalAmount = totalAmount.add(new BigDecimal(transaction.getAmount()));
         }
         return totalAmount.toPlainString();
@@ -124,8 +126,6 @@ public class AuthorizationWorker extends BaseWorker{
                 requestEntity,
                 String.class
         );
-
         return responseEntity.getStatusCode();
-
     }
 }

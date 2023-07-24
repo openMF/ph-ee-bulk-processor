@@ -10,9 +10,9 @@ public class AuthorizationRequest {
 
     private String amount;
 
-    public AuthorizationRequest(){}
+    public AuthorizationRequest() {}
 
-    public AuthorizationRequest(String batchId, String payerIdentifier, String currency, String amount){
+    public AuthorizationRequest(String batchId, String payerIdentifier, String currency, String amount) {
         this.batchId = batchId;
         this.payerIdentifier = payerIdentifier;
         this.currency = currency;
