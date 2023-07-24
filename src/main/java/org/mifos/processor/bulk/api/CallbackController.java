@@ -19,20 +19,20 @@ import static org.mifos.processor.bulk.zeebe.ZeebeMessages.AUTHORIZATION_RESPONS
 @RestController
 public class CallbackController {
 
-    @Autowired(required = false)
+    @Autowired
     private ZeebeClient zeebeClient;
 
     @PostMapping("/authorization/callback")
     public ResponseEntity<Object> handleAuthorizationCallback(@RequestBody AuthorizationResponse authResponse) {
         Map<String, Object> variables = new HashMap<>();
         variables.put("clientCorrelationId", authResponse.getClientCorrelationId());
-        variables.put("authorizationSuccessful", "Y".equals(authResponse.getStatus()));
+        variables.put("authorizationStatus", authResponse.getStatus());
         variables.put("authorizationFailReason", authResponse.getReason());
 
         if(zeebeClient != null){
             zeebeClient.newPublishMessageCommand()
-                    .messageName(AUTHORIZATION_RESPONSE)    // update messageName
-                    .correlationKey(authResponse.getClientCorrelationId())  // what is correlation key?
+                    .messageName(AUTHORIZATION_RESPONSE)
+                    .correlationKey(authResponse.getClientCorrelationId())
                     .timeToLive(Duration.ofMillis(50000))
                     .variables(variables).send();
         }
