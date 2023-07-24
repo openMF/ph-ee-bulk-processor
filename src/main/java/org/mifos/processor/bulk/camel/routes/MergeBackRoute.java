@@ -86,6 +86,7 @@ public class MergeBackRoute extends BaseRouteBuilder {
                 .log("Starting route direct:download-file-to-be-merged").log("Downloading files to be merged").process(exchange -> {
                     List<String> mergeList = exchange.getProperty(MERGE_FILE_LIST, List.class);
                     exchange.setProperty(SERVER_FILE_NAME, mergeList.get(0));
+                    logger.info(exchange.getProperty(SERVER_FILE_NAME, String.class));
                 }).to("direct:download-file") // downloading first file
                 .setProperty(FILE_1, exchangeProperty(LOCAL_FILE_PATH)).process(exchange -> {
                     List<String> mergeList = exchange.getProperty(MERGE_FILE_LIST, List.class);

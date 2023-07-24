@@ -30,7 +30,7 @@ public class FileRoute extends BaseRouteBuilder {
          */
         from("direct:download-file").id("direct:download-file").log("Started download-file route").process(exchange -> {
             String filename = exchange.getProperty(SERVER_FILE_NAME, String.class);
-
+            logger.info("Server file name: {}", exchange.getProperty(SERVER_FILE_NAME));
             byte[] csvFile = fileTransferService.downloadFile(filename, bucketName);
             File file = new File(filename);
             try (FileOutputStream fos = new FileOutputStream(file)) {
