@@ -54,6 +54,10 @@ public class InitSubBatchWorker extends BaseWorker {
                 subBatches.add((String) variables.get(FILE_NAME));
             }
 
+            for (String subBatch : subBatches) {
+                logger.info("Sub batch: {}", subBatch);
+            }
+
             String fileName = subBatches.remove(0);
 
             Exchange exchange = new DefaultExchange(camelContext);

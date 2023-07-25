@@ -120,7 +120,8 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     Map<String, Object> variables = exchange.getProperty(ZEEBE_VARIABLE, Map.class);
                     variables.put(PAYMENT_MODE, paymentMode);
                     variables.put(DEBULKINGDFSPID, mapping.getDebulkingDfspid() == null ? tenantName : mapping.getDebulkingDfspid());
-                    logger.info("BPMN: {}", Utils.getBulkConnectorBpmnName(mapping.getEndpoint(), mapping.getId().toLowerCase(), tenantName));
+                    logger.info("BPMN: {}",
+                            Utils.getBulkConnectorBpmnName(mapping.getEndpoint(), mapping.getId().toLowerCase(), tenantName));
                     zeebeProcessStarter.startZeebeWorkflow(
                             Utils.getBulkConnectorBpmnName(mapping.getEndpoint(), mapping.getId().toLowerCase(), tenantName), variables);
                     exchange.setProperty(INIT_SUB_BATCH_FAILED, false);
@@ -190,15 +191,14 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
                 .setHeader(BATCH_ID_HEADER, simple("${exchangeProperty." + BATCH_ID + "}"))
                 .toD(ChannelURL + "${exchangeProperty.extEndpoint}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
-                .log(LoggingLevel.INFO, "Response body: ${body}").otherwise()
-                .log("No action taken,").endChoice();
+                .log(LoggingLevel.INFO, "Response body: ${body}").otherwise().log("No action taken,").endChoice();
 
         from("direct:validate-payment-mode").id("direct:validate-payment-mode").log("Starting route direct:validate-payment-mode")
                 .process(exchange -> {
                     String paymentMde = exchange.getProperty(PAYMENT_MODE, String.class);
                     logger.info("Payment mode: {}", paymentMde);
                     PaymentModeMapping mapping = paymentModeConfiguration.getByMode(paymentMde);
-                    logger.info("Mapping: {}",  mapping);
+                    logger.info("Mapping: {}", mapping);
                     if (mapping == null) {
                         exchange.setProperty(IS_PAYMENT_MODE_VALID, false);
                     } else {

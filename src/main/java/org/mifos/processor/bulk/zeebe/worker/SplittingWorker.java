@@ -31,6 +31,8 @@ public class SplittingWorker extends BaseWorker {
         newWorker(Worker.SPLITTING, (client, job) -> {
             logger.debug("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
             Map<String, Object> variables = job.getVariablesAsMap();
+
+            logger.info("Is splitting enabled: {}", workerConfig.isSplittingWorkerEnabled);
             if (workerConfig.isSplittingWorkerEnabled) {
                 variables.put(SPLITTING_FAILED, false);
             }

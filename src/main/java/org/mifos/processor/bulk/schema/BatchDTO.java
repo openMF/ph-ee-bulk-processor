@@ -59,9 +59,11 @@ public class BatchDTO {
         this.successPercentage = successPercentage;
     }
 
-    public BatchDTO(){}
+    public BatchDTO() {}
 
-    public BatchDTO(String batchId, String requestId, Long totalTransactions, Long ongoing, Long failed, Long completed, BigDecimal total_amount, BigDecimal completed_amount, BigDecimal ongoing_amount, BigDecimal failed_amount, String result_file, String note, String failPercentage, String successPercentage, List<SubBatchDetail> subBatchesDetail) {
+    public BatchDTO(String batchId, String requestId, Long totalTransactions, Long ongoing, Long failed, Long completed,
+            BigDecimal total_amount, BigDecimal completed_amount, BigDecimal ongoing_amount, BigDecimal failed_amount, String result_file,
+            String note, String failPercentage, String successPercentage, List<SubBatchDetail> subBatchesDetail) {
         this.batch_id = batchId;
         this.request_id = requestId;
         this.total = totalTransactions;
@@ -79,7 +81,9 @@ public class BatchDTO {
         this.subBatchesDetail = subBatchesDetail;
     }
 
-    public BatchDTO(String batch_id, String request_id, Long total, Long ongoing, Long failed, Long successful, BigDecimal totalAmount, BigDecimal successfulAmount, BigDecimal pendingAmount, BigDecimal failedAmount, String file, String notes, String created_at, String status, String modes, String purpose, String failPercentage, String successPercentage) {
+    public BatchDTO(String batch_id, String request_id, Long total, Long ongoing, Long failed, Long successful, BigDecimal totalAmount,
+            BigDecimal successfulAmount, BigDecimal pendingAmount, BigDecimal failedAmount, String file, String notes, String created_at,
+            String status, String modes, String purpose, String failPercentage, String successPercentage) {
         this.batch_id = batch_id;
         this.request_id = request_id;
         this.total = total;
