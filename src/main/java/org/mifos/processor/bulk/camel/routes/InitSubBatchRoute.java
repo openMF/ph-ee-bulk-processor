@@ -153,7 +153,9 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 .process(exchange -> {
                     logger.info("reached here");
                     exchange.setProperty(INIT_SUB_BATCH_FAILED, false);
-                }).otherwise().process(exchange -> {
+                })
+                .to("direct:upload-successful-batch")
+                .otherwise().process(exchange -> {
                     exchange.setProperty(INIT_SUB_BATCH_FAILED, true);
                 }).endChoice();
 
@@ -206,6 +208,22 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                         exchange.setProperty(PAYMENT_MODE_TYPE, mapping.getType());
                     }
                 });
+
+        from("direct:upload-successful-batch").id("direct:upload-successful-batch")
+                .log("Starting route direct:upload-successful-batch")
+                .process(exchange -> {
+                    String serverFileName = exchange.getProperty(SERVER_FILE_NAME, String.class);
+                    String resultFile = String.format("Result_%s", serverFileName);
+                    List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
+                    List<TransactionResult> transactionResultList = updateTransactionStatusToCompleted(transactionList);
+                    exchange.setProperty(RESULT_TRANSACTION_LIST, transactionResultList);
+                    exchange.setProperty(RESULT_FILE, resultFile);
+                }).setProperty(LOCAL_FILE_PATH, exchangeProperty(RESULT_FILE)).setProperty(OVERRIDE_HEADER, constant(true))
+                .process(exchange -> {
+                    logger.info("A1 {}", exchange.getProperty(RESULT_FILE));
+                    logger.info("A2 {}", exchange.getProperty(LOCAL_FILE_PATH));
+                    logger.info("A3 {}", exchange.getProperty(OVERRIDE_HEADER));
+                }).to("direct:update-result-file").to("direct:upload-file");
     }
 
     // update Transactions status to failed
@@ -219,6 +237,16 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
             transactionResultList.add(transactionResult);
         }
 
+        return transactionResultList;
+    }
+
+    private List<TransactionResult> updateTransactionStatusToCompleted(List<Transaction> transactionList) {
+        List<TransactionResult> transactionResultList = new ArrayList<>();
+        for (Transaction transaction : transactionList) {
+            TransactionResult transactionResult = Utils.mapToResultDTO(transaction);
+            transactionResult.setStatus("Completed");
+            transactionResultList.add(transactionResult);
+        }
         return transactionResultList;
     }
 
