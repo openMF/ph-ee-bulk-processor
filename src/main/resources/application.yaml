@@ -128,3 +128,8 @@ bulk-processor:
 csv:
   columnNames: "id,request_id,payment_mode,payer_identifier_type,payer_identifier,payee_identifier_type,payee_identifier,amount,currency,note"
   size : 100000 # in bytes
+
+registering-institution-id:
+  programs:
+    - id: "SocialWelfare"
+      account: "1234567"
