@@ -135,4 +135,5 @@ server:
 registering-institution-id:
   programs:
     - id: "SocialWelfare"
-      account: "1234567"
+      identifierType: "ACCOUNT"
+      identifierValue: "123456789"
