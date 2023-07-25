@@ -1,7 +1,6 @@
 package org.mifos.processor.bulk.camel.routes;
 
-import static org.mifos.processor.bulk.camel.config.CamelProperties.BATCH_REQUEST_TYPE;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.TENANT_NAME;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.APPROVAL_ENABLED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BULK_NOTIF_FAILURE;
@@ -25,7 +24,6 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REQUEST_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SPLITTING_ENABLED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.THRESHOLD_DELAY;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,19 +33,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.activation.DataHandler;
 import javax.mail.internet.MimeBodyPart;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.tika.Tika;
 import org.json.JSONObject;
+import org.mifos.processor.bulk.config.InstitutionIdConfig;
+import org.mifos.processor.bulk.config.Program;
 import org.mifos.processor.bulk.file.FileTransferService;
+import org.mifos.processor.bulk.schema.Transaction;
 import org.mifos.processor.bulk.utility.PhaseUtils;
 import org.mifos.processor.bulk.utility.Utils;
 import org.mifos.processor.bulk.zeebe.ZeebeProcessStarter;
@@ -104,6 +102,9 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
     @Autowired
     PhaseUtils phaseUtils;
 
+    @Autowired
+    InstitutionIdConfig institutionIdConfig;
+
     @Override
     public void configure() {
         setup();
@@ -143,7 +144,62 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
             exchange.setProperty(TENANT_NAME, tenantName);
         }).setHeader("Content-Type", constant("application/json;charset=UTF-8")).log("Completed route direct:validate-tenant");
 
-        from("direct:start-batch-process-csv").id("direct:start-batch-process-csv").log("Starting route direct:start-batch-process-csv")
+        // this route is responsible for editing the incoming records based on configuration
+        // this step is done to make sure the file format of CSV is not altered and only the data is updated based on config
+        from("direct:update-incoming-data")
+                .id("direct:update-incoming-data")
+                .log("direct:update-incoming-data")
+                // [LOCAL_FILE_PATH] is already set in [direct:validateFileSyncResponse] route
+                .to("direct:get-transaction-array")
+                // make sure new data is set under the exchange variable [RESULT_TRANSACTION_LIST]
+                .process(exchange -> {
+                    String registeringInstituteId = exchange.getProperty(REGISTERING_INSTITUTE_ID, String.class);
+                    String programId = exchange.getProperty(PROGRAM_ID, String.class);
+                    logger.debug("Inst id: {}, prog id: {}", registeringInstituteId, programId);
+                    if (registeringInstituteId == null || registeringInstituteId.isEmpty() ||
+                    programId == null || programId.isEmpty()) {
+                        // this will make sure the file is not updated since there is no update in data
+                        logger.debug("Reh or pro is null");
+                        exchange.setProperty(IS_UPDATED, false);
+                        return;
+                    }
+                    List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
+                    logger.debug("Size: {}", transactionList.size());
+                    Program program = institutionIdConfig.getByProgramId(programId);
+                    if (program == null) {
+                        // this will make sure the file is not updated since there is no update in data
+                        logger.debug("Program is null");
+                        exchange.setProperty(IS_UPDATED, false);
+                        return;
+                    }
+                    List<Transaction> resultTransactionList = new ArrayList<>();
+
+                    transactionList.forEach(transaction -> {
+                        transaction.setPayerIdentifierType(program.getIdentifierType());
+                        transaction.setPayerIdentifier(program.getIdentifierValue());
+                        resultTransactionList.add(transaction);
+                        try {
+                            logger.debug("Txn: {}", objectMapper.writeValueAsString(transaction));
+                        } catch (JsonProcessingException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+                    exchange.setProperty(RESULT_TRANSACTION_LIST, resultTransactionList);
+                    exchange.setProperty(IS_UPDATED, true);
+                })
+                .choice()
+                // update only when previous(edit function) makes any changes to data
+                .when(exchange -> exchange.getProperty(IS_UPDATED, Boolean.class))
+                // warning: changing this flag can break things
+                .setProperty(OVERRIDE_HEADER, constant(true)) // default header in CSV file will be used
+                .to("direct:update-file-v2")
+                .otherwise()
+                .log(LoggingLevel.DEBUG, "No update");
+
+        from("direct:start-batch-process-csv")
+                .id("direct:start-batch-process-csv")
+                .log("Starting route direct:start-batch-process-csv")
+                .to("direct:update-incoming-data")
                 .process(exchange -> {
                     String fileName = exchange.getProperty(FILE_NAME, String.class);
                     String requestId = exchange.getProperty(REQUEST_ID, String.class);
@@ -155,8 +211,8 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                         purpose = "test payment";
                     }
 
-                    logger.info("\n\n Filename: {}", fileName);
-                    logger.info("\n\n BatchId: {} ", batchId);
+                    logger.debug("\n\n Filename: {}", fileName);
+                    logger.debug("\n\n BatchId: {} ", batchId);
 
                     InputStream csvData = exchange.getIn().getBody(InputStream.class);
                     File file = setupFile(csvData, fileName);
@@ -170,7 +226,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
 
                     String nm = fileTransferService.uploadFile(file, bucketName);
 
-                    logger.info("File uploaded {}", nm);
+                    logger.debug("File uploaded {}", nm);
 
                     // extracting and setting callback Url
                     String callbackUrl = exchange.getIn().getHeader("X-Callback-URL", String.class);
@@ -230,10 +286,14 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     String requestId = exchange.getIn().getHeader("X-CorrelationID", String.class);
                     String purpose = exchange.getIn().getHeader("Purpose", String.class);
                     String type = exchange.getIn().getHeader("Type", String.class);
+                    String registeringInstituteId = exchange.getIn().getHeader(HEADER_REGISTERING_INSTITUTE_ID, String.class);
+                    String programId = exchange.getIn().getHeader(HEADER_PROGRAM_ID, String.class);
                     exchange.setProperty(FILE_NAME, filename);
                     exchange.setProperty(REQUEST_ID, requestId);
                     exchange.setProperty(PURPOSE, purpose);
                     exchange.setProperty(BATCH_REQUEST_TYPE, type);
+                    exchange.setProperty(REGISTERING_INSTITUTE_ID, registeringInstituteId);
+                    exchange.setProperty(PROGRAM_ID, programId);
                 }).choice().when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("raw"))
                 .to("direct:start-batch-process-raw")
                 .when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("csv")).unmarshal()
@@ -262,6 +322,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                         setErrorResponse(exchange, 400, "Invalid file structure",
                                 "The file uploaded contains wrong structure." + " Please upload correct file columns and try again.");
                     } else {
+                        exchange.setProperty(LOCAL_FILE_PATH, fileName);
                         logger.debug("Filename: {}", fileName);
                         setResponse(exchange, 200);
                     }
@@ -351,7 +412,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
         String[] columns = new String[0];
         if (header != null) {
             columns = header.split(",");
-            logger.info("Columns in the csv file are {}", Arrays.toString(columns));
+            logger.debug("Columns in the csv file are {}", Arrays.toString(columns));
         }
         int i = 0;
         while (i < columns.length) {

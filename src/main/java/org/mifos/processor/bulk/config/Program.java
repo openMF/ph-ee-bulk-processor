@@ -11,6 +11,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Program {
 
-    private String id, account;
+    private String id, identifierType, identifierValue;
 
 }

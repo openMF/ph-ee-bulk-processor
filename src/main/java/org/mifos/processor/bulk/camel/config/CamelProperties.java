@@ -70,5 +70,10 @@ public class CamelProperties {
     public static final String PAYMENT_MODALITY = "paymentModality";
     public static final String PAYEE_PARTY_ID = "payeePartyId";
     public static final String PAYEE_PARTY_ID_TYPE = "payeePartyIdType";
+    public static final String HEADER_REGISTERING_INSTITUTE_ID = "X-Registering-Institution-ID";
+    public static final String HEADER_PROGRAM_ID = "X-Program-ID";
+    public static final String REGISTERING_INSTITUTE_ID = "registeringInstituteId";
+    public static final String PROGRAM_ID = "programId";
+    public static final String IS_UPDATED = "isUpdated";
 
 }
