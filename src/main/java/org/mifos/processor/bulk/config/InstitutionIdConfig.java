@@ -16,7 +16,7 @@ public class InstitutionIdConfig {
 
     private List<Program> programs = new ArrayList<>();
 
-    public Program getById(String id) {
+    public Program getByProgramId(String id) {
         return getPrograms().stream()
                 .filter(p -> p.getId().equals(id))
                 .findFirst()
