@@ -134,7 +134,9 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     exchange.setProperty(TRANSACTION_LIST_ELEMENT, transaction);
                 }).setHeader("Platform-TenantId", exchangeProperty(TENANT_NAME)).to("direct:dynamic-payload-setter")
                 .to("direct:external-api-call").to("direct:external-api-response-handler").end() // end loop block
-                .endChoice();
+                .endChoice()
+                .choice().when(exchangeProperty(INIT_SUB_BATCH_FAILED).isEqualTo(false))
+                .to("direct:upload-successful-batch").endChoice();
 
         from("direct:dynamic-payload-setter").id("direct:runtime-payload-test").log("Starting route direct:runtime-payload-test")
                 .process(exchange -> {
@@ -154,7 +156,6 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     logger.info("reached here");
                     exchange.setProperty(INIT_SUB_BATCH_FAILED, false);
                 })
-                .to("direct:upload-successful-batch")
                 .otherwise().process(exchange -> {
                     exchange.setProperty(INIT_SUB_BATCH_FAILED, true);
                 }).endChoice();
