@@ -60,7 +60,7 @@ public class BatchAggregateRoute extends BaseRouteBuilder {
                 .choice().when(header("CamelHttpResponseCode").isEqualTo("200")).log(LoggingLevel.INFO, "Batch summary request successful")
                 .unmarshal().json(JsonLibrary.Jackson, BatchDTO.class).process(exchange -> {
                     BatchDTO batchAggregateResponse = exchange.getIn().getBody(BatchDTO.class);
-                    int percentage = (int) (((double) batchSummary.getSuccessful() / batchSummary.getTotal()) * 100);
+                    int percentage = (int) (((double) batchAggregateResponse.getSuccessful() / batchAggregateResponse.getTotal()) * 100);
 
                     if (percentage >= completionThreshold) {
                         logger.info("Batch success threshold reached. Expected rate: {}, Actual Rate: {}", completionThreshold, percentage);
