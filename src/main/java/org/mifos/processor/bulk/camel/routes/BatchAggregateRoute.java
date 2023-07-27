@@ -51,7 +51,7 @@ public class BatchAggregateRoute extends BaseRouteBuilder {
                 .process(exchange -> {
                     logger.info(exchange.getIn().getHeaders().toString());
                 }).toD(operationsAppConfig.batchAggregateUrl + exchangeProperty(BATCH_ID) + "?bridgeEndpoint=true")
-                .log(LoggingLevel.INFO, "Batch aggregate API response: \n\n ${body}");
+                .log(LoggingLevel.DEBUG, "Batch aggregate API response: \n\n ${body}");
 
         from("direct:batch-aggregate-response-handler")
                 .id("direct:batch-aggregate-response-handler")
