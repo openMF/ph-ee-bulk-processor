@@ -28,24 +28,23 @@ public class BatchStatusWorker extends BaseWorker{
             String batchId = (String) variables.get(BATCH_ID);
             String tenantId = (String) variables.get(TENANT_ID);
             BatchDTO batchDTOResponse = invokeBatchAggregationApi(batchId, tenantId);
-            long successRate = calculateSuccessPercentage(batchDTOResponse);
+            float successRate = calculateSuccessPercentage(batchDTOResponse);
             variables.put(COMPLETION_RATE, successRate);
             client.newCompleteCommand(job.getKey()).variables(variables).send();
         }));
     }
 
-    private long calculateSuccessPercentage(BatchDTO batchDTO){
+    private float calculateSuccessPercentage(BatchDTO batchDTO){
         if(batchDTO.getTotal()!=null && batchDTO.getTotal()!=0){
-            return (long) (((double) batchDTO.getSuccessful() / batchDTO.getTotal()) * 100);
+            return (((float) batchDTO.getSuccessful() / batchDTO.getTotal()) * 100);
         }
-        return 0L;
+        return 0;
     }
 
     private BatchDTO invokeBatchAggregationApi(String batchId, String tenantId) {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.set("Platform-TenantId", tenantId);
-//        String url = "http://localhost:5002/api/v1/batch";
         String url = operationsAppConfig.batchSummaryUrl;
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(url).queryParam("batchId", batchId);
