@@ -1,27 +1,7 @@
 package org.mifos.processor.bulk.camel.routes;
 
 import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.APPROVAL_ENABLED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BULK_NOTIF_FAILURE;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BULK_NOTIF_SUCCESS;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK_URL;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETION_THRESHOLD;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETION_THRESHOLD_CHECK_ENABLED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FORMATTING_ENABLED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MAX_CALLBACK_RETRY;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MAX_STATUS_RETRY;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MERGE_ENABLED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ORDERING_ENABLED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_LOOKUP_ENABLED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PHASES;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PHASE_COUNT;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REQUEST_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SPLITTING_ENABLED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.THRESHOLD_DELAY;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.util.*;
@@ -50,6 +30,7 @@ import java.util.Map;
 import java.util.UUID;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.BATCH_REQUEST_TYPE;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.TENANT_NAME;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
 
 @Component
 public class ProcessorStartRoute extends BaseRouteBuilder {
@@ -202,6 +183,9 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     });
                     exchange.setProperty(RESULT_TRANSACTION_LIST, resultTransactionList);
                     exchange.setProperty(IS_UPDATED, true);
+                    exchange.setProperty(PROGRAM_NAME, program.getName());
+                    exchange.setProperty(PAYER_IDENTIFIER_TYPE, program.getIdentifierType());
+                    exchange.setProperty(PAYER_IDENTIFIER_VALUE, program.getIdentifierValue());
                 })
                 .choice()
                 // update only when previous(edit function) makes any changes to data
@@ -258,9 +242,12 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     variables.put(REQUEST_ID, requestId);
                     variables.put(PURPOSE, purpose);
                     variables.put(TENANT_ID, exchange.getProperty(TENANT_NAME));
-                    variables.put(CALLBACK_URL,callbackUrl);
-                    variables.put(PHASES,phases);
-                    variables.put(PHASE_COUNT,phases.size());
+                    variables.put(CALLBACK_URL, callbackUrl);
+                    variables.put(PHASES, phases);
+                    variables.put(PHASE_COUNT, phases.size());
+                    variables.put(PROGRAM_NAME, exchange.getProperty(PROGRAM_NAME));
+                    variables.put(PAYER_IDENTIFIER_TYPE, exchange.getProperty(PAYER_IDENTIFIER_TYPE));
+                    variables.put(PAYER_IDENTIFIER_VALUE, exchange.getProperty(PAYER_IDENTIFIER_VALUE));
                     setConfigProperties(variables);
 
                     JSONObject response = new JSONObject();
