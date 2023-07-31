@@ -85,7 +85,7 @@ config:
     enable: true
   ordering:
     enable: true
-    field: "payee_identifier"
+    field: "payerIdentifier"
   splitting:
     enable: false
     sub-batch-size: 5
@@ -132,8 +132,10 @@ csv:
 server:
   port: 8080
 
-registering-institution-id:
-  programs:
-    - id: "SocialWelfare"
-      identifierType: "ACCOUNT"
-      identifierValue: "123456789"
+budget-account:
+  registeringInstitutions:
+    - id: "123"
+      programs:
+        - id: "SocialWelfare"
+          identifierType: "ACCOUNT"
+          identifierValue: "123456789"

@@ -29,8 +29,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.json.JSONObject;
-import org.mifos.processor.bulk.config.InstitutionIdConfig;
+import org.mifos.processor.bulk.config.BudgetAccountConfig;
 import org.mifos.processor.bulk.config.Program;
+import org.mifos.processor.bulk.config.RegisteringInstitutionConfig;
 import org.mifos.processor.bulk.file.FileTransferService;
 import org.mifos.processor.bulk.schema.Transaction;
 import org.mifos.processor.bulk.utility.PhaseUtils;
@@ -87,7 +88,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
     PhaseUtils phaseUtils;
 
     @Autowired
-    InstitutionIdConfig institutionIdConfig;
+    BudgetAccountConfig budgetAccountConfig;
 
     @Override
     public void configure() {
@@ -172,7 +173,15 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     }
                     List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
                     logger.debug("Size: {}", transactionList.size());
-                    Program program = institutionIdConfig.getByProgramId(programId);
+                    RegisteringInstitutionConfig registeringInstitutionConfig = budgetAccountConfig
+                            .getByRegisteringInstituteId(registeringInstituteId);
+                    if (registeringInstitutionConfig == null) {
+                        logger.debug("Element in nested in config: {}", budgetAccountConfig.getRegisteringInstitutions().get(0).getPrograms().size());
+                        logger.debug("Registering institute id is null");
+                        exchange.setProperty(IS_UPDATED, false);
+                        return;
+                    }
+                    Program program = registeringInstitutionConfig.getByProgramId(programId);
                     if (program == null) {
                         // this will make sure the file is not updated since there is no update in data
                         logger.debug("Program is null");
