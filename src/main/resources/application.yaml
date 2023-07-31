@@ -16,7 +16,7 @@ kafka:
       name: slcb
 
 application:
-  bucket-name: fynarfin
+  bucket-name: fynarfin-bucket
 
 zeebe:
   client:
