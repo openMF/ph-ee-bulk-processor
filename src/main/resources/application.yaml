@@ -149,7 +149,6 @@ budget-account:
   registeringInstitutions:
     - id: "123"
       programs:
-        - id: "SocialWelfare"
           name: "Social Welfare"
           identifierType: "ACCOUNT"
           identifierValue: "123456789"
