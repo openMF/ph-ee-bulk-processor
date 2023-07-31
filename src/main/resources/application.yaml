@@ -16,7 +16,7 @@ kafka:
       name: slcb
 
 application:
-  bucket-name: paymenthub-ee-dev
+  bucket-name: fynarfin
 
 zeebe:
   client:
