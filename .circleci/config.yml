@@ -79,9 +79,6 @@ workflows:
           context:
               - DOCKER
       - build_and_push_latest_image:
-          filters:
-            branches:
-              only: dockerhub
           context:
               - DOCKER
              
