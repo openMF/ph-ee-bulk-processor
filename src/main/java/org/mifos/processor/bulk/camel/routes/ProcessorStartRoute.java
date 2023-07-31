@@ -195,6 +195,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
 
                     try {
                         String tenantSpecificWorkflowId = workflowId.replace("{dfspid}", exchange.getProperty(TENANT_NAME).toString());
+                        logger.info("BPMN: {}", tenantSpecificWorkflowId);
                         String txnId = zeebeProcessStarter.startZeebeWorkflow(tenantSpecificWorkflowId, "", variables);
                         if (txnId == null || txnId.isEmpty()) {
                             response.put("errorCode", 500);
