@@ -26,7 +26,8 @@ zeebe:
     #    number-of-workers: 8
     #    evenly-allocated-max-jobs: "#{${zeebe.client.max-execution-threads} / ${zeebe.client.number-of-workers}}"
   broker:
-    contactpoint: "zeebe-zeebe-gateway:26500"
+#    contactpoint: "g2p-sandbox-zeebe-gateway:26500"
+    contactpoint: "127.0.0.1:26500"
 
 operations-app:
   contactpoint: "https://ops-bk.sandbox.mifos.io"
@@ -88,7 +89,7 @@ config:
     enable: true
   ordering:
     enable: true
-    field: "payee_identifier"
+    field: "payeeIdentifier"
   splitting:
     enable: false
     sub-batch-size: 5
