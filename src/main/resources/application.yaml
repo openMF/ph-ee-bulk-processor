@@ -29,8 +29,7 @@ zeebe:
     #    number-of-workers: 8
     #    evenly-allocated-max-jobs: "#{${zeebe.client.max-execution-threads} / ${zeebe.client.number-of-workers}}"
   broker:
-#    contactpoint: "g2p-sandbox-zeebe-gateway:26500"
-    contactpoint: "127.0.0.1:26500"
+    contactpoint: "g2p-sandbox-zeebe-gateway:26500"
 
 operations-app:
   contactpoint: "https://ops-bk.sandbox.mifos.io"
@@ -40,6 +39,11 @@ operations-app:
     auth: "/oauth/token"
     batch-summary: "/api/v1/batch"
     batch-transaction: "/api/v1/batch/transactions"
+
+mock-payment-schema:
+  contactpoint: "http://localhost:8080"
+  endpoints:
+    authorization: "/batches/"
 
 channel:
   hostname: "http://ph-ee-connector-channel"
@@ -135,3 +139,6 @@ bulk-processor:
 csv:
   columnNames: "id,request_id,payment_mode,payer_identifier_type,payer_identifier,payee_identifier_type,payee_identifier,amount,currency,note"
   size : 100000 # in bytes
+
+batch-authorization:
+  callback-path: "/authorization/callback"

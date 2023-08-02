@@ -1,10 +1,14 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_ACCEPTED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_SUCCESSFUL;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CLIENT_CORRELATION_ID;
 
 import java.util.Map;
 import org.mifos.processor.bulk.schema.AuthorizationRequest;
 import org.mifos.processor.bulk.schema.AuthorizationResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -15,6 +19,15 @@ import org.springframework.web.client.RestTemplate;
 
 @Component
 public class AuthorizationWorker extends BaseWorker {
+
+    @Value("${batch-authorization.callback-path}")
+    private String callbackURLPath;
+
+    @Value("${mock-payment-schema.contactpoint}")
+    private String mockPaymentSchemaContactPoint;
+
+    @Value("${mock-payment-schema.endpoints.authorization}")
+    private String authorizationEndpoint;
 
     @Override
     public void setup() {
@@ -33,12 +46,12 @@ public class AuthorizationWorker extends BaseWorker {
             String currency = (String) variables.get("currency");
 
             String batchId = (String) variables.get(BATCH_ID);
-            String fileName = (String) variables.get(FILE_NAME);
             String clientCorrelationId = Long.toString(job.getKey());
 
             AuthorizationRequest requestPayload = new AuthorizationRequest(batchId, payerIdentifier, currency, totalBatchAmount);
             HttpStatus httpStatus = invokeBatchAuthorizationApi(batchId, requestPayload, clientCorrelationId);
 
+            variables.put(CLIENT_CORRELATION_ID, clientCorrelationId);
             variables.put(AUTHORIZATION_ACCEPTED, httpStatus.is2xxSuccessful());
             client.newCompleteCommand(job.getKey()).variables(variables).send();
         });
@@ -49,9 +62,10 @@ public class AuthorizationWorker extends BaseWorker {
         AuthorizationResponse authResponse = null;
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-Client-Correlation-ID", clientCorrelationId);
+        headers.add("X-CallbackURL", callbackURLPath);
 
         HttpEntity<AuthorizationRequest> requestEntity = new HttpEntity<>(requestPayload, headers);
-        String endpoint = "/batches/" + batchId;
+        String endpoint = mockPaymentSchemaContactPoint + authorizationEndpoint + batchId;
 
         ResponseEntity<String> responseEntity = restTemplate.exchange(endpoint, HttpMethod.POST, requestEntity, String.class);
         return responseEntity.getStatusCode();

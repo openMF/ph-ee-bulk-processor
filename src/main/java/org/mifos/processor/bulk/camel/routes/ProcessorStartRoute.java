@@ -3,6 +3,7 @@ package org.mifos.processor.bulk.camel.routes;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.BATCH_REQUEST_TYPE;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.TENANT_NAME;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.APPROVAL_ENABLED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_ENABLED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BULK_NOTIF_FAILURE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BULK_NOTIF_SUCCESS;
@@ -25,6 +26,7 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REQUEST_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SPLITTING_ENABLED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.THRESHOLD_DELAY;
+
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -384,6 +386,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
 
     private Map<String, Object> setConfigProperties(Map<String, Object> variables) {
         variables.put(PARTY_LOOKUP_ENABLED, workerConfig.isPartyLookUpWorkerEnabled);
+        variables.put(AUTHORIZATION_ENABLED, workerConfig.isAuthorizationWorkerEnabled);
         variables.put(APPROVAL_ENABLED, workerConfig.isApprovalWorkerEnabled);
         variables.put(ORDERING_ENABLED, workerConfig.isOrderingWorkerEnabled);
         variables.put(SPLITTING_ENABLED, workerConfig.isSplittingWorkerEnabled);
