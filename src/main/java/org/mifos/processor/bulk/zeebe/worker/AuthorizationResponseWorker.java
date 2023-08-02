@@ -1,16 +1,14 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.APPROVED_AMOUNT;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_ACCEPTED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_SUCCESSFUL;
+
 import java.util.Map;
 import org.springframework.stereotype.Component;
 
 @Component
 public class AuthorizationResponseWorker extends BaseWorker {
-
-    private static final String AUTHORIZATION_ACCEPTED = "authorizationAccepted";
-
-    private static final String APPROVED_AMOUNT = "approvedAmount";
-
-    private static final String AUTHORIZATION_SUCCESSFUL = "authorizationSuccessful";
 
     @Override
     public void setup() {
@@ -24,8 +22,7 @@ public class AuthorizationResponseWorker extends BaseWorker {
             if ((boolean) variables.get(AUTHORIZATION_ACCEPTED)) {
                 variables.put(AUTHORIZATION_SUCCESSFUL, "Y".equals(variables.get("authorizationStatus")));
                 variables.put(APPROVED_AMOUNT, variables.get("partyLookupSuccessfulAmount"));
-            }
-            else {
+            } else {
                 variables.put(AUTHORIZATION_SUCCESSFUL, false);
             }
             client.newCompleteCommand(job.getKey()).variables(variables).send();

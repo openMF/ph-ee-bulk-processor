@@ -127,4 +127,10 @@ public class ZeebeVariables {
     public static final String NOTE = "note";
     public static final String PARTY_LOOKUP_FSP_ID = "partyLookupFspId";
 
+    public static final String AUTHORIZATION_SUCCESSFUL = "authorizationSuccessful";
+
+    public static final String AUTHORIZATION_ACCEPTED = "authorizationAccepted";
+
+    public static final String APPROVED_AMOUNT = "approvedAmount";
+
 }
