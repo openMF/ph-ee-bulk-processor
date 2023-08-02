@@ -7,6 +7,9 @@ camel:
       json-jackson:
         auto-discover-object-mapper: true
 
+server:
+  port: 9001
+
 kafka:
   bootstrapAddress: "kafka:9092"
   topic:
@@ -16,7 +19,7 @@ kafka:
       name: slcb
 
 application:
-  bucket-name: fynarfin-bucket
+  bucket-name: paymenthub-ee
 
 zeebe:
   client:
@@ -44,11 +47,11 @@ channel:
 cloud:
   aws:
     enabled: true
-#    s3-base-url: "https://paymenthub-ee-dev.s3.us-east-2.amazonaws.com"
     s3-base-url: "https://fynarfin-bucket.s3.ap-south-1.amazonaws.com"
     credentials:
       access-key: ${AWS_ACCESS_KEY:access_key_from_aws}
       secret-key: ${AWS_SECRET_KEY:secret_key_from_aws}
+
     region:
       static: ap-south-1
     stack:
