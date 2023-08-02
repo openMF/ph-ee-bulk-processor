@@ -24,7 +24,6 @@ import org.springframework.web.client.RestTemplate;
 @Component
 public class AuthorizationWorker extends BaseWorker {
 
-    private static final String AUTHORIZATION_ACCEPTED = "authorizationAccepted";
     @Autowired
     @Qualifier("awsStorage")
     private FileTransferService fileTransferService;
@@ -33,12 +32,13 @@ public class AuthorizationWorker extends BaseWorker {
     private String bucketName;
 
     private static final String AUTHORIZATION_SUCCESSFUL = "authorizationSuccessful";
-    private static final String AUTHORIZATION_FAIL_REASON = "authorizationFailReason";
+
+    private static final String AUTHORIZATION_ACCEPTED = "authorizationAccepted";
 
     @Override
     public void setup() {
         newWorker(Worker.AUTHORIZATION, (client, job) -> {
-            logger.debug("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
+            logger.info("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
             Map<String, Object> variables = job.getVariablesAsMap();
 
             if (!workerConfig.isAuthorizationWorkerEnabled) {
@@ -46,6 +46,14 @@ public class AuthorizationWorker extends BaseWorker {
                 client.newCompleteCommand(job.getKey()).variables(variables).send();
                 return;
             }
+
+            // fetch variables payerIdentifier (PAYER_IDENTIFIER_VALUE),
+            // currency (<ask Apurb>),
+            // amount (PARTY_LOOKUP_SUCCESSFUL_TRANSACTION_AMOUNT)
+//            String payerIdentifier = (String) variables.get("payerIdentifier");
+//            String totalBatchAmount = (String) variables.get("partyLookupSuccessfulTransactionAmount");
+//            String currency = (String) variables.get("currency");
+
             String batchId = (String) variables.get(BATCH_ID);
             String fileName = (String) variables.get(FILE_NAME);
             String clientCorrelationId = Long.toString(job.getKey());
