@@ -1,10 +1,44 @@
 package org.mifos.processor.bulk.camel.routes;
 
-import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
-
+import static org.mifos.processor.bulk.camel.config.CamelProperties.BATCH_REQUEST_TYPE;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.REGISTERING_INSTITUTE_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.TENANT_NAME;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.PROGRAM_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.IS_UPDATED;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.RESULT_TRANSACTION_LIST;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.OVERRIDE_HEADER;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.APPROVAL_ENABLED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BULK_NOTIF_FAILURE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BULK_NOTIF_SUCCESS;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK_URL;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETION_THRESHOLD;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETION_THRESHOLD_CHECK_ENABLED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FORMATTING_ENABLED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MAX_CALLBACK_RETRY;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MAX_STATUS_RETRY;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MERGE_ENABLED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ORDERING_ENABLED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_LOOKUP_ENABLED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PHASES;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PHASE_COUNT;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REQUEST_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SPLITTING_ENABLED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.THRESHOLD_DELAY;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PROGRAM_NAME;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYER_IDENTIFIER_TYPE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYER_IDENTIFIER_VALUE;
 import java.io.File;
 import java.io.FileWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.HashMap;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
@@ -24,13 +58,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.BATCH_REQUEST_TYPE;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.TENANT_NAME;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
+import org.springframework.util.StringUtils;
 
 @Component
 public class ProcessorStartRoute extends BaseRouteBuilder {
@@ -145,8 +173,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     String registeringInstituteId = exchange.getProperty(REGISTERING_INSTITUTE_ID, String.class);
                     String programId = exchange.getProperty(PROGRAM_ID, String.class);
                     logger.debug("Inst id: {}, prog id: {}", registeringInstituteId, programId);
-                    if (registeringInstituteId == null || registeringInstituteId.isEmpty() ||
-                    programId == null || programId.isEmpty()) {
+                    if (!(StringUtils.hasText(registeringInstituteId) && StringUtils.hasText(programId))) {
                         // this will make sure the file is not updated since there is no update in data
                         logger.debug("Reh or pro is null");
                         exchange.setProperty(IS_UPDATED, false);
@@ -248,6 +275,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     variables.put(PROGRAM_NAME, exchange.getProperty(PROGRAM_NAME));
                     variables.put(PAYER_IDENTIFIER_TYPE, exchange.getProperty(PAYER_IDENTIFIER_TYPE));
                     variables.put(PAYER_IDENTIFIER_VALUE, exchange.getProperty(PAYER_IDENTIFIER_VALUE));
+                    variables.put(REGISTERING_INSTITUTE_ID, exchange.getProperty(REGISTERING_INSTITUTE_ID));
                     setConfigProperties(variables);
 
                     JSONObject response = new JSONObject();
