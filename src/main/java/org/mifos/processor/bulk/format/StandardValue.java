@@ -1,6 +1,8 @@
 package org.mifos.processor.bulk.format;
 
-public class StandardValue {
+public final class StandardValue {
+
+    private StandardValue() {}
 
     public static final String GSMA = "GSMA";
 

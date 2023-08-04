@@ -9,7 +9,7 @@ public enum Worker {
 
     private final String value;
 
-    private Worker(String s) {
+    Worker(String s) {
         value = s;
     }
 

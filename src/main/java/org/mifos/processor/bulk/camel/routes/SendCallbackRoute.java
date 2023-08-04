@@ -78,7 +78,9 @@ public class SendCallbackRoute extends BaseRouteBuilder {
     public void eliminatePhases(Exchange exchange, List<Integer> phases, int phaseCount, int completionRate) {
         int i = 0;
         while (phases.size() > 0 && phases.size() > i) {
-            if (phases.get(i) <= completionRate) phases.remove(i);
+            if (phases.get(i) <= completionRate) {
+                phases.remove(i);
+            }
             i++;
         }
         exchange.setProperty(PHASES, phases);
