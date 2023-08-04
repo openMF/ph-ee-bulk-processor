@@ -1,11 +1,5 @@
 package org.mifos.processor.bulk.api;
 
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_FAIL_REASON;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_RESPONSE;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_STATUS;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_SUCCESSFUL;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CLIENT_CORRELATION_ID;
-
 import io.camunda.zeebe.client.ZeebeClient;
 import java.time.Duration;
 import java.util.HashMap;
@@ -18,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
 
 @RestController
 public class CallbackController {
@@ -39,6 +35,10 @@ public class CallbackController {
         variables.put(CLIENT_CORRELATION_ID, authResponse.getClientCorrelationId());
         variables.put(AUTHORIZATION_STATUS, authResponse.getStatus());
         variables.put(AUTHORIZATION_FAIL_REASON, authResponse.getReason());
+
+        if (!isAuthorizationSuccessful) {
+            variables.put(APPROVED_AMOUNT, 0);
+        }
 
         if (zeebeClient != null) {
             zeebeClient.newPublishMessageCommand()

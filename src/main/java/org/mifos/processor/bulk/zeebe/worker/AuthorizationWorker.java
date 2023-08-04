@@ -1,10 +1,5 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_ACCEPTED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_SUCCESSFUL;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CLIENT_CORRELATION_ID;
-
 import java.util.Map;
 import org.mifos.processor.bulk.schema.AuthorizationRequest;
 import org.mifos.processor.bulk.schema.AuthorizationResponse;
@@ -16,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
 
 @Component
 public class AuthorizationWorker extends BaseWorker {
@@ -51,6 +48,7 @@ public class AuthorizationWorker extends BaseWorker {
             AuthorizationRequest requestPayload = new AuthorizationRequest(batchId, payerIdentifier, currency, totalBatchAmount);
             HttpStatus httpStatus = invokeBatchAuthorizationApi(batchId, requestPayload, clientCorrelationId);
 
+            variables.put(APPROVED_AMOUNT, totalBatchAmount);
             variables.put(CLIENT_CORRELATION_ID, clientCorrelationId);
             variables.put(AUTHORIZATION_ACCEPTED, httpStatus.is2xxSuccessful());
             client.newCompleteCommand(job.getKey()).variables(variables).send();
@@ -59,7 +57,6 @@ public class AuthorizationWorker extends BaseWorker {
 
     private HttpStatus invokeBatchAuthorizationApi(String batchId, AuthorizationRequest requestPayload, String clientCorrelationId) {
         RestTemplate restTemplate = new RestTemplate();
-        AuthorizationResponse authResponse = null;
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-Client-Correlation-ID", clientCorrelationId);
         headers.add("X-CallbackURL", callbackURLPath);
