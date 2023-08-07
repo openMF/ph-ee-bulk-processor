@@ -9,6 +9,7 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETED_AMOUNT;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FAILED_AMOUNT;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ONGOING_AMOUNT;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TOTAL_AMOUNT;
+
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.SequenceWriter;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
@@ -42,7 +43,6 @@ public class FileProcessingRoute extends BaseRouteBuilder {
                     Long failedAmount = 0L;
                     Long completedAmount = 0L;
                     String filename = exchange.getProperty(LOCAL_FILE_PATH, String.class);
-                    log.debug("Local file path: {}", filename);
                     CsvSchema schema = CsvSchema.emptySchema().withHeader();
                     FileReader reader = new FileReader(filename);
                     MappingIterator<Transaction> readValues = csvMapper.readerWithSchemaFor(Transaction.class).with(schema)

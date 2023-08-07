@@ -85,7 +85,7 @@ config:
     enable: true
   ordering:
     enable: true
-    field: "payerIdentifier"
+    field: "payee_identifier"
   splitting:
     enable: false
     sub-batch-size: 5
@@ -119,6 +119,7 @@ callback-phases:
     - 80
     - 100
 
+<<<<<<< HEAD
 identity-account-mapper:
   hostname : "https://identity.sandbox.mifos.io"
 
@@ -132,11 +133,3 @@ csv:
 server:
   port: 8080
 
-budget-account:
-  registeringInstitutions:
-    - id: "123"
-      programs:
-        - id: "SocialWelfare"
-          name: "Social Welfare"
-          identifierType: "ACCOUNT"
-          identifierValue: "123456789"
