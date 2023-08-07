@@ -16,6 +16,9 @@ public class OperationsAppConfig {
     @Value("${operations-app.endpoints.batch-summary}")
     public String batchSummaryEndpoint;
 
+    @Value("${operations-app.endpoints.batch-aggregate}")
+    public String batchAggregateEndpoint;
+
     @Value("${operations-app.endpoints.auth}")
     public String authEndpoint;
 
@@ -29,6 +32,8 @@ public class OperationsAppConfig {
 
     public String batchSummaryUrl;
 
+    public String batchAggregateUrl;
+
     public String authUrl;
 
     @PostConstruct
@@ -36,5 +41,6 @@ public class OperationsAppConfig {
         batchTransactionUrl = operationAppContactPoint + batchTransactionEndpoint;
         batchSummaryUrl = operationAppContactPoint + batchSummaryEndpoint;
         authUrl = operationAppContactPoint + authEndpoint;
+        batchAggregateUrl = operationAppContactPoint + batchAggregateEndpoint;
     }
 }

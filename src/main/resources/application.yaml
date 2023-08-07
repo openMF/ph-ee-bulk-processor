@@ -36,6 +36,7 @@ operations-app:
     auth: "/oauth/token"
     batch-summary: "/api/v1/batch"
     batch-transaction: "/api/v1/batch/transactions"
+    batch-aggregate: "/api/v1/batch/"
 
 channel:
   hostname: "https://ph-ee-connector-channel:8443"
