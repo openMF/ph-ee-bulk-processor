@@ -112,7 +112,6 @@ jobs:
       - store_artifacts:
           path: ph-ee-integration-test/build/reports/tests/test
 
-
 workflows:
   version: 2
   build-and-push:
