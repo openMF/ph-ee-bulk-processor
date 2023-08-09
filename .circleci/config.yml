@@ -99,6 +99,10 @@ jobs:
       #     chart: "https://fynarfin.io/images/ph-ee-g2psandbox-0.2.0.tgz"
       #     release-name: g2p-sandbox
       #     namespace: ph-test
+      - run:
+          name: Restart Pod
+          command: |
+            kubectl delete pod ph-ee-processor-bulk -n paymenthub
   test-chart-gov:
     docker:
       - image: cimg/openjdk:17.0.0
