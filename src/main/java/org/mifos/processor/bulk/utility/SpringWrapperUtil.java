@@ -4,10 +4,11 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.support.DefaultExchange;
 
-public class SpringWrapperUtil {
-    public static Exchange getDefaultWrappedExchange(CamelContext camelContext,
-                                                     Headers headers,
-                                                     String body) {
+public final class SpringWrapperUtil {
+
+    private SpringWrapperUtil() {}
+
+    public static Exchange getDefaultWrappedExchange(CamelContext camelContext, Headers headers, String body) {
         Exchange exchange = new DefaultExchange(camelContext);
 
         // Setting headers
@@ -18,7 +19,7 @@ public class SpringWrapperUtil {
         // Setting body if available
         if (body != null) {
             try {
-                exchange.getIn().setBody( body);
+                exchange.getIn().setBody(body);
             } catch (Exception e) {
                 exchange.getIn().setBody(body);
 

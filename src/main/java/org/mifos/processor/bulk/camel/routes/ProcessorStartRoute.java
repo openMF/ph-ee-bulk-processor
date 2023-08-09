@@ -1,13 +1,13 @@
 package org.mifos.processor.bulk.camel.routes;
 
 import static org.mifos.processor.bulk.camel.config.CamelProperties.BATCH_REQUEST_TYPE;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.REGISTERING_INSTITUTE_ID;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.TENANT_NAME;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.PROGRAM_ID;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.IS_UPDATED;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.RESULT_TRANSACTION_LIST;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.OVERRIDE_HEADER;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.PROGRAM_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.REGISTERING_INSTITUTE_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.RESULT_TRANSACTION_LIST;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.TENANT_NAME;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.APPROVAL_ENABLED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BULK_NOTIF_FAILURE;
@@ -22,24 +22,25 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MAX_STATUS_RETRY;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MERGE_ENABLED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ORDERING_ENABLED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_LOOKUP_ENABLED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYER_IDENTIFIER_TYPE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYER_IDENTIFIER_VALUE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PHASES;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PHASE_COUNT;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PROGRAM_NAME;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REQUEST_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SPLITTING_ENABLED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.THRESHOLD_DELAY;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PROGRAM_NAME;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYER_IDENTIFIER_TYPE;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYER_IDENTIFIER_VALUE;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.HashMap;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.json.JSONObject;
@@ -106,12 +107,8 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
 
     private void setup() {
 
-        from("direct:post-batch-transactions")
-                .id("rest:POST:/batchtransactions")
-                .log("Starting route rest:POST:/batchtransactions")
-                .unmarshal().mimeMultipart("multipart/*")
-                .to("direct:validate-tenant")
-                .process(exchange -> {
+        from("direct:post-batch-transactions").id("rest:POST:/batchtransactions").log("Starting route rest:POST:/batchtransactions")
+                .unmarshal().mimeMultipart("multipart/*").to("direct:validate-tenant").process(exchange -> {
                     String filename = exchange.getIn().getHeader("filename", String.class);
                     String requestId = exchange.getIn().getHeader("X-CorrelationID", String.class);
                     String purpose = exchange.getIn().getHeader("Purpose", String.class);
@@ -120,52 +117,37 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     exchange.setProperty(REQUEST_ID, requestId);
                     exchange.setProperty(PURPOSE, purpose);
                     exchange.setProperty(BATCH_REQUEST_TYPE, type);
-                })
-                .choice()
-                .when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("raw"))
+                }).choice().when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("raw"))
                 .to("direct:start-batch-process-raw")
-                .when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("csv"))
-                .unmarshal().mimeMultipart("multipart/*")
-                .to("direct:start-batch-process-csv")
-                .otherwise()
+                .when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("csv")).unmarshal()
+                .mimeMultipart("multipart/*").to("direct:start-batch-process-csv").otherwise()
                 .setBody(exchange -> getUnsupportedTypeJson(exchange.getProperty(BATCH_REQUEST_TYPE, String.class)).toString())
                 .log("Completed execution of route rest:POST:/batchtransactions");
 
+        from("direct:post-bulk-transfer").unmarshal().mimeMultipart("multipart/*").to("direct:validate-tenant").process(exchange -> {
+            String fileName = System.currentTimeMillis() + "_" + exchange.getIn().getHeader("fileName", String.class);
+            String requestId = exchange.getIn().getHeader("requestId", String.class);
+            String purpose = exchange.getIn().getHeader("purpose", String.class);
 
-        from("direct:post-bulk-transfer")
-                .unmarshal().mimeMultipart("multipart/*")
-                .to("direct:validate-tenant")
-                .process(exchange -> {
-                    String fileName = System.currentTimeMillis() + "_" +  exchange.getIn().getHeader("fileName", String.class);
-                    String requestId = exchange.getIn().getHeader("requestId", String.class);
-                    String purpose = exchange.getIn().getHeader("purpose", String.class);
+            exchange.setProperty(FILE_NAME, fileName);
+            exchange.setProperty(REQUEST_ID, requestId);
+            exchange.setProperty(PURPOSE, purpose);
+        }).to("direct:start-batch-process-csv");
 
-                    exchange.setProperty(FILE_NAME, fileName);
-                    exchange.setProperty(REQUEST_ID, requestId);
-                    exchange.setProperty(PURPOSE, purpose);
-                })
-                .to("direct:start-batch-process-csv");
-
-        from("direct:validate-tenant")
-                .id("direct:validate-tenant")
-                .log("Validating tenant")
-                .process(exchange -> {
-                    String tenantName = exchange.getIn().getHeader("Platform-TenantId", String.class);
-                    // validation is disabled for now
-                    /*if (tenantName == null || tenantName.isEmpty() || !tenants.contains(tenantName)) {
-                        throw new Exception("Invalid tenant value.");
-                    }*/
-                    exchange.setProperty(TENANT_NAME, tenantName);
-                })
-                .setHeader("Content-Type", constant("application/json;charset=UTF-8"))
-                .log("Completed route direct:validate-tenant");
-
+        from("direct:validate-tenant").id("direct:validate-tenant").log("Validating tenant").process(exchange -> {
+            String tenantName = exchange.getIn().getHeader("Platform-TenantId", String.class);
+            // validation is disabled for now
+            /*
+             * if (tenantName == null || tenantName.isEmpty() || !tenants.contains(tenantName)) { throw new
+             * Exception("Invalid tenant value."); }
+             */
+            exchange.setProperty(TENANT_NAME, tenantName);
+        }).setHeader("Content-Type", constant("application/json;charset=UTF-8")).log("Completed route direct:validate-tenant");
 
         // this route is responsible for editing the incoming records based on configuration
-        // this step is done to make sure the file format of CSV is not altered and only the data is updated based on config
-        from("direct:update-incoming-data")
-                .id("direct:update-incoming-data")
-                .log("direct:update-incoming-data")
+        // this step is done to make sure the file format of CSV is not altered and only the data is updated based on
+        // config
+        from("direct:update-incoming-data").id("direct:update-incoming-data").log("direct:update-incoming-data")
                 // [LOCAL_FILE_PATH] is already set in [direct:validateFileSyncResponse] route
                 .to("direct:get-transaction-array")
                 // make sure new data is set under the exchange variable [RESULT_TRANSACTION_LIST]
@@ -184,7 +166,8 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     RegisteringInstitutionConfig registeringInstitutionConfig = budgetAccountConfig
                             .getByRegisteringInstituteId(registeringInstituteId);
                     if (registeringInstitutionConfig == null) {
-                        logger.debug("Element in nested in config: {}", budgetAccountConfig.getRegisteringInstitutions().get(0).getPrograms().size());
+                        logger.debug("Element in nested in config: {}",
+                                budgetAccountConfig.getRegisteringInstitutions().get(0).getPrograms().size());
                         logger.debug("Registering institute id is null");
                         exchange.setProperty(IS_UPDATED, false);
                         return;
@@ -213,26 +196,19 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     exchange.setProperty(PROGRAM_NAME, program.getName());
                     exchange.setProperty(PAYER_IDENTIFIER_TYPE, program.getIdentifierType());
                     exchange.setProperty(PAYER_IDENTIFIER_VALUE, program.getIdentifierValue());
-                })
-                .choice()
+                }).choice()
                 // update only when previous(edit function) makes any changes to data
                 .when(exchange -> exchange.getProperty(IS_UPDATED, Boolean.class))
                 // warning: changing this flag can break things
                 .setProperty(OVERRIDE_HEADER, constant(true)) // default header in CSV file will be used
-                .to("direct:update-file-v2")
-                .otherwise()
-                .log(LoggingLevel.DEBUG, "No update");
+                .to("direct:update-file-v2").otherwise().log(LoggingLevel.DEBUG, "No update");
 
-        from("direct:start-batch-process-csv")
-                .id("direct:start-batch-process-csv")
-                .log("Starting route direct:start-batch-process-csv")
-                .to("direct:update-incoming-data")
-                .process(exchange -> {
+        from("direct:start-batch-process-csv").id("direct:start-batch-process-csv").log("Starting route direct:start-batch-process-csv")
+                .to("direct:update-incoming-data").process(exchange -> {
                     String fileName = exchange.getProperty(FILE_NAME, String.class);
                     String requestId = exchange.getProperty(REQUEST_ID, String.class);
                     String purpose = exchange.getProperty(PURPOSE, String.class);
                     String batchId = UUID.randomUUID().toString();
-
 
                     if (purpose == null || purpose.isEmpty()) {
                         purpose = "test payment";
@@ -250,16 +226,16 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     fileWriter.write(csvData);
                     fileWriter.close();
 
-                    logger.info(""+file.length());
+                    logger.info("" + file.length());
                     logger.info(file.getAbsolutePath());
 
                     String nm = fileTransferService.uploadFile(file, bucketName);
 
                     logger.debug("File uploaded {}", nm);
 
-                    //extracting  and setting callback Url
+                    // extracting and setting callback Url
                     String callbackUrl = exchange.getIn().getHeader("X-Callback-URL", String.class);
-                    exchange.setProperty(CALLBACK_URL,callbackUrl);
+                    exchange.setProperty(CALLBACK_URL, callbackUrl);
 
                     List<Integer> phases = phaseUtils.getValues();
                     logger.info(phases.toString());
@@ -281,8 +257,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     JSONObject response = new JSONObject();
 
                     try {
-                        String tenantSpecificWorkflowId = workflowId.replace("{dfspid}",
-                                exchange.getProperty(TENANT_NAME).toString());
+                        String tenantSpecificWorkflowId = workflowId.replace("{dfspid}", exchange.getProperty(TENANT_NAME).toString());
                         String txnId = zeebeProcessStarter.startZeebeWorkflow(tenantSpecificWorkflowId, "", variables);
                         if (txnId == null || txnId.isEmpty()) {
                             response.put("errorCode", 500);
@@ -301,20 +276,16 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
 
                     exchange.getIn().setBody(response.toString());
 
-                })
-                .log("Completed route direct:start-batch-process-csv");
+                }).log("Completed route direct:start-batch-process-csv");
 
-        from("direct:start-batch-process-raw")
-                .id("direct:start-batch-process-raw")
-                .log("Starting route direct:start-batch-process-raw")
+        from("direct:start-batch-process-raw").id("direct:start-batch-process-raw").log("Starting route direct:start-batch-process-raw")
                 .process(exchange -> {
                     JSONObject response = new JSONObject();
                     response.put("batch_id", UUID.randomUUID().toString());
                     response.put("request_id", UUID.randomUUID().toString());
                     response.put("status", "queued");
                     exchange.getIn().setBody(response.toString());
-                })
-                .log("Completed route direct:start-batch-process-raw");
+                }).log("Completed route direct:start-batch-process-raw");
     }
 
     private void setErrorResponse(Exchange exchange, int responseCode, String errorInfo, String errorDescription) {
@@ -343,9 +314,9 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
         variables.put(MAX_STATUS_RETRY, maxThresholdCheckRetry);
         variables.put(COMPLETION_THRESHOLD, completionThreshold);
         variables.put(THRESHOLD_DELAY, Utils.getZeebeTimerValue(thresholdCheckDelay));
-        variables.put(BULK_NOTIF_SUCCESS,false);
-        variables.put(BULK_NOTIF_FAILURE,false);
-        variables.put(MAX_CALLBACK_RETRY,maxCallbackRetry);
+        variables.put(BULK_NOTIF_SUCCESS, false);
+        variables.put(BULK_NOTIF_FAILURE, false);
+        variables.put(MAX_CALLBACK_RETRY, maxCallbackRetry);
 
         return variables;
     }
