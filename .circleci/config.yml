@@ -127,9 +127,6 @@ workflows:
       - build_and_push_latest_image:
           context:
               - DOCKER
-<<<<<<< HEAD
-             
-=======
       - upgrade-helm-chart:
           cluster-name: sit
           requires:
