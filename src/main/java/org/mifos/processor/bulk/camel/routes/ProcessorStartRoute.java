@@ -195,6 +195,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
 
                     try {
                         String tenantSpecificWorkflowId = workflowId.replace("{dfspid}", exchange.getProperty(TENANT_NAME).toString());
+                        logger.info("BPMN: {}", tenantSpecificWorkflowId);
                         String txnId = zeebeProcessStarter.startZeebeWorkflow(tenantSpecificWorkflowId, "", variables);
                         if (txnId == null || txnId.isEmpty()) {
                             response.put("errorCode", 500);
@@ -230,14 +231,16 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     String requestId = exchange.getIn().getHeader("X-CorrelationID", String.class);
                     String purpose = exchange.getIn().getHeader("Purpose", String.class);
                     String type = exchange.getIn().getHeader("Type", String.class);
+                    type = "csv";
                     exchange.setProperty(FILE_NAME, filename);
                     exchange.setProperty(REQUEST_ID, requestId);
                     exchange.setProperty(PURPOSE, purpose);
                     exchange.setProperty(BATCH_REQUEST_TYPE, type);
                 }).choice().when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("raw"))
-                .to("direct:start-batch-process-raw")
-                .when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("csv")).unmarshal()
-                .mimeMultipart("multipart/*").to("direct:start-batch-process-csv").otherwise()
+                .log("Processing raw batch request").to("direct:start-batch-process-raw")
+                .when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("csv"))
+                .log("Processing raw batch request").unmarshal().mimeMultipart("multipart/*").to("direct:start-batch-process-csv")
+                .otherwise().log("Unsupported batch request type: ${exchangeProperty.BATCH_REQUEST_TYPE}")
                 .setBody(exchange -> getUnsupportedTypeJson(exchange.getProperty(BATCH_REQUEST_TYPE, String.class)).toString())
                 .log("Completed execution of route rest:POST:/batchtransactions");
 

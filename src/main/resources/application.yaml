@@ -16,7 +16,7 @@ kafka:
       name: slcb
 
 application:
-  bucket-name: paymenthub-ee-dev
+  bucket-name: fynarfin-bucket
 
 zeebe:
   client:
@@ -38,17 +38,18 @@ operations-app:
     batch-transaction: "/api/v1/batch/transactions"
 
 channel:
-  hostname: "http://ph-ee-connector-channel"
+  hostname: "https://channel.sandbox.fynarfin.io/"
+#  hostname: "http://ph-ee-connector-channel"
 
 cloud:
   aws:
     enabled: true
-    s3-base-url: "https://paymenthub-ee-dev.s3.us-east-2.amazonaws.com"
+    s3-base-url: "https://fynarfin-bucket.s3.ap-south-1.amazonaws.com"
     credentials:
       access-key: ${AWS_ACCESS_KEY:access_key_from_aws}
       secret-key: ${AWS_SECRET_KEY:secret_key_from_aws}
     region:
-      static: us-east-2
+      static: ap-south-1
     stack:
       auto: false
   azure:
@@ -128,3 +129,19 @@ bulk-processor:
 csv:
   columnNames: "id,request_id,payment_mode,payer_identifier_type,payer_identifier,payee_identifier_type,payee_identifier,amount,currency,note"
   size : 100000 # in bytes
+
+payment-mode:
+  mappings:
+    - id: "GSMA"
+      type: "PAYMENT"
+      endpoint: "/channel/gsma/transfer"
+    - id: "MOJALOOP"
+      type: "PAYMENT"
+      endpoint: "/channel/transfer"
+    - id: "SLCB"
+      type: "BULK"
+      endpoint: "bulk_connector_{MODE}-{dfspid}"
+    - id: "CLOSEDLOOP"
+      type: "BULK"
+      endpoint: "bulk_connector_{MODE}-{dfspid}"
+      debulkingDfspid: "lion"

@@ -53,12 +53,14 @@ public class BatchStatusRoute extends BaseRouteBuilder {
                     BatchDTO batchSummary = exchange.getIn().getBody(BatchDTO.class);
 
                     int percentage = (int) (((double) batchSummary.getSuccessful() / batchSummary.getTotal()) * 100);
+                    logger.info("Completion rate: {}", percentage);
 
                     if (percentage >= completionThreshold) {
                         logger.info("Batch success threshold reached. Expected rate: {}, Actual Rate: {}", completionThreshold, percentage);
                     }
 
                     exchange.setProperty(COMPLETION_RATE, percentage);
+                    logger.info("Exchange Completion rate: {}", exchange.getProperty(COMPLETION_RATE));
 
                 }).otherwise().log(LoggingLevel.ERROR, "Batch summary request unsuccessful").process(exchange -> {
                     exchange.setProperty(BATCH_STATUS_FAILED, true);

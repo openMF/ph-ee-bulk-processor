@@ -94,6 +94,7 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     variables.put(FAILED_AMOUNT, exchange.getProperty(FAILED_AMOUNT));
                     variables.put(COMPLETED_AMOUNT, exchange.getProperty(COMPLETED_AMOUNT));
                     variables.put(RESULT_FILE, String.format("Result_%s", exchange.getProperty(SERVER_FILE_NAME)));
+                    logger.info("Sub batch ID: {}", variables.get(SUB_BATCH_ID));
 
                     exchange.setProperty(ZEEBE_VARIABLE, variables);
                     exchange.setProperty(PAYMENT_MODE, transactionList.get(0).getPaymentMode());
@@ -119,6 +120,8 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     Map<String, Object> variables = exchange.getProperty(ZEEBE_VARIABLE, Map.class);
                     variables.put(PAYMENT_MODE, paymentMode);
                     variables.put(DEBULKINGDFSPID, mapping.getDebulkingDfspid() == null ? tenantName : mapping.getDebulkingDfspid());
+                    logger.info("BPMN: {}",
+                            Utils.getBulkConnectorBpmnName(mapping.getEndpoint(), mapping.getId().toLowerCase(), tenantName));
                     zeebeProcessStarter.startZeebeWorkflow(
                             Utils.getBulkConnectorBpmnName(mapping.getEndpoint(), mapping.getId().toLowerCase(), tenantName), variables);
                     exchange.setProperty(INIT_SUB_BATCH_FAILED, false);
@@ -131,7 +134,9 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     exchange.setProperty(TRANSACTION_LIST_ELEMENT, transaction);
                 }).setHeader("Platform-TenantId", exchangeProperty(TENANT_NAME)).to("direct:dynamic-payload-setter")
                 .to("direct:external-api-call").to("direct:external-api-response-handler").end() // end loop block
-                .endChoice();
+                .endChoice()
+                .choice().when(exchangeProperty(INIT_SUB_BATCH_FAILED).isEqualTo(false))
+                .to("direct:upload-successful-batch").endChoice();
 
         from("direct:dynamic-payload-setter").id("direct:runtime-payload-test").log("Starting route direct:runtime-payload-test")
                 .process(exchange -> {
@@ -150,7 +155,8 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 .process(exchange -> {
                     logger.info("reached here");
                     exchange.setProperty(INIT_SUB_BATCH_FAILED, false);
-                }).otherwise().process(exchange -> {
+                })
+                .otherwise().process(exchange -> {
                     exchange.setProperty(INIT_SUB_BATCH_FAILED, true);
                 }).endChoice();
 
@@ -184,16 +190,18 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 logger.info("Got the config with routing to endpoint {}", mapping.getEndpoint());
             }
         }).choice().when(exchangeProperty(EXTERNAL_ENDPOINT_FAILED).isEqualTo(false))
-                .log(LoggingLevel.DEBUG, "Making API call to endpoint ${exchangeProperty.extEndpoint} and body: ${body}")
+                .log(LoggingLevel.INFO, "Making API call to endpoint ${exchangeProperty.extEndpoint} and body: ${body}")
                 .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
                 .setHeader(BATCH_ID_HEADER, simple("${exchangeProperty." + BATCH_ID + "}"))
                 .toD(ChannelURL + "${exchangeProperty.extEndpoint}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
-                .log(LoggingLevel.DEBUG, "Response body: ${body}").otherwise().endChoice();
+                .log(LoggingLevel.INFO, "Response body: ${body}").otherwise().log("No action taken,").endChoice();
 
         from("direct:validate-payment-mode").id("direct:validate-payment-mode").log("Starting route direct:validate-payment-mode")
                 .process(exchange -> {
                     String paymentMde = exchange.getProperty(PAYMENT_MODE, String.class);
+                    logger.info("Payment mode: {}", paymentMde);
                     PaymentModeMapping mapping = paymentModeConfiguration.getByMode(paymentMde);
+                    logger.info("Mapping: {}", mapping);
                     if (mapping == null) {
                         exchange.setProperty(IS_PAYMENT_MODE_VALID, false);
                     } else {
@@ -201,6 +209,22 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                         exchange.setProperty(PAYMENT_MODE_TYPE, mapping.getType());
                     }
                 });
+
+        from("direct:upload-successful-batch").id("direct:upload-successful-batch")
+                .log("Starting route direct:upload-successful-batch")
+                .process(exchange -> {
+                    String serverFileName = exchange.getProperty(SERVER_FILE_NAME, String.class);
+                    String resultFile = String.format("Result_%s", serverFileName);
+                    List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
+                    List<TransactionResult> transactionResultList = updateTransactionStatusToCompleted(transactionList);
+                    exchange.setProperty(RESULT_TRANSACTION_LIST, transactionResultList);
+                    exchange.setProperty(RESULT_FILE, resultFile);
+                }).setProperty(LOCAL_FILE_PATH, exchangeProperty(RESULT_FILE)).setProperty(OVERRIDE_HEADER, constant(true))
+                .process(exchange -> {
+                    logger.info("A1 {}", exchange.getProperty(RESULT_FILE));
+                    logger.info("A2 {}", exchange.getProperty(LOCAL_FILE_PATH));
+                    logger.info("A3 {}", exchange.getProperty(OVERRIDE_HEADER));
+                }).to("direct:update-result-file").to("direct:upload-file");
     }
 
     // update Transactions status to failed
@@ -214,6 +238,16 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
             transactionResultList.add(transactionResult);
         }
 
+        return transactionResultList;
+    }
+
+    private List<TransactionResult> updateTransactionStatusToCompleted(List<Transaction> transactionList) {
+        List<TransactionResult> transactionResultList = new ArrayList<>();
+        for (Transaction transaction : transactionList) {
+            TransactionResult transactionResult = Utils.mapToResultDTO(transaction);
+            transactionResult.setStatus("Completed");
+            transactionResultList.add(transactionResult);
+        }
         return transactionResultList;
     }
 
