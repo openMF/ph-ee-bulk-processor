@@ -7,6 +7,8 @@ import lombok.Setter;
 @Setter
 public class PaymentModeMapping {
 
-    private String id, endpoint;
+    private String id;
+    private String endpoint;
+    private String debulkingDfspid;
     private PaymentModeType type;
 }

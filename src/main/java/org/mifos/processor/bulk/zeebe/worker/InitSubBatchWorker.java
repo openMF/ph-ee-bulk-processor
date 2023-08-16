@@ -1,16 +1,26 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
-import org.apache.camel.Exchange;
-import org.apache.camel.support.DefaultExchange;
-import org.mifos.processor.bulk.camel.routes.RouteId;
-import org.springframework.stereotype.Component;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.TENANT_NAME;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.INIT_FAILURE_SUB_BATCHES;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.INIT_SUB_BATCH_FAILED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.INIT_SUCCESS_SUB_BATCHES;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REMAINING_SUB_BATCH;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REQUEST_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SPLITTING_ENABLED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SUB_BATCHES;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.TENANT_NAME;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
+import org.apache.camel.Exchange;
+import org.apache.camel.support.DefaultExchange;
+import org.mifos.processor.bulk.camel.routes.RouteId;
+import org.springframework.stereotype.Component;
 
 @Component
 public class InitSubBatchWorker extends BaseWorker {
@@ -19,12 +29,11 @@ public class InitSubBatchWorker extends BaseWorker {
     public void setup() {
 
         /**
-         * Starts the new worker for initialising sub batches. Performs below tasks
-         * 1. Downloads the file from cloud.
-         * 2. Parse the data into POJO.
-         * 3. Initiates workflow based on the payment_mode
+         * Starts the new worker for initialising sub batches. Performs below tasks 1. Downloads the file from cloud. 2.
+         * Parse the data into POJO. 3. Initiates workflow based on the payment_mode
          */
         newWorker(Worker.INIT_SUB_BATCH, (client, job) -> {
+            logger.debug("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
             Map<String, Object> variables = job.getVariablesAsMap();
 
             List<String> subBatches = (List<String>) variables.get(SUB_BATCHES);

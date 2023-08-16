@@ -5,8 +5,7 @@ import lombok.Getter;
 @Getter
 public enum PaymentModeType {
 
-    PAYMENT("PAYMENT"),
-    BULK("BULK");
+    PAYMENT("PAYMENT"), BULK("BULK");
 
     private String modeType;
 

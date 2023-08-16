@@ -1,14 +1,25 @@
 package org.mifos.processor.bulk.utility;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import org.mifos.connector.common.channel.dto.TransactionChannelRequestDTO;
-import org.mifos.connector.common.gsma.dto.*;
+import org.mifos.connector.common.gsma.dto.Fee;
+import org.mifos.connector.common.gsma.dto.GSMATransaction;
+import org.mifos.connector.common.gsma.dto.GsmaParty;
+import org.mifos.connector.common.gsma.dto.IdDocument;
+import org.mifos.connector.common.gsma.dto.InternationalTransferInformation;
+import org.mifos.connector.common.gsma.dto.Kyc;
+import org.mifos.connector.common.gsma.dto.PostalAddress;
+import org.mifos.connector.common.gsma.dto.SubjectName;
 import org.mifos.connector.common.mojaloop.dto.MoneyData;
 import org.mifos.connector.common.mojaloop.dto.Party;
 import org.mifos.connector.common.mojaloop.dto.PartyIdInfo;
 import org.mifos.connector.common.mojaloop.type.IdentifierType;
 import org.mifos.processor.bulk.schema.Transaction;
 import org.mifos.processor.bulk.schema.TransactionResult;
-import java.io.*;
 
 public class Utils {
 
@@ -16,8 +27,7 @@ public class Utils {
         return originalWorkflowName.replace("{dfspid}", tenantName);
     }
 
-    public static String getBulkConnectorBpmnName(String originalWorkflowName,
-                                                  String paymentMode, String tenantName) {
+    public static String getBulkConnectorBpmnName(String originalWorkflowName, String paymentMode, String tenantName) {
         return originalWorkflowName.replace("{MODE}", paymentMode.toLowerCase()).replace("{dfspid}", tenantName);
     }
 
@@ -35,7 +45,7 @@ public class Utils {
                     isFirstLine = false;
                     continue;
                 }
-                out.write(str+"\n");
+                out.write(str + "\n");
             }
             in.close();
             out.close();
@@ -52,18 +62,18 @@ public class Utils {
     }
 
     /**
-     * takes initial timer in the ISO 8601 durations format
-     * for more info check
+     * takes initial timer in the ISO 8601 durations format for more info check
      * https://docs.camunda.io/docs/0.26/reference/bpmn-workflows/timer-events/#time-duration
      *
-     * @param initialTimer initial timer in the ISO 8601 durations format, ex: PT45S
+     * @param initialTimer
+     *            initial timer in the ISO 8601 durations format, ex: PT45S
      * @return next timer value in the ISO 8601 durations format
      */
-    public static String getNextTimer(String initialTimer){
+    public static String getNextTimer(String initialTimer) {
         String stringSecondsValue = initialTimer.split("T")[1].split("S")[0];
         int initialSeconds = Integer.parseInt(stringSecondsValue);
 
-        int currentPower = (int) ( Math.log(initialSeconds) / Math.log(2) );
+        int currentPower = (int) (Math.log(initialSeconds) / Math.log(2));
         int next = (int) Math.pow(2, ++currentPower);
 
         return String.format("PT%sS", next);
@@ -99,7 +109,7 @@ public class Utils {
         gsmaTransaction.setAmount(transaction.getAmount());
         gsmaTransaction.setCurrency(transaction.getCurrency());
         GsmaParty payer = new GsmaParty();
-        //logger.info("Payer {} {}", transaction.getPayerIdentifier(),payer[0].);
+        // logger.info("Payer {} {}", transaction.getPayerIdentifier(),payer[0].);
         payer.setKey("msisdn");
         payer.setValue(transaction.getPayerIdentifier());
         GsmaParty payee = new GsmaParty();
@@ -122,8 +132,7 @@ public class Utils {
         fee[0] = fees;
         gsmaTransaction.setFees(fee);
         gsmaTransaction.setGeoCode("37.423825,-122.082900");
-        InternationalTransferInformation internationalTransferInformation =
-                new InternationalTransferInformation();
+        InternationalTransferInformation internationalTransferInformation = new InternationalTransferInformation();
         internationalTransferInformation.setQuotationReference("string");
         internationalTransferInformation.setQuoteId("string");
         internationalTransferInformation.setDeliveryMethod("directtoaccount");
@@ -186,17 +195,19 @@ public class Utils {
         gsmaTransaction.setServicingIdentity("string");
         gsmaTransaction.setRequestDate("2022-09-28T12:51:19.260+00:00");
 
-
         return gsmaTransaction;
     }
 
     public static TransactionChannelRequestDTO convertTxnToInboundTransferPayload(Transaction transaction) {
         TransactionChannelRequestDTO requestDTO = new TransactionChannelRequestDTO();
 
-        requestDTO.setAmount(new MoneyData(){{
-            setCurrency(transaction.getCurrency());
-            setAmount(transaction.getAmount());
-        }});
+        requestDTO.setAmount(new MoneyData() {
+
+            {
+                setCurrency(transaction.getCurrency());
+                setAmount(transaction.getAmount());
+            }
+        });
 
         IdentifierType identifierType;
         try {

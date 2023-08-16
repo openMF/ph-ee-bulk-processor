@@ -1,13 +1,15 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
+import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FORMATTING_FAILED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FORMATTING_STANDARD;
+
+import java.util.Map;
 import org.apache.camel.Exchange;
 import org.apache.camel.support.DefaultExchange;
 import org.mifos.processor.bulk.camel.routes.RouteId;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
 
 @Component
 public class FormattingWorker extends BaseWorker {
@@ -16,13 +18,12 @@ public class FormattingWorker extends BaseWorker {
     public void setup() {
 
         /**
-         * Starts the new worker for formatting of the data. Performs below tasks
-         * 1. Downloads the file from cloud.
-         * 2. Parse the data into POJO.
-         * 3. Format the data based on field configured in application.yaml
-         * 4. Uploads the updated file in cloud
+         * Starts the new worker for formatting of the data. Performs below tasks 1. Downloads the file from cloud. 2.
+         * Parse the data into POJO. 3. Format the data based on field configured in application.yaml 4. Uploads the
+         * updated file in cloud
          */
         newWorker(Worker.FORMATTING, (client, job) -> {
+            logger.debug("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
             Map<String, Object> variables = job.getVariablesAsMap();
             if (workerConfig.isFormattingWorkerEnabled) {
                 variables.put(FORMATTING_FAILED, false);

@@ -1,16 +1,18 @@
 package org.mifos.processor.bulk.schema;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonPropertyOrder({ "id", "request_id", "payment_mode", "account_number", "payer_identifier_type", "payer_identifier", "payee_identifier_type", "payee_identifier", "amount", "currency", "note", "program_shortcode", "cycle" })
+@JsonPropertyOrder({ "id", "request_id", "payment_mode", "account_number", "payer_identifier_type", "payer_identifier",
+        "payee_identifier_type", "payee_identifier", "amount", "currency", "note", "program_shortcode", "cycle" })
 public class Transaction implements CsvSchema {
 
     @JsonProperty("id")

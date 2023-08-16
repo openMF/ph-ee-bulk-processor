@@ -2,8 +2,7 @@ package org.mifos.processor.bulk.zeebe;
 
 public class ZeebeVariables {
 
-    private ZeebeVariables() {
-    }
+    private ZeebeVariables() {}
 
     public static final String ACCOUNT = "account";
     public static final String AUTH_RETRIES_LEFT = "authRetriesLeft";
@@ -114,4 +113,20 @@ public class ZeebeVariables {
     public static final String PHASES = "phases";
 
     public static final String PHASE_COUNT = "phaseCount";
+
+    public static final String INITIATOR_FSP_ID = "initiatorFspId";
+    public static final String ACCOUNT_LOOKUP_RETRY_COUNT = "accountLookupRetryCount";
+    public static final String ACCOUNT_LOOKUP_FAILED = "accountLookupFailed";
+    public static final String ORIGIN_CHANNEL_REQUEST = "originChannelRequest";
+    public static final String CALLBACK = "X-CallbackURL";
+
+    public static final String DEBULKINGDFSPID = "debulkingDfspid";
+
+    public static final String FILE_VALIDITY = "isFileValid";
+
+    public static final String NOTE = "note";
+    public static final String PARTY_LOOKUP_FSP_ID = "partyLookupFspId";
+    public static final String PROGRAM_NAME = "programName";
+    public static final String PAYER_IDENTIFIER_TYPE = "payerIdentifierType";
+    public static final String PAYER_IDENTIFIER_VALUE = "payerIdentifier";
 }

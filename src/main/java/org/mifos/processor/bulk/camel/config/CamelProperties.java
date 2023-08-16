@@ -5,7 +5,8 @@ public class CamelProperties {
     private CamelProperties() {}
 
     public static final String AUTH_TYPE = "authType";
-    public static final String IS_BATCH_READY = "isBatchReady"; // camel property to check if batch is ready for sampling
+    public static final String IS_BATCH_READY = "isBatchReady"; // camel property to check if batch is ready for
+                                                                // sampling
 
     public static final String SERVER_FILE_NAME = "serverFileName";
 
@@ -62,5 +63,17 @@ public class CamelProperties {
     public static final String PAYLOAD = "payload";
 
     public static final String BATCH_ID_HEADER = "X-BatchID";
+    public static final String HOST = "externalApiCallHost";
+    public static final String ENDPOINT = "externalApiCallEndpoint";
+    public static final String CACHED_TRANSACTION_ID = "cachedTransactionId";
+    public static final String PAYEE_IDENTITY = "payeeIdentity";
+    public static final String PAYMENT_MODALITY = "paymentModality";
+    public static final String PAYEE_PARTY_ID = "payeePartyId";
+    public static final String PAYEE_PARTY_ID_TYPE = "payeePartyIdType";
+    public static final String HEADER_REGISTERING_INSTITUTE_ID = "X-Registering-Institution-ID";
+    public static final String HEADER_PROGRAM_ID = "X-Program-ID";
+    public static final String REGISTERING_INSTITUTE_ID = "registeringInstituteId";
+    public static final String PROGRAM_ID = "programId";
+    public static final String IS_UPDATED = "isUpdated";
 
 }

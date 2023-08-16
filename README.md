@@ -11,4 +11,16 @@ server:
     key-store-password: "<replace-with-password>"
   port: 8443
 ```
-#### NOTE: For disabling TLS, change the port to "8080" and ass null values for all the "ssl" related fields. 
+#### NOTE: For disabling TLS, change the port to "8080" and add null values for all the "ssl" related fields. 
+
+## Checkstyle
+Use below command to execute the checkstyle test.
+```shell
+./gradlew checkstyleMain
+```
+
+## Spotless
+Use below command to execute the spotless apply.
+```shell
+./gradlew spotlessApply
+```
