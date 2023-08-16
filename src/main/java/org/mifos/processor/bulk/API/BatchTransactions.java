@@ -1,4 +1,4 @@
-package org.mifos.processor.bulk.API;
+package org.mifos.processor.bulk.api;
 
 import com.amazonaws.services.dynamodbv2.xspec.S;
 import com.fasterxml.jackson.core.JsonProcessingException;

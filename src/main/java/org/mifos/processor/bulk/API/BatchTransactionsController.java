@@ -1,4 +1,4 @@
-package org.mifos.processor.bulk.API;
+package org.mifos.processor.bulk.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

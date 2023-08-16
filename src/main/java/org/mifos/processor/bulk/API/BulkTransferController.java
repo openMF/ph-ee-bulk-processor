@@ -1,4 +1,4 @@
-package org.mifos.processor.bulk.API;
+package org.mifos.processor.bulk.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.camel.Exchange;
@@ -15,7 +15,7 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
 
 @RestController
-public class BulkTransferController implements BulkTransfer{
+public class BulkTransferController implements BulkTransfer {
     @Autowired
     private ProducerTemplate producerTemplate;
 

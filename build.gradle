@@ -116,7 +116,6 @@ dependencies {
     implementation 'org.springframework:spring-web:5.3.19'
     implementation 'com.amazonaws:aws-java-sdk:1.11.486'
 
-    implementation 'org.mifos:ph-ee-connector-common:1.4.1-SNAPSHOT'
     implementation 'com.amazonaws:aws-java-sdk-s3:1.11.486'
     //To be removed
     implementation 'com.amazonaws:aws-java-sdk-dynamodb:1.11.486'
