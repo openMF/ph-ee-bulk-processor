@@ -115,6 +115,7 @@ dependencies {
     implementation 'org.apache.camel:camel-http:3.4.0'
     implementation 'org.springframework:spring-web:5.3.19'
     implementation 'com.amazonaws:aws-java-sdk:1.11.486'
+    implementation 'commons-io:commons-io:2.11.0'
 
     implementation 'com.amazonaws:aws-java-sdk-s3:1.11.486'
     //To be removed
