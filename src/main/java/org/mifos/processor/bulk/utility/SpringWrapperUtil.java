@@ -3,11 +3,11 @@ package org.mifos.processor.bulk.utility;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.support.DefaultExchange;
+import org.springframework.web.multipart.MultipartFile;
 
 public class SpringWrapperUtil {
     public static Exchange getDefaultWrappedExchange(CamelContext camelContext,
-                                                     Headers headers,
-                                                     String body) {
+                                                     Headers headers) {
         Exchange exchange = new DefaultExchange(camelContext);
 
         // Setting headers
@@ -15,15 +15,6 @@ public class SpringWrapperUtil {
             exchange.getIn().setHeader(headerKey, headers.get(headerKey));
         }
 
-        // Setting body if available
-        if (body != null) {
-            try {
-                exchange.getIn().setBody( body);
-            } catch (Exception e) {
-                exchange.getIn().setBody(body);
-
-            }
-        }
         return exchange;
     }
 }

@@ -3,6 +3,7 @@ package org.mifos.processor.bulk.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.camel.Exchange;
 import org.apache.camel.ProducerTemplate;
+import org.mifos.processor.bulk.file.FileStorageService;
 import org.mifos.processor.bulk.utility.Headers;
 import org.mifos.processor.bulk.utility.SpringWrapperUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,9 @@ public class BulkTransferController implements BulkTransfer {
     @Autowired
     ObjectMapper objectMapper;
 
+    @Autowired
+    FileStorageService fileStorageService;
+
     @Override
     public String bulkTransfer(String requestId, MultipartFile file, String fileName, String purpose, String type, String tenant) throws IOException {
         Headers headers = new Headers.HeaderBuilder()
@@ -32,9 +36,8 @@ public class BulkTransferController implements BulkTransfer {
                 .addHeader("Platform-TenantId",tenant)
                 .build();
         Exchange exchange = SpringWrapperUtil.getDefaultWrappedExchange(producerTemplate.getCamelContext(),
-                headers, new String(file.getBytes()));
-        System.out.println("Requested file for transfer api = "  + new String(file.getBytes())  );
-
+                headers);
+        fileStorageService.save(file);
         producerTemplate.send("direct:post-bulk-transfer", exchange);
         return exchange.getIn().getBody(String.class);
     }

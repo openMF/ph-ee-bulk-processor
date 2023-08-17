@@ -8,6 +8,7 @@ import static org.mifos.processor.bulk.camel.config.CamelProperties.IS_UPDATED;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.RESULT_TRANSACTION_LIST;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.OVERRIDE_HEADER;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.LOCAL_FILE_PATH;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.APPROVAL_ENABLED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BULK_NOTIF_FAILURE;
@@ -32,16 +33,13 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.THRESHOLD_DELAY;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PROGRAM_NAME;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYER_IDENTIFIER_TYPE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYER_IDENTIFIER_VALUE;
-import java.io.File;
-import java.io.FileWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.HashMap;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.NOTE;
+import java.io.*;
+import java.util.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
+import org.apache.tika.Tika;
 import org.json.JSONObject;
 import org.mifos.processor.bulk.config.BudgetAccountConfig;
 import org.mifos.processor.bulk.config.Program;
@@ -94,6 +92,12 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
     @Value("${pollingApi.timer}")
     private String pollApiTimer;
 
+    @Value("#{'${csv.columnNames}'.split(',')}")
+    private List<String> columnNames;
+
+    @Value("${csv.size}")
+    private int csvSize;
+
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
@@ -112,14 +116,21 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
         from("direct:post-batch-transactions")
                 .id("rest:POST:/batchtransactions")
                 .log("Starting route rest:POST:/batchtransactions")
-                .unmarshal().mimeMultipart("multipart/*")
+                .to("direct:validate-file")
+                .choice()
+                .when(header("CamelHttpResponseCode").isNotEqualTo("200"))
+                .log(LoggingLevel.ERROR, "File upload failed")
+                .otherwise()
                 .process(exchange -> {
                     String batchId = UUID.randomUUID().toString();
-                    exchange.setProperty(BATCH_ID,batchId);
+                    exchange.setProperty(BATCH_ID, batchId);
 
                 })
-                .wireTap("direct:executeBatch")
-                .to("direct:pollingOutput");
+                .to("direct:validateFileSyncResponse")
+                .choice()
+                .when(header("CamelHttpResponseCode").isNotEqualTo("200"))
+                .log(LoggingLevel.ERROR, "File upload failed").otherwise()
+                .wireTap("direct:executeBatch").to("direct:pollingOutput").endChoice().endChoice();
 
         from("direct:post-bulk-transfer")
                 .unmarshal().mimeMultipart("multipart/*")
@@ -158,32 +169,33 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                 .id("direct:update-incoming-data")
                 .log("direct:update-incoming-data")
                 // [LOCAL_FILE_PATH] is already set in [direct:validateFileSyncResponse] route
+                .setProperty(LOCAL_FILE_PATH, exchangeProperty(FILE_NAME))
                 .to("direct:get-transaction-array")
                 // make sure new data is set under the exchange variable [RESULT_TRANSACTION_LIST]
                 .process(exchange -> {
                     String registeringInstituteId = exchange.getProperty(REGISTERING_INSTITUTE_ID, String.class);
                     String programId = exchange.getProperty(PROGRAM_ID, String.class);
-                    logger.debug("Inst id: {}, prog id: {}", registeringInstituteId, programId);
+                    logger.info("Inst id: {}, prog id: {}", registeringInstituteId, programId);
                     if (!(StringUtils.hasText(registeringInstituteId) && StringUtils.hasText(programId))) {
                         // this will make sure the file is not updated since there is no update in data
-                        logger.debug("Reh or pro is null");
+                        logger.info("Reh or pro is null");
                         exchange.setProperty(IS_UPDATED, false);
                         return;
                     }
                     List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
-                    logger.debug("Size: {}", transactionList.size());
+                    logger.info("Size: {}", transactionList.size());
                     RegisteringInstitutionConfig registeringInstitutionConfig = budgetAccountConfig
                             .getByRegisteringInstituteId(registeringInstituteId);
                     if (registeringInstitutionConfig == null) {
-                        logger.debug("Element in nested in config: {}", budgetAccountConfig.getRegisteringInstitutions().get(0).getPrograms().size());
-                        logger.debug("Registering institute id is null");
+                        logger.info("Element in nested in config: {}", budgetAccountConfig.getRegisteringInstitutions().get(0).getPrograms().size());
+                        logger.info("Registering institute id is null");
                         exchange.setProperty(IS_UPDATED, false);
                         return;
                     }
                     Program program = registeringInstitutionConfig.getByProgramId(programId);
                     if (program == null) {
                         // this will make sure the file is not updated since there is no update in data
-                        logger.debug("Program is null");
+                        logger.info("Program is null");
                         exchange.setProperty(IS_UPDATED, false);
                         return;
                     }
@@ -194,7 +206,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                         transaction.setPayerIdentifier(program.getIdentifierValue());
                         resultTransactionList.add(transaction);
                         try {
-                            logger.debug("Txn: {}", objectMapper.writeValueAsString(transaction));
+                            logger.info("Txn: {}", objectMapper.writeValueAsString(transaction));
                         } catch (JsonProcessingException e) {
                             throw new RuntimeException(e);
                         }
@@ -223,30 +235,29 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     String requestId = exchange.getProperty(REQUEST_ID, String.class);
                     String purpose = exchange.getProperty(PURPOSE, String.class);
                     String batchId = exchange.getProperty(BATCH_ID,String.class);
-
+                    String note = null;
 
                     if (purpose == null || purpose.isEmpty()) {
                         purpose = "test payment";
                     }
 
-                    logger.debug("\n\n Filename: {}", fileName);
-                    logger.debug("\n\n BatchId: {} ", batchId);
+                    logger.info("\n\n Filename: {}", fileName);
+                    logger.info("\n\n BatchId: {} ", batchId);
 
                     File file = new File(fileName);
                     file.setWritable(true);
                     file.setReadable(true);
-
-                    String csvData = exchange.getIn().getBody(String.class);
-                    FileWriter fileWriter = new FileWriter(file);
-                    fileWriter.write(csvData);
-                    fileWriter.close();
-
-                    logger.info(""+file.length());
-                    logger.info(file.getAbsolutePath());
+                    
+                    logger.info("File absolute path: {}", file.getAbsolutePath());
+                    boolean verifyData = verifyData(file);
+                    logger.debug("Data verification result {}", verifyData);
+                    if (!verifyData) {
+                        note = "Invalid data in file data processing stopped";
+                    }
 
                     String nm = fileTransferService.uploadFile(file, bucketName);
 
-                    logger.debug("File uploaded {}", nm);
+                    logger.info("File uploaded {}", nm);
 
                     //extracting  and setting callback Url
                     String callbackUrl = exchange.getIn().getHeader("X-Callback-URL", String.class);
@@ -263,6 +274,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     variables.put(CALLBACK_URL, callbackUrl);
                     variables.put(PHASES, phases);
                     variables.put(PHASE_COUNT, phases.size());
+                    variables.put(NOTE, note);
                     variables.put(PROGRAM_NAME, exchange.getProperty(PROGRAM_NAME));
                     variables.put(PAYER_IDENTIFIER_TYPE, exchange.getProperty(PAYER_IDENTIFIER_TYPE));
                     variables.put(PAYER_IDENTIFIER_VALUE, exchange.getProperty(PAYER_IDENTIFIER_VALUE));
@@ -325,27 +337,122 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                 .when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("raw"))
                 .to("direct:start-batch-process-raw")
                 .when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("csv"))
-                .unmarshal().mimeMultipart("multipart/*")
                 .to("direct:start-batch-process-csv")
                 .otherwise()
                 .setBody(exchange -> getUnsupportedTypeJson(exchange.getProperty(BATCH_REQUEST_TYPE, String.class)).toString())
                 .log("Completed execution of route rest:POST:/batchtransactions");
 
-        from("direct:pollingOutput")
-                .id("direct:pollingOutput")
-                .log("Started pollingOutput route")
+        from("direct:pollingOutput").id("direct:pollingOutput").log("Started pollingOutput route").process(exchange -> {
+            JSONObject json = new JSONObject();
+            json.put("PollingPath", "/batch/Summary/" + exchange.getProperty(BATCH_ID));
+            json.put("SuggestedCallbackSeconds", pollApiTimer);
+            exchange.getIn().setBody(json.toString());
+
+        });
+
+
+        from("direct:validateFileSyncResponse").id("direct:validateFileSyncResponse").log("Starting route direct:validateFileSyncResponse")
                 .process(exchange -> {
-//                   String response = "PollingPath: /batch/Summary/{batchId} and SuggestedCallbackSeconds: # seconds";
-//                    response = response.replace("#",pollApiTimer).replace("{batchId}", (CharSequence) exchange.getProperty(BATCH_ID));
-//                    ObjectMapper mapper = new ObjectMapper();
-                    JSONObject json = new JSONObject();
-                    json.put("PollingPath", "/batch/Summary/"+exchange.getProperty(BATCH_ID));
-                    json.put("SuggestedCallbackSeconds",pollApiTimer);
-                    exchange.getIn().setBody(json.toString());
+                    // move this logic to spring
+                    String fileName = exchange.getIn().getHeader(FILE_NAME, String.class);
+                    File file = new File(fileName);
 
+                    // check the file structure
+                    int fileSize = (int) file.length();
+                    if (fileSize > csvSize) {
+                        setErrorResponse(exchange, 400, "File too big",
+                                "The file uploaded is too big. " + "Please upload a file and try again.");
+                    } else if (!verifyCsv(file)) {
+                        setErrorResponse(exchange, 400, "Invalid file structure",
+                                "The file uploaded contains wrong structure." + " Please upload correct file columns and try again.");
+                    } else {
+                        logger.info("Filename: {}", fileName);
+                        setResponse(exchange, 200);
+                    }
 
-                });
+                }).log("Completed route direct:validateFileSyncResponse");
 
+        from("direct:validate-file").id("direct:validate-file").log("Starting route direct:validate-file").process(exchange -> {
+            File f = new File(exchange.getIn().getHeader(FILE_NAME, String.class));
+            logger.info("File name: {} ", f.getName());
+            Tika tika = new Tika();
+            String fileType = tika.detect(f.getName());
+            logger.info("File type: {} ", fileType);
+            if (f.getName().isEmpty()) {
+                setErrorResponse(exchange, 400, "File not uploaded",
+                        "There was no fie uploaded with the request. " + "Please upload a file and try again.");
+            } else if (!fileType.equalsIgnoreCase("text/csv")) {
+                setErrorResponse(exchange, 400, "Broken file",
+                        "The file uploaded is broken as it has a different extension. " + "Please upload a csv file and try again.");
+            } else {
+                setResponse(exchange, 200);
+            }
+
+        });
+
+    }
+
+    private boolean verifyData(File file) throws IOException {
+        InputStream ips = new FileInputStream(file);
+        InputStreamReader ipsr = new InputStreamReader(ips);
+        BufferedReader br = new BufferedReader(ipsr);
+        String line;
+        br.readLine();
+        while ((line = br.readLine()) != null) {
+            String[] row = line.split(",");
+            if (row.length != columnNames.size()) {
+                logger.info("Row invalid {} {}", row.length, columnNames.size());
+                return false;
+            }
+            if (!verifyRow(row)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean verifyRow(String[] row) {
+        for (int i = 1; i < row.length; i++) {
+            row[i] = row[i].trim();
+            if (row[i].equalsIgnoreCase("MSISDN")) {
+                int j = row[i].indexOf("MSISDN");
+                if (!(j == row.length)) {
+                    if (!row[j + 1].matches("^[0-9]*$")) {
+                        logger.info("MSISDN invalid");
+                        return false;
+                    }
+                }
+            } else if (row[i].contains("amount")) {
+                int j = row[i].indexOf("amount");
+                if (!row[j].matches("^[0-9]*$")) {
+                    logger.info("Amount invalid");
+                    return false;
+                }
+
+            }
+        }
+        return true;
+    }
+
+    private boolean verifyCsv(File csvData) throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader(csvData));
+        String header = br.readLine();
+        String[] columns = new String[0];
+        if (header != null) {
+            columns = header.split(",");
+            logger.info("Columns in the csv file are {}", Arrays.toString(columns));
+        }
+        int i = 0;
+        while (i < columns.length) {
+            if (columnNames.contains(columns[i])) {
+                logger.info("Column name {} is at index {} ", columns[i], columnNames.indexOf(columns[i]));
+                i++;
+
+            } else {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void setErrorResponse(Exchange exchange, int responseCode, String errorInfo, String errorDescription) {
