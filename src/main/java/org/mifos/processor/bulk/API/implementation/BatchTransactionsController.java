@@ -1,12 +1,12 @@
-package org.mifos.processor.bulk.api;
+package org.mifos.processor.bulk.api.implementation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
 import org.apache.camel.ProducerTemplate;
-import org.apache.tika.Tika;
 import org.json.JSONObject;
+import org.mifos.processor.bulk.api.definition.BatchTransactions;
 import org.mifos.processor.bulk.file.FileStorageService;
 import org.mifos.processor.bulk.utility.Headers;
 import org.mifos.processor.bulk.utility.SpringWrapperUtil;
@@ -15,12 +15,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.MultipartFile;
-import javax.activation.DataHandler;
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeBodyPart;
+
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.InputStream;
+
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
 @Slf4j
 @RestController

@@ -1,8 +1,9 @@
-package org.mifos.processor.bulk.api;
+package org.mifos.processor.bulk.api.implementation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.camel.Exchange;
 import org.apache.camel.ProducerTemplate;
+import org.mifos.processor.bulk.api.definition.BulkTransfer;
 import org.mifos.processor.bulk.file.FileStorageService;
 import org.mifos.processor.bulk.utility.Headers;
 import org.mifos.processor.bulk.utility.SpringWrapperUtil;

@@ -1,4 +1,4 @@
-package org.mifos.processor.bulk.api;
+package org.mifos.processor.bulk.api.definition;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;

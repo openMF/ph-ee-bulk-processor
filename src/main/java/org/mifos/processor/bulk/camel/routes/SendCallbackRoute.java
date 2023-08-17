@@ -75,8 +75,6 @@ public class SendCallbackRoute extends BaseRouteBuilder {
                     exchange.setProperty(ERROR_CODE, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
                 });
 
-        // for temporary callback simulation
-        from("rest:post:/simulate").log("Reached Simulation");
     }
 
     public void eliminatePhases(Exchange exchange, List<Integer> phases, int phaseCount, int completionRate) {
