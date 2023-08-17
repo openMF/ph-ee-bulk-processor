@@ -134,11 +134,11 @@ identity-account-mapper:
   hostname : "https://identity.sandbox.mifos.io"
 
 bulk-processor:
-  hostname : "https://bulk-connector.sandbox.mifos.io"
+  hostname : "https://bulk-connector.sandbox.fynarfin.io"
 
 csv:
   columnNames: "id,request_id,payment_mode,payer_identifier_type,payer_identifier,payee_identifier_type,payee_identifier,amount,currency,note"
   size : 100000 # in bytes
 
 batch-authorization:
-  callback-path: "/authorization/callback"
+  callback-url: "https://bulk-connector.sandbox.fynarfin.io/authorization/callback"
