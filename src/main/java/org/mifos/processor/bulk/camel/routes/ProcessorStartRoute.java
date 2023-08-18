@@ -69,7 +69,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
 
     private void setup() {
 
-        from("direct:post-batch-transactions")
+        from("rest:POST:/batchtransactions")
                 .id("rest:POST:/batchtransactions")
                 .log("Starting route rest:POST:/batchtransactions")
                 .unmarshal().mimeMultipart("multipart/*")

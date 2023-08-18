@@ -6,5 +6,6 @@ public class ZeebeMessages {
 
     public static final String OPERATOR_MANUAL_RECOVERY = "operator-manual-recovery";
     public static final String ACCOUNT_LOOKUP = "account-lookup";
+    public static final String BATCH_ACCOUNT_LOOKUP = "batchAccountLookup";
 
 }

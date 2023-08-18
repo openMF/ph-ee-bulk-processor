@@ -119,6 +119,7 @@ public class ZeebeVariables {
     public static final String ACCOUNT_LOOKUP_FAILED = "accountLookupFailed";
     public static final String ORIGIN_CHANNEL_REQUEST = "originChannelRequest";
     public static final String CALLBACK = "X-CallbackURL";
+    public static final String REGISTERING_INSTITUTION_ID = "X-Registering-Institution-ID";
 
     public static final String DEBULKINGDFSPID = "debulkingDfspid";
 
@@ -126,5 +127,8 @@ public class ZeebeVariables {
 
     public static final String NOTE = "note";
     public static final String PARTY_LOOKUP_FSP_ID = "partyLookupFspId";
+    public static final String BATCH_ACCOUNT_LOOKUP_RESPONSE = "batchAccountLookupResponse";
+    public static final String  PARTY_LOOKUP_SUCCESSFUL_TRANSACTION_AMOUNT = "totalApprovedAmount";
+    public static final String  PARTY_LOOKUP_SUCCESSFUL_TRANSACTION_COUNT = "totalApprovedCount";
 
 }
