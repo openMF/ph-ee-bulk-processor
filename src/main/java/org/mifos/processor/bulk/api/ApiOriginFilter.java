@@ -11,16 +11,11 @@ import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.filter.GenericFilterBean;
 
-@Component
-public class ApiOriginFilter implements Filter {
+public class ApiOriginFilter extends GenericFilterBean {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
-
-    @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-
-    }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
@@ -30,8 +25,4 @@ public class ApiOriginFilter implements Filter {
         logger.info("Client IP Address: {}",req.getRemoteHost());
     }
 
-    @Override
-    public void destroy() {
-
-    }
 }

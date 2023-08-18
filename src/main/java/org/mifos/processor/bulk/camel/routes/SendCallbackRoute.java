@@ -39,8 +39,12 @@ public class SendCallbackRoute extends BaseRouteBuilder {
                             exchange.getProperty(COMPLETION_RATE).toString());
                     callbackUrl = exchange.getProperty(CALLBACK_URL).toString();
                     return body;
-                }).toD("${header.callbackUrl}?bridgeEndpoint=true&throwExceptionOnFailure=false").choice()
-                .when(header("CamelHttpResponseCode").startsWith("2")).log(LoggingLevel.INFO, "Callback sending was successful")
+                })
+                .to("direct:set-jws-signature")
+                .toD("${header.callbackUrl}?bridgeEndpoint=true&throwExceptionOnFailure=false")
+                .choice()
+                .when(header("CamelHttpResponseCode").startsWith("2"))
+                .log(LoggingLevel.INFO, "Callback sending was successful")
                 .process(exchange -> {
                     List<Integer> phases = (List<Integer>) exchange.getProperty(PHASES);
 
@@ -71,8 +75,6 @@ public class SendCallbackRoute extends BaseRouteBuilder {
                     exchange.setProperty(ERROR_CODE, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
                 });
 
-        // for temporary callback simulation
-        from("rest:post:/simulate").log("Reached Simulation");
     }
 
     public void eliminatePhases(Exchange exchange, List<Integer> phases, int phaseCount, int completionRate) {

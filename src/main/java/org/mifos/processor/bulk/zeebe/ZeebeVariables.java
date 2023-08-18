@@ -126,5 +126,7 @@ public class ZeebeVariables {
 
     public static final String NOTE = "note";
     public static final String PARTY_LOOKUP_FSP_ID = "partyLookupFspId";
-
+    public static final String PROGRAM_NAME = "programName";
+    public static final String PAYER_IDENTIFIER_TYPE = "payerIdentifierType";
+    public static final String PAYER_IDENTIFIER_VALUE = "payerIdentifier";
 }

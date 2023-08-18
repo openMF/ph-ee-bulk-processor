@@ -107,7 +107,16 @@ dependencies {
     // miscellaneous dependency
     implementation 'com.google.code.gson:gson:2.8.9'
     implementation 'org.json:json:20210307'
-    implementation 'org.mifos:ph-ee-connector-common:1.4.1-SNAPSHOT'
+    implementation 'org.mifos:ph-ee-connector-common:1.5.0-SNAPSHOT'
+    implementation 'org.apache.camel.springboot:camel-spring-boot-starter:3.4.0'
+    implementation 'org.apache.camel:camel-undertow:3.4.0'
+    implementation 'org.springframework.boot:spring-boot-starter:2.5.2'
+    implementation 'org.springframework.boot:spring-boot-starter-web:2.5.2'
+    implementation 'org.apache.camel:camel-http:3.4.0'
+    implementation 'org.springframework:spring-web:5.3.19'
+    implementation 'com.amazonaws:aws-java-sdk:1.11.486'
+    implementation 'commons-io:commons-io:2.11.0'
+
     implementation 'com.amazonaws:aws-java-sdk-s3:1.11.486'
     //To be removed
     implementation 'com.amazonaws:aws-java-sdk-dynamodb:1.11.486'
