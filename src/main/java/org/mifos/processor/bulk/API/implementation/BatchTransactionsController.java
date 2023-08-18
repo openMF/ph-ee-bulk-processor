@@ -15,11 +15,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.MultipartFile;
-
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
 
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
 @Slf4j
 @RestController
 public class BatchTransactionsController implements BatchTransactions {
@@ -38,7 +38,6 @@ public class BatchTransactionsController implements BatchTransactions {
     public String batchTransactions(HttpServletResponse httpServletResponse,
                                     String requestId, MultipartFile file, String fileName,
                                     String purpose, String type, String tenant) throws IOException {
-        assert (file.getSize() >0);
         log.info("Inside api logic");
         String localFileName = fileStorageService.save(file);
         Headers headers = new Headers.HeaderBuilder()
@@ -63,11 +62,7 @@ public class BatchTransactionsController implements BatchTransactions {
         json.put("Error Information: ", "File not uploaded");
         json.put("Error Description : ", "There was no fie uploaded with the request. " +
                 "Please upload a file and try again.");
-
         httpServletResponse.setStatus(httpServletResponse.SC_BAD_REQUEST);
-//        httpServletResponse.getWriter().write(json.toString());
-//        httpServletResponse.getWriter().flush();
-
         return json.toString();
     }
 
