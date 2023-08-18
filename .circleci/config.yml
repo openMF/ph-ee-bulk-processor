@@ -78,10 +78,7 @@ jobs:
       # Push the Docker image to DockerHub
       - run:
           name: Push Docker image to DockerHub
-          command: docker push openmf/ph-ee-bulk-processor:latest        
-      - run: |
-          kubectl config use-context arn:aws:eks:$REGION:$ACCOUNT_ID:cluster/sit
-          kubectl config get-contexts
+          command: docker push openmf/ph-ee-bulk-processor:latest
 
   build-and-host-engine:
     docker:
