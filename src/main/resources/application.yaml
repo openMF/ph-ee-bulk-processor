@@ -7,9 +7,6 @@ camel:
       json-jackson:
         auto-discover-object-mapper: true
 
-server:
-  port: 9001
-
 kafka:
   bootstrapAddress: "kafka:9092"
   topic:
@@ -29,7 +26,7 @@ zeebe:
     #    number-of-workers: 8
     #    evenly-allocated-max-jobs: "#{${zeebe.client.max-execution-threads} / ${zeebe.client.number-of-workers}}"
   broker:
-    contactpoint: "g2p-sandbox-zeebe-gateway:26500"
+    contactpoint: "zeebe-zeebe-gateway:26500"
 
 operations-app:
   contactpoint: "https://ops-bk.sandbox.mifos.io"
@@ -134,7 +131,7 @@ identity-account-mapper:
   hostname : "https://identity.sandbox.mifos.io"
 
 bulk-processor:
-  hostname : "https://bulk-connector.sandbox.fynarfin.io"
+  hostname : "https://bulk-connector.sandbox.mifos.io"
 
 csv:
   columnNames: "id,request_id,payment_mode,payer_identifier_type,payer_identifier,payee_identifier_type,payee_identifier,amount,currency,note"

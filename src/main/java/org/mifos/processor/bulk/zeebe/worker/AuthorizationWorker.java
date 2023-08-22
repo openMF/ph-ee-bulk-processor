@@ -2,7 +2,6 @@ package org.mifos.processor.bulk.zeebe.worker;
 
 import java.util.Map;
 import org.mifos.processor.bulk.schema.AuthorizationRequest;
-import org.mifos.processor.bulk.schema.AuthorizationResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -12,7 +11,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_SUCCESSFUL;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.APPROVED_AMOUNT;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CLIENT_CORRELATION_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_ACCEPTED;
 
 @Component
 public class AuthorizationWorker extends BaseWorker {
@@ -25,6 +28,10 @@ public class AuthorizationWorker extends BaseWorker {
 
     @Value("${mock-payment-schema.endpoints.authorization}")
     private String authorizationEndpoint;
+
+    private static final String X_CLIENT_CORRELATION_ID = "X-Client-Correlation-ID";
+
+    private static final String X_CALLBACK_URL = "X-CallbackURL";
 
     @Override
     public void setup() {
@@ -58,8 +65,8 @@ public class AuthorizationWorker extends BaseWorker {
     private HttpStatus invokeBatchAuthorizationApi(String batchId, AuthorizationRequest requestPayload, String clientCorrelationId) {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
-        headers.add("X-Client-Correlation-ID", clientCorrelationId);
-        headers.add("X-CallbackURL", callbackURLPath);
+        headers.add(X_CLIENT_CORRELATION_ID, clientCorrelationId);
+        headers.add(X_CALLBACK_URL, callbackURLPath);
 
         HttpEntity<AuthorizationRequest> requestEntity = new HttpEntity<>(requestPayload, headers);
         String endpoint = mockPaymentSchemaContactPoint + authorizationEndpoint + batchId;
