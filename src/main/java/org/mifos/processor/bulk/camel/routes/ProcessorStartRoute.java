@@ -357,7 +357,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
             json.put("PollingPath", "/batch/Summary/" + exchange.getProperty(BATCH_ID));
             json.put("SuggestedCallbackSeconds", pollApiTimer);
             exchange.getIn().setBody(json.toString());
-
+			exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 202);
         });
 
 
