@@ -34,8 +34,19 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PROGRAM_NAME;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYER_IDENTIFIER_TYPE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYER_IDENTIFIER_VALUE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.NOTE;
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.ArrayList;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
@@ -162,7 +173,6 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                 .setHeader("Content-Type", constant("application/json;charset=UTF-8"))
                 .log("Completed route direct:validate-tenant");
 
-
         // this route is responsible for editing the incoming records based on configuration
         // this step is done to make sure the file format of CSV is not altered and only the data is updated based on config
         from("direct:update-incoming-data")
@@ -257,7 +267,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
 
                     String nm = fileTransferService.uploadFile(file, bucketName);
 
-                    logger.info("File uploaded {}", nm);
+                    logger.debug("File uploaded {}", nm);
 
                     //extracting  and setting callback Url
                     String callbackUrl = exchange.getIn().getHeader("X-Callback-URL", String.class);
@@ -347,7 +357,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
             json.put("PollingPath", "/batch/Summary/" + exchange.getProperty(BATCH_ID));
             json.put("SuggestedCallbackSeconds", pollApiTimer);
             exchange.getIn().setBody(json.toString());
-
+			exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 202);
         });
 
 
