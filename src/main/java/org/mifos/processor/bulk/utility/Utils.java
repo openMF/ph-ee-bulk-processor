@@ -20,8 +20,14 @@ import org.mifos.connector.common.mojaloop.dto.PartyIdInfo;
 import org.mifos.connector.common.mojaloop.type.IdentifierType;
 import org.mifos.processor.bulk.schema.Transaction;
 import org.mifos.processor.bulk.schema.TransactionResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class Utils {
+public final class Utils {
+
+    private Utils() {}
+
+    public static Logger logger = LoggerFactory.getLogger(Utils.class);
 
     public static String getTenantSpecificWorkflowId(String originalWorkflowName, String tenantName) {
         return originalWorkflowName.replace("{dfspid}", tenantName);
@@ -50,7 +56,7 @@ public class Utils {
             in.close();
             out.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.debug(e.getMessage());
             return null;
         }
 

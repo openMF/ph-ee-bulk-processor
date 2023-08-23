@@ -8,7 +8,7 @@ public enum RouteId {
 
     private final String value;
 
-    private RouteId(String s) {
+    RouteId(String s) {
         value = s;
     }
 

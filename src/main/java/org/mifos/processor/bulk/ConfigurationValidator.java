@@ -62,7 +62,7 @@ public class ConfigurationValidator {
             logger.info("Configured formatting standard as >> {}", standardEnum.name());
             return;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.debug(e.getMessage());
         }
         List<String> possibleStandards = new ArrayList<>();
         for (Field f : Standard.class.getFields()) {

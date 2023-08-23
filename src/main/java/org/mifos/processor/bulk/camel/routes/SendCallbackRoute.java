@@ -1,5 +1,12 @@
 package org.mifos.processor.bulk.camel.routes;
 
+import org.apache.camel.Exchange;
+import org.apache.camel.LoggingLevel;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
 import static org.mifos.processor.bulk.camel.config.CamelProperties.CALLBACK_RESPONSE_CODE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK_RETRY;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK_SUCCESS;
@@ -10,12 +17,6 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ERROR_DESCRIPTION;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MAX_CALLBACK_RETRY;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PHASES;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PHASE_COUNT;
-
-import java.util.List;
-import org.apache.camel.Exchange;
-import org.apache.camel.LoggingLevel;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 @Component
 public class SendCallbackRoute extends BaseRouteBuilder {
@@ -80,7 +81,9 @@ public class SendCallbackRoute extends BaseRouteBuilder {
     public void eliminatePhases(Exchange exchange, List<Integer> phases, int phaseCount, int completionRate) {
         int i = 0;
         while (phases.size() > 0 && phases.size() > i) {
-            if (phases.get(i) <= completionRate) phases.remove(i);
+            if (phases.get(i) <= completionRate) {
+                phases.remove(i);
+            }
             i++;
         }
         exchange.setProperty(PHASES, phases);

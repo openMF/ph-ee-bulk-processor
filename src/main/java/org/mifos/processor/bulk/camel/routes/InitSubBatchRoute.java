@@ -65,7 +65,7 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
     private ExternalApiPayloadConfig externalApiPayloadConfig;
 
     @Value("${channel.hostname}")
-    private String ChannelURL;
+    private String channelURL;
 
     @Override
     public void configure() throws Exception {
@@ -187,7 +187,7 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 .log(LoggingLevel.DEBUG, "Making API call to endpoint ${exchangeProperty.extEndpoint} and body: ${body}")
                 .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
                 .setHeader(BATCH_ID_HEADER, simple("${exchangeProperty." + BATCH_ID + "}"))
-                .toD(ChannelURL + "${exchangeProperty.extEndpoint}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
+                .toD(channelURL + "${exchangeProperty.extEndpoint}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
                 .log(LoggingLevel.DEBUG, "Response body: ${body}").otherwise().endChoice();
 
         from("direct:validate-payment-mode").id("direct:validate-payment-mode").log("Starting route direct:validate-payment-mode")

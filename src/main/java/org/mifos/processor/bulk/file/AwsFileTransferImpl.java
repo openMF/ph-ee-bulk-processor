@@ -15,6 +15,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
 @Service
 @Qualifier("awsStorage")
 public class AwsFileTransferImpl implements FileTransferService {

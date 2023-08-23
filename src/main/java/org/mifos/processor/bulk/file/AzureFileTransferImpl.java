@@ -60,7 +60,7 @@ public class AzureFileTransferImpl implements FileTransferService {
 //            temp.delete();
             return csvInputStream;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.debug(e.getMessage());
         }
         return null;
     }
