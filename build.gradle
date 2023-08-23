@@ -84,6 +84,7 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
     implementation "org.springframework:spring-web:5.3.14"
     implementation 'org.springframework.kafka:spring-kafka:2.8.1'
+    implementation "org.springframework.boot:spring-boot-starter-actuator:$springBootVersion"
 
     // spring test dependency
     testImplementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
