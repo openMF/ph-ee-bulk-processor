@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import io.camunda.zeebe.client.ZeebeClient;
+import java.io.InputStream;
 import java.util.Map;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
@@ -70,10 +71,10 @@ public class ZeebeWorkers {
             String fileName = (String) variables.get("fileName");
 
             // TODO: How to get sender information? Hard coded in Channel connector?
-            byte[] csvFile = fileTransferService.downloadFile(fileName, bucketName);
+            InputStream csvFileInputStream = fileTransferService.streamFile(fileName, bucketName);
 
             CsvSchema schema = CsvSchema.emptySchema().withHeader();
-            MappingIterator<Transaction> readValues = csvMapper.readerWithSchemaFor(Transaction.class).with(schema).readValues(csvFile);
+            MappingIterator<Transaction> readValues = csvMapper.readerWithSchemaFor(Transaction.class).with(schema).readValues(csvFileInputStream);
 
             /*
              * while (readValues.hasNext()) { Transaction current = readValues.next(); current.setBatchId(batchId); if

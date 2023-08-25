@@ -1,6 +1,7 @@
 package org.mifos.processor.bulk.file;
 
 import java.io.File;
+import java.io.InputStream;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -11,7 +12,7 @@ public interface FileTransferService {
 
     String uploadFile(File file, String bucketName);
 
-    byte[] downloadFile(String fileName, String bucketName);
+    InputStream streamFile(String fileName, String bucketName);
 
     void deleteFile(String fileName, String bucketName);
 

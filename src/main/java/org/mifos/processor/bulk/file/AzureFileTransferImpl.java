@@ -1,11 +1,12 @@
 package org.mifos.processor.bulk.file;
 
 import com.azure.storage.blob.BlobClientBuilder;
-import com.azure.storage.blob.models.BlobProperties;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+
+import com.azure.storage.blob.specialized.BlobInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,13 +52,13 @@ public class AzureFileTransferImpl implements FileTransferService {
     }
 
     @Override
-    public byte[] downloadFile(String fileName, String bucketName) {
+    public InputStream streamFile(String fileName, String bucketName) {
         try {
             File temp = new File("/temp/" + fileName);
-            BlobProperties properties = client.containerName(bucketName).blobName(fileName).buildClient().downloadToFile(temp.getPath());
-            byte[] content = Files.readAllBytes(Paths.get(temp.getPath()));
-            temp.delete();
-            return content;
+            BlobInputStream csvInputStream = client.containerName(bucketName).blobName(fileName).buildClient().openInputStream();
+//            byte[] content = Files.Paths.get(temp.getPath()));
+//            temp.delete();
+            return csvInputStream;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -68,4 +69,5 @@ public class AzureFileTransferImpl implements FileTransferService {
     public void deleteFile(String fileName, String bucketName) {
         client.containerName(bucketName).blobName(fileName).buildClient().delete();
     }
+
 }
