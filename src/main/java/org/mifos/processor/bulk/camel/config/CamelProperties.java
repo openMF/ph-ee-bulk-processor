@@ -76,5 +76,7 @@ public class CamelProperties {
     public static final String PROGRAM_ID = "programId";
     public static final String IS_UPDATED = "isUpdated";
     public static final String HEADER_PLATFORM_TENANT_ID = "Platform-TenantId";
+    public static final String HEADER_CLIENT_CORRELATION_ID = "X-CorrelationID";
+    public static final String CLIENT_CORRELATION_ID = "clientCorrelationId";
 
 }

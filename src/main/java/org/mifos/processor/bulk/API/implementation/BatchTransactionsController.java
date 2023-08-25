@@ -45,7 +45,7 @@ public class BatchTransactionsController implements BatchTransactions {
         log.info("Inside api logic");
         String localFileName = fileStorageService.save(file);
         Headers headers = new Headers.HeaderBuilder()
-                .addHeader("X-CorrelationID", requestId)
+                .addHeader(HEADER_CLIENT_CORRELATION_ID, requestId)
                 .addHeader(PURPOSE,purpose)
                 .addHeader(FILE_NAME,localFileName)
                 .addHeader("Type",type)

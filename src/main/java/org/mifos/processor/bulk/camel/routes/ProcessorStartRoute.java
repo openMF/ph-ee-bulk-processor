@@ -157,7 +157,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     logger.info("Inst id: {}, prog id: {}", registeringInstituteId, programId);
                     if (!(StringUtils.hasText(registeringInstituteId) && StringUtils.hasText(programId))) {
                         // this will make sure the file is not updated since there is no update in data
-                        logger.info("Reh or pro is null");
+                        logger.info("InstitutionId or programId is null");
                         exchange.setProperty(IS_UPDATED, false);
                         return;
                     }
@@ -260,7 +260,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     variables.put(REGISTERING_INSTITUTE_ID, exchange.getProperty(REGISTERING_INSTITUTE_ID));
                     variables.put(IS_FILE_VALID, true);
                     setConfigProperties(variables);
-
+					logger.info("Zeebe variables published: {}", variables);
                     JSONObject response = new JSONObject();
 
                     try {
@@ -308,12 +308,14 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     String requestId = exchange.getIn().getHeader("X-CorrelationID", String.class);
                     String purpose = exchange.getIn().getHeader("Purpose", String.class);
                     String type = exchange.getIn().getHeader("Type", String.class);
+                    String clientCorrelationId = exchange.getIn().getHeader(HEADER_CLIENT_CORRELATION_ID, String.class);
                     String registeringInstitutionId = exchange.getIn().getHeader(HEADER_REGISTERING_INSTITUTE_ID, String.class);
                     String programId = exchange.getIn().getHeader(HEADER_PROGRAM_ID, String.class);
                     exchange.setProperty(FILE_NAME, filename);
                     exchange.setProperty(REQUEST_ID, requestId);
                     exchange.setProperty(PURPOSE, purpose);
                     exchange.setProperty(BATCH_REQUEST_TYPE, type);
+                    exchange.setProperty(CLIENT_CORRELATION_ID, clientCorrelationId);
                     exchange.setProperty(REGISTERING_INSTITUTE_ID, registeringInstitutionId);
                     exchange.setProperty(PROGRAM_ID, programId);
                 })
