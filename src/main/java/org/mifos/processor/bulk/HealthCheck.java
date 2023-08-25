@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import java.io.InputStream;
 import java.util.UUID;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
@@ -61,11 +62,11 @@ public class HealthCheck extends RouteBuilder {
                     exchange.setProperty(BATCH_ID, batchId);
 
                     // TODO: How to get sender information? Hard coded in Channel connector?
-                    byte[] csvFile = fileTransferService.downloadFile(fileName, bucketName);
+                    InputStream csvFileInputStream = fileTransferService.streamFile(fileName, bucketName);
 
                     CsvSchema schema = CsvSchema.emptySchema().withHeader();
                     MappingIterator<TransactionOlder> readValues = csvMapper.readerWithSchemaFor(TransactionOlder.class).with(schema)
-                            .readValues(csvFile);
+                            .readValues(csvFileInputStream);
 
                     while (readValues.hasNext()) {
                         TransactionOlder current = readValues.next();

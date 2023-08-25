@@ -5,6 +5,7 @@ import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import org.mifos.processor.bulk.file.FileTransferService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -31,10 +32,10 @@ public class FileRoute extends BaseRouteBuilder {
         from("direct:download-file").id("direct:download-file").log("Started download-file route").process(exchange -> {
             String filename = exchange.getProperty(SERVER_FILE_NAME, String.class);
 
-            byte[] csvFile = fileTransferService.downloadFile(filename, bucketName);
+            InputStream csvFileInputStream = fileTransferService.streamFile(filename, bucketName);
             File file = new File(filename);
             try (FileOutputStream fos = new FileOutputStream(file)) {
-                fos.write(csvFile);
+                fos.write(csvFileInputStream.read());
             }
             exchange.setProperty(LOCAL_FILE_PATH, file.getAbsolutePath());
             logger.info("File downloaded");
