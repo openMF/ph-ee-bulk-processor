@@ -1,7 +1,6 @@
 package org.mifos.processor.bulk.camel.routes;
 
-import static org.mifos.processor.bulk.camel.config.CamelProperties.BATCH_STATUS_FAILED;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.OPS_APP_ACCESS_TOKEN;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETION_RATE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ERROR_CODE;
@@ -40,7 +39,7 @@ public class BatchStatusRoute extends BaseRouteBuilder {
         getBaseExternalApiRequestRouteDefinition("batch-summary", HttpRequestMethod.GET)
                 .setHeader(Exchange.REST_HTTP_QUERY, simple("batchId=${exchangeProperty." + BATCH_ID + "}"))
                 .setHeader("Authorization", simple("Bearer ${exchangeProperty." + OPS_APP_ACCESS_TOKEN + "}"))
-                .setHeader("Platform-TenantId", simple("${exchangeProperty." + TENANT_ID + "}")).process(exchange -> {
+                .setHeader(HEADER_PLATFORM_TENANT_ID, simple("${exchangeProperty." + TENANT_ID + "}")).process(exchange -> {
                     logger.info(exchange.getIn().getHeaders().toString());
                 }).toD(operationsAppConfig.batchSummaryUrl + "?bridgeEndpoint=true")
                 .log(LoggingLevel.INFO, "Batch summary API response: \n\n ${body}");

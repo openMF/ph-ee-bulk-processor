@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
+import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PLATFORM_TENANT_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
 
@@ -34,7 +35,7 @@ public class BulkTransferController implements BulkTransfer {
                 .addHeader(PURPOSE,purpose)
                 .addHeader(FILE_NAME,fileName)
                 .addHeader("Type",type)
-                .addHeader("Platform-TenantId",tenant)
+                .addHeader(HEADER_PLATFORM_TENANT_ID,tenant)
                 .build();
         Exchange exchange = SpringWrapperUtil.getDefaultWrappedExchange(producerTemplate.getCamelContext(),
                 headers);

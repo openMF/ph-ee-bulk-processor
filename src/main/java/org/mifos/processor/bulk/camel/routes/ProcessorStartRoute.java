@@ -1,14 +1,6 @@
 package org.mifos.processor.bulk.camel.routes;
 
-import static org.mifos.processor.bulk.camel.config.CamelProperties.BATCH_REQUEST_TYPE;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.REGISTERING_INSTITUTE_ID;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.TENANT_NAME;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.PROGRAM_ID;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.IS_UPDATED;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.RESULT_TRANSACTION_LIST;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.OVERRIDE_HEADER;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.LOCAL_FILE_PATH;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
 
 import java.io.BufferedReader;
@@ -140,7 +132,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                 .id("direct:validate-tenant")
                 .log("Validating tenant")
                 .process(exchange -> {
-                    String tenantName = exchange.getIn().getHeader("Platform-TenantId", String.class);
+                    String tenantName = exchange.getIn().getHeader(HEADER_PLATFORM_TENANT_ID, String.class);
                     // validation is disabled for now
                     /*if (tenantName == null || tenantName.isEmpty() || !tenants.contains(tenantName)) {
                         throw new Exception("Invalid tenant value.");
@@ -316,10 +308,14 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     String requestId = exchange.getIn().getHeader("X-CorrelationID", String.class);
                     String purpose = exchange.getIn().getHeader("Purpose", String.class);
                     String type = exchange.getIn().getHeader("Type", String.class);
+                    String registeringInstitutionId = exchange.getIn().getHeader(HEADER_REGISTERING_INSTITUTE_ID, String.class);
+                    String programId = exchange.getIn().getHeader(HEADER_PROGRAM_ID, String.class);
                     exchange.setProperty(FILE_NAME, filename);
                     exchange.setProperty(REQUEST_ID, requestId);
                     exchange.setProperty(PURPOSE, purpose);
                     exchange.setProperty(BATCH_REQUEST_TYPE, type);
+                    exchange.setProperty(REGISTERING_INSTITUTE_ID, registeringInstitutionId);
+                    exchange.setProperty(PROGRAM_ID, programId);
                 })
                 .choice()
                 .when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("raw"))

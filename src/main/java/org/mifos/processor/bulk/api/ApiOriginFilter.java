@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.GenericFilterBean;
 
+import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PLATFORM_TENANT_ID;
+
 public class ApiOriginFilter extends GenericFilterBean {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -20,7 +22,8 @@ public class ApiOriginFilter extends GenericFilterBean {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
-        String tenant = req.getHeader("Platform-TenantId");
+        String tenant = req.getHeader("" +
+                HEADER_PLATFORM_TENANT_ID);
         logger.debug("Tenant Name is : {}", tenant);
         logger.info("Client IP Address: {}", req.getRemoteHost());
     }
