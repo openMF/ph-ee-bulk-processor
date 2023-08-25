@@ -254,6 +254,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     variables.put(PHASES, phases);
                     variables.put(PHASE_COUNT, phases.size());
                     variables.put(NOTE, note);
+                    variables.put(CLIENT_CORRELATION_ID, exchange.getProperty(CLIENT_CORRELATION_ID));
                     variables.put(PROGRAM_NAME, exchange.getProperty(PROGRAM_NAME));
                     variables.put(PAYER_IDENTIFIER_TYPE, exchange.getProperty(PAYER_IDENTIFIER_TYPE));
                     variables.put(PAYER_IDENTIFIER_VALUE, exchange.getProperty(PAYER_IDENTIFIER_VALUE));
