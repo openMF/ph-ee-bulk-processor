@@ -1,15 +1,16 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
-import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FORMATTING_FAILED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FORMATTING_STANDARD;
-
-import java.util.Map;
 import org.apache.camel.Exchange;
 import org.apache.camel.support.DefaultExchange;
 import org.mifos.processor.bulk.camel.routes.RouteId;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
+
+import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FORMATTING_FAILED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FORMATTING_STANDARD;
 
 @Component
 public class FormattingWorker extends BaseWorker {

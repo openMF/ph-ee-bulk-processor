@@ -1,7 +1,8 @@
 package org.mifos.processor.bulk.format.helper;
 
-import java.util.List;
 import org.mifos.processor.bulk.schema.CsvSchema;
+
+import java.util.List;
 
 public interface Mapper<FROM extends CsvSchema, TO extends CsvSchema> {
 

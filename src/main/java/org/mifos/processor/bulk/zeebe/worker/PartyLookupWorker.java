@@ -1,9 +1,10 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_LOOKUP_FAILED;
+import org.springframework.stereotype.Component;
 
 import java.util.Map;
-import org.springframework.stereotype.Component;
+
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_LOOKUP_FAILED;
 
 @Component
 public class PartyLookupWorker extends BaseWorker {

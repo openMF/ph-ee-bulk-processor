@@ -1,16 +1,17 @@
 package org.mifos.processor.bulk.camel.routes;
 
-import static org.mifos.processor.bulk.camel.config.CamelProperties.LOCAL_FILE_PATH;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
 import org.mifos.processor.bulk.file.FileTransferService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+
+import static org.mifos.processor.bulk.camel.config.CamelProperties.LOCAL_FILE_PATH;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
 
 @Component
 public class FileRoute extends BaseRouteBuilder {

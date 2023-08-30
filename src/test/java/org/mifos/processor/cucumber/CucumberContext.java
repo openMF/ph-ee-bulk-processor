@@ -1,7 +1,5 @@
 package org.mifos.processor.cucumber;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import io.cucumber.spring.CucumberContextConfiguration;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.test.spring.junit5.CamelSpringBootTest;
@@ -10,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+
+import static com.google.common.truth.Truth.assertThat;
 
 @CucumberContextConfiguration
 @SpringBootTest

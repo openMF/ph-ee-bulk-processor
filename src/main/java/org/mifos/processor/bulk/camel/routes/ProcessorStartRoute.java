@@ -2,6 +2,8 @@ package org.mifos.processor.bulk.camel.routes;
 
 import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_CLIENT_CORRELATION_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PLATFORM_TENANT_ID;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -92,40 +94,26 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
 
     private void setup() {
 
-        from("direct:post-batch-transactions")
-                .id("rest:POST:/batchtransactions")
-                .log("Starting route rest:POST:/batchtransactions")
-                .to("direct:validate-file")
-                .choice()
-                .when(header("CamelHttpResponseCode").isNotEqualTo("200"))
-                .log(LoggingLevel.ERROR, "File upload failed")
-                .otherwise()
-                .process(exchange -> {
+        from("direct:post-batch-transactions").id("rest:POST:/batchtransactions").log("Starting route rest:POST:/batchtransactions")
+                .to("direct:validate-file").choice().when(header("CamelHttpResponseCode").isNotEqualTo("200"))
+                .log(LoggingLevel.ERROR, "File upload failed").otherwise().process(exchange -> {
                     String batchId = UUID.randomUUID().toString();
                     exchange.setProperty(BATCH_ID, batchId);
 
-                })
-                .to("direct:validateFileSyncResponse")
-                .choice()
-                .when(header("CamelHttpResponseCode").isNotEqualTo("200"))
-                .log(LoggingLevel.ERROR, "File upload failed").otherwise()
-                .wireTap("direct:executeBatch").to("direct:pollingOutput").endChoice().endChoice();
+                }).to("direct:validateFileSyncResponse").choice().when(header("CamelHttpResponseCode").isNotEqualTo("200"))
+                .log(LoggingLevel.ERROR, "File upload failed").otherwise().wireTap("direct:executeBatch").to("direct:pollingOutput")
+                .endChoice().endChoice();
 
-        from("direct:post-bulk-transfer")
-                .unmarshal().mimeMultipart("multipart/*")
-                .to("direct:validate-tenant")
-                .process(exchange -> {
-                    String fileName = System.currentTimeMillis() + "_" +  exchange.getIn().getHeader("fileName", String.class);
-                    String requestId = exchange.getIn().getHeader("requestId", String.class);
-                    String purpose = exchange.getIn().getHeader("purpose", String.class);
-                    String batchId = UUID.randomUUID().toString();
-                    exchange.setProperty(BATCH_ID,batchId);
-                    exchange.setProperty(FILE_NAME, fileName);
-                    exchange.setProperty(REQUEST_ID, requestId);
-                    exchange.setProperty(PURPOSE, purpose);
-                })
-                .wireTap("direct:start-batch-process-csv")
-                .to("direct:pollingOutput");
+        from("direct:post-bulk-transfer").unmarshal().mimeMultipart("multipart/*").to("direct:validate-tenant").process(exchange -> {
+            String fileName = System.currentTimeMillis() + "_" + exchange.getIn().getHeader("fileName", String.class);
+            String requestId = exchange.getIn().getHeader("requestId", String.class);
+            String purpose = exchange.getIn().getHeader("purpose", String.class);
+            String batchId = UUID.randomUUID().toString();
+            exchange.setProperty(BATCH_ID, batchId);
+            exchange.setProperty(FILE_NAME, fileName);
+            exchange.setProperty(REQUEST_ID, requestId);
+            exchange.setProperty(PURPOSE, purpose);
+        }).wireTap("direct:start-batch-process-csv").to("direct:pollingOutput");
 
         from("direct:validate-tenant")
                 .id("direct:validate-tenant")
@@ -142,13 +130,11 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                 .log("Completed route direct:validate-tenant");
 
         // this route is responsible for editing the incoming records based on configuration
-        // this step is done to make sure the file format of CSV is not altered and only the data is updated based on config
-        from("direct:update-incoming-data")
-                .id("direct:update-incoming-data")
-                .log("direct:update-incoming-data")
+        // this step is done to make sure the file format of CSV is not altered and only the data is updated based on
+        // config
+        from("direct:update-incoming-data").id("direct:update-incoming-data").log("direct:update-incoming-data")
                 // [LOCAL_FILE_PATH] is already set in [direct:validateFileSyncResponse] route
-                .setProperty(LOCAL_FILE_PATH, exchangeProperty(FILE_NAME))
-                .to("direct:get-transaction-array")
+                .setProperty(LOCAL_FILE_PATH, exchangeProperty(FILE_NAME)).to("direct:get-transaction-array")
                 // make sure new data is set under the exchange variable [RESULT_TRANSACTION_LIST]
                 .process(exchange -> {
                     String registeringInstituteId = exchange.getProperty(REGISTERING_INSTITUTE_ID, String.class);
@@ -157,6 +143,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     if (!(StringUtils.hasText(registeringInstituteId) && StringUtils.hasText(programId))) {
                         // this will make sure the file is not updated since there is no update in data
                         logger.debug("InstitutionId or programId is null");
+
                         exchange.setProperty(IS_UPDATED, false);
                         return;
                     }
@@ -167,6 +154,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     if (registeringInstitutionConfig == null) {
                         logger.debug("Element in nested in config: {}", budgetAccountConfig.getRegisteringInstitutions().get(0).getPrograms().size());
                         logger.debug("Registering institute id is null");
+
                         exchange.setProperty(IS_UPDATED, false);
                         return;
                     }
@@ -194,8 +182,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     exchange.setProperty(PROGRAM_NAME, program.getName());
                     exchange.setProperty(PAYER_IDENTIFIER_TYPE, program.getIdentifierType());
                     exchange.setProperty(PAYER_IDENTIFIER_VALUE, program.getIdentifierValue());
-                })
-                .choice()
+                }).choice()
                 // update only when previous(edit function) makes any changes to data
                 .when(exchange -> exchange.getProperty(IS_UPDATED, Boolean.class))
                 // warning: changing this flag can break things
@@ -204,15 +191,12 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                 .otherwise()
                 .log(LoggingLevel.INFO, "No update");
 
-        from("direct:start-batch-process-csv")
-                .id("direct:start-batch-process-csv")
-                .log("Starting route direct:start-batch-process-csv")
-                .to("direct:update-incoming-data")
-                .process(exchange -> {
+        from("direct:start-batch-process-csv").id("direct:start-batch-process-csv").log("Starting route direct:start-batch-process-csv")
+                .to("direct:update-incoming-data").process(exchange -> {
                     String fileName = exchange.getProperty(FILE_NAME, String.class);
                     String requestId = exchange.getProperty(REQUEST_ID, String.class);
                     String purpose = exchange.getProperty(PURPOSE, String.class);
-                    String batchId = exchange.getProperty(BATCH_ID,String.class);
+                    String batchId = exchange.getProperty(BATCH_ID, String.class);
                     String note = null;
 
                     if (purpose == null || purpose.isEmpty()) {
@@ -227,6 +211,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     file.setReadable(true);
                     
                     logger.debug("File absolute path: {}", file.getAbsolutePath());
+
                     boolean verifyData = verifyData(file);
                     logger.debug("Data verification result {}", verifyData);
                     if (!verifyData) {
@@ -237,9 +222,9 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
 
                     logger.debug("File uploaded {}", nm);
 
-                    //extracting  and setting callback Url
+                    // extracting and setting callback Url
                     String callbackUrl = exchange.getIn().getHeader("X-Callback-URL", String.class);
-                    exchange.setProperty(CALLBACK_URL,callbackUrl);
+                    exchange.setProperty(CALLBACK_URL, callbackUrl);
 
                     List<Integer> phases = phaseUtils.getValues();
                     logger.debug(phases.toString());
@@ -267,8 +252,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     JSONObject response = new JSONObject();
 
                     try {
-                        String tenantSpecificWorkflowId = workflowId.replace("{dfspid}",
-                                exchange.getProperty(TENANT_NAME).toString());
+                        String tenantSpecificWorkflowId = workflowId.replace("{dfspid}", exchange.getProperty(TENANT_NAME).toString());
                         String txnId = zeebeProcessStarter.startZeebeWorkflow(tenantSpecificWorkflowId, "", variables);
                         if (txnId == null || txnId.isEmpty()) {
                             response.put("errorCode", 500);
@@ -287,25 +271,18 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
 
                     exchange.getIn().setBody(response.toString());
 
-                })
-                .log("Completed route direct:start-batch-process-csv");
+                }).log("Completed route direct:start-batch-process-csv");
 
-        from("direct:start-batch-process-raw")
-                .id("direct:start-batch-process-raw")
-                .log("Starting route direct:start-batch-process-raw")
+        from("direct:start-batch-process-raw").id("direct:start-batch-process-raw").log("Starting route direct:start-batch-process-raw")
                 .process(exchange -> {
                     JSONObject response = new JSONObject();
                     response.put("batch_id", UUID.randomUUID().toString());
                     response.put("request_id", UUID.randomUUID().toString());
                     response.put("status", "queued");
                     exchange.getIn().setBody(response.toString());
-                })
-                .log("Completed route direct:start-batch-process-raw");
+                }).log("Completed route direct:start-batch-process-raw");
 
-        from("direct:executeBatch")
-                .id("direct:executeBatch")
-                .log("Starting route direct:executeBatch")
-                .to("direct:validate-tenant")
+        from("direct:executeBatch").id("direct:executeBatch").log("Starting route direct:executeBatch").to("direct:validate-tenant")
                 .process(exchange -> {
                     String filename = exchange.getIn().getHeader("filename", String.class);
                     String requestId = exchange.getIn().getHeader("X-CorrelationID", String.class);
@@ -326,8 +303,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                 .when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("raw"))
                 .to("direct:start-batch-process-raw")
                 .when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("csv"))
-                .to("direct:start-batch-process-csv")
-                .otherwise()
+                .to("direct:start-batch-process-csv").otherwise()
                 .setBody(exchange -> getUnsupportedTypeJson(exchange.getProperty(BATCH_REQUEST_TYPE, String.class)).toString())
                 .log("Completed execution of route rest:POST:/batchtransactions");
 
@@ -336,9 +312,8 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
             json.put("PollingPath", "/batch/Summary/" + exchange.getProperty(BATCH_ID));
             json.put("SuggestedCallbackSeconds", pollApiTimer);
             exchange.getIn().setBody(json.toString());
-			exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 202);
+            exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 202);
         });
-
 
         from("direct:validateFileSyncResponse").id("direct:validateFileSyncResponse").log("Starting route direct:validateFileSyncResponse")
                 .process(exchange -> {
@@ -470,9 +445,9 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
         variables.put(MAX_STATUS_RETRY, maxThresholdCheckRetry);
         variables.put(COMPLETION_THRESHOLD, completionThreshold);
         variables.put(THRESHOLD_DELAY, Utils.getZeebeTimerValue(thresholdCheckDelay));
-        variables.put(BULK_NOTIF_SUCCESS,false);
-        variables.put(BULK_NOTIF_FAILURE,false);
-        variables.put(MAX_CALLBACK_RETRY,maxCallbackRetry);
+        variables.put(BULK_NOTIF_SUCCESS, false);
+        variables.put(BULK_NOTIF_FAILURE, false);
+        variables.put(MAX_CALLBACK_RETRY, maxCallbackRetry);
 
         return variables;
     }

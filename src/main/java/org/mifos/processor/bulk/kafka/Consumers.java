@@ -1,22 +1,7 @@
 package org.mifos.processor.bulk.kafka;
 
-import static org.mifos.connector.common.mojaloop.type.InitiatorType.CONSUMER;
-import static org.mifos.connector.common.mojaloop.type.Scenario.TRANSFER;
-import static org.mifos.connector.common.mojaloop.type.TransactionRole.PAYER;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.GSMA_CHANNEL_REQUEST;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.INITIATOR_FSPID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.IS_RTP_REQUEST;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_ID_TYPE;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_LOOKUP_FSPID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TRANSACTION_TYPE;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.HashMap;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.mifos.connector.common.channel.dto.TransactionChannelRequestDTO;
 import org.mifos.connector.common.gsma.dto.GSMATransaction;
@@ -32,6 +17,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.mifos.connector.common.mojaloop.type.InitiatorType.CONSUMER;
+import static org.mifos.connector.common.mojaloop.type.Scenario.TRANSFER;
+import static org.mifos.connector.common.mojaloop.type.TransactionRole.PAYER;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.GSMA_CHANNEL_REQUEST;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.INITIATOR_FSPID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.IS_RTP_REQUEST;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_ID_TYPE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_LOOKUP_FSPID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TRANSACTION_TYPE;
 
 @Service
 @Slf4j

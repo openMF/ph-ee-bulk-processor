@@ -3,13 +3,17 @@ package org.mifos.processor.bulk.camel.routes;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PLATFORM_TENANT_ID;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.OPS_APP_ACCESS_TOKEN;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
-
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.springframework.stereotype.Component;
+import java.util.HashMap;
+import java.util.Map;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PLATFORM_TENANT_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.OPS_APP_ACCESS_TOKEN;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
 
 @Component
 public class OperationsAuthRoute extends BaseRouteBuilder {

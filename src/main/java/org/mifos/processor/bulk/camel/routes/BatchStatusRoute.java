@@ -6,13 +6,20 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETION_RATE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ERROR_CODE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ERROR_DESCRIPTION;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
-
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.mifos.processor.bulk.schema.BatchDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.BATCH_STATUS_FAILED;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PLATFORM_TENANT_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.OPS_APP_ACCESS_TOKEN;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETION_RATE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ERROR_CODE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ERROR_DESCRIPTION;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
 
 @Component
 public class BatchStatusRoute extends BaseRouteBuilder {

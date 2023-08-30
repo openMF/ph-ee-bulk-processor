@@ -1,15 +1,16 @@
 package org.mifos.processor.bulk.camel.routes;
 
-import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ORDERED_BY;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ORDERING_FAILED;
+import org.mifos.processor.bulk.schema.Transaction;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import org.mifos.processor.bulk.schema.Transaction;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+
+import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ORDERED_BY;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ORDERING_FAILED;
 
 @Component
 public class OrderingRoute extends BaseRouteBuilder {

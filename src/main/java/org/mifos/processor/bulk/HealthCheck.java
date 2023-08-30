@@ -1,13 +1,9 @@
 package org.mifos.processor.bulk;
 
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
-
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import java.io.InputStream;
-import java.util.UUID;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
@@ -20,6 +16,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
+
+import java.io.InputStream;
+import java.util.UUID;
+
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
 
 @Component
 public class HealthCheck extends RouteBuilder {

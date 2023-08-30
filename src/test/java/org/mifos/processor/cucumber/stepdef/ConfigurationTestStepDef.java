@@ -1,16 +1,17 @@
 package org.mifos.processor.cucumber.stepdef;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import java.util.function.Function;
 import org.apache.camel.Exchange;
 import org.mifos.processor.bulk.config.PaymentModeMapping;
 import org.mifos.processor.bulk.config.PaymentModeType;
 import org.mifos.processor.bulk.utility.Utils;
+
+import java.util.function.Function;
+
+import static com.google.common.truth.Truth.assertThat;
 
 public class ConfigurationTestStepDef extends BaseStepDef {
 
