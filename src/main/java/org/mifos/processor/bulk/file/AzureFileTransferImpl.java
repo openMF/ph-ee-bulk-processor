@@ -5,7 +5,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 
+import com.azure.storage.blob.models.BlobProperties;
 import com.azure.storage.blob.specialized.BlobInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +26,20 @@ public class AzureFileTransferImpl implements FileTransferService {
 
     @Autowired
     BlobClientBuilder client;
+
+    @Override
+    public byte[] downloadFile(String fileName, String bucketName) {
+        try {
+            File temp = new File("/temp/" + fileName);
+            BlobProperties properties = client.containerName(bucketName).blobName(fileName).buildClient().downloadToFile(temp.getPath());
+            byte[] content = Files.readAllBytes(Paths.get(temp.getPath()));
+            temp.delete();
+            return content;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     @Override
     public String uploadFile(MultipartFile file, String bucketName) {
