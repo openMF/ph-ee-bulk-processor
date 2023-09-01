@@ -12,7 +12,7 @@ public interface Mapper<FROM extends CsvSchema, TO extends CsvSchema> {
      *            of type [FROM]
      * @return object of type [To]
      */
-    public TO convert(FROM object);
+    TO convert(FROM object);
 
     /**
      * Use for converting the list of objects of type [FROM] to an object of type [TO]
@@ -21,6 +21,6 @@ public interface Mapper<FROM extends CsvSchema, TO extends CsvSchema> {
      *            lost of object of type [FROM]
      * @return objects of type [To]
      */
-    public List<TO> convertList(List<FROM> objects);
+    List<TO> convertList(List<FROM> objects);
 
 }

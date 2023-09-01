@@ -1,6 +1,6 @@
 package org.mifos.processor.bulk.zeebe;
 
-public class ZeebeVariables {
+public final class ZeebeVariables {
 
     private ZeebeVariables() {}
 

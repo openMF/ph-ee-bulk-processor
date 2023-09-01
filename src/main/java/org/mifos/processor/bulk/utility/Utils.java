@@ -5,6 +5,7 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import lombok.extern.slf4j.Slf4j;
 import org.mifos.connector.common.channel.dto.TransactionChannelRequestDTO;
 import org.mifos.connector.common.gsma.dto.Fee;
 import org.mifos.connector.common.gsma.dto.GSMATransaction;
@@ -21,7 +22,10 @@ import org.mifos.connector.common.mojaloop.type.IdentifierType;
 import org.mifos.processor.bulk.schema.Transaction;
 import org.mifos.processor.bulk.schema.TransactionResult;
 
-public class Utils {
+@Slf4j
+public final class Utils {
+
+    private Utils() {}
 
     public static String getTenantSpecificWorkflowId(String originalWorkflowName, String tenantName) {
         return originalWorkflowName.replace("{dfspid}", tenantName);
@@ -50,7 +54,7 @@ public class Utils {
             in.close();
             out.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.debug(e.getMessage());
             return null;
         }
 
@@ -201,13 +205,10 @@ public class Utils {
     public static TransactionChannelRequestDTO convertTxnToInboundTransferPayload(Transaction transaction) {
         TransactionChannelRequestDTO requestDTO = new TransactionChannelRequestDTO();
 
-        requestDTO.setAmount(new MoneyData() {
-
-            {
-                setCurrency(transaction.getCurrency());
-                setAmount(transaction.getAmount());
-            }
-        });
+        MoneyData moneyData = new MoneyData();
+        moneyData.setCurrency(transaction.getCurrency());
+        moneyData.setAmount(transaction.getAmount());
+        requestDTO.setAmount(moneyData);
 
         IdentifierType identifierType;
         try {

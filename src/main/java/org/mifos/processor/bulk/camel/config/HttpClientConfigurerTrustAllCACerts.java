@@ -39,7 +39,7 @@ public class HttpClientConfigurerTrustAllCACerts implements HttpClientConfigurer
                 }
             }).build();
         } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
-            e.printStackTrace();
+            logger.debug(e.getMessage());
         }
         clientBuilder.setSslcontext(sslContext);
 

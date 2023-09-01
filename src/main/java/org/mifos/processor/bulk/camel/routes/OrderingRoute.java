@@ -4,7 +4,6 @@ import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ORDERED_BY;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ORDERING_FAILED;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import org.mifos.processor.bulk.schema.Transaction;
@@ -68,12 +67,8 @@ public class OrderingRoute extends BaseRouteBuilder {
                 if (stringListHashMap.containsKey(key)) {
                     stringListHashMap.get(key).add(transaction);
                 } else {
-                    stringListHashMap.put(key, new ArrayList<Transaction>() {
-
-                        {
-                            add(transaction);
-                        }
-                    });
+                    transactionList.add(transaction);
+                    stringListHashMap.put(key, transactionList);
                 }
             });
             transactionList.clear();

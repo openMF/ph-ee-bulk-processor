@@ -48,21 +48,21 @@ public class InitRouteStepDef extends BaseStepDef {
     public void callRuntimePayloadTestRoute(String paymentMode) {
         exchange = template.send("direct:dynamic-payload-setter", exchange -> {
             exchange.setProperty(PAYMENT_MODE, paymentMode);
-            exchange.setProperty(TRANSACTION_LIST_ELEMENT, new Transaction() {
 
-                {
-                    setId(0);
-                    setRequestId(UUID.randomUUID().toString());
-                    setPaymentMode(paymentMode);
-                    setAmount("100");
-                    setPayerIdentifierType("MSISDN");
-                    setPayeeIdentifierType("MSISDN");
-                    setPayerIdentifier("1234567890");
-                    setPayeeIdentifier("0987654321");
-                    setCurrency("INR");
-                }
-            });
+            Transaction transaction = new Transaction();
+            transaction.setId(0);
+            transaction.setRequestId(UUID.randomUUID().toString());
+            transaction.setPaymentMode(paymentMode);
+            transaction.setAmount("100");
+            transaction.setPayerIdentifierType("MSISDN");
+            transaction.setPayeeIdentifierType("MSISDN");
+            transaction.setPayerIdentifier("1234567890");
+            transaction.setPayeeIdentifier("0987654321");
+            transaction.setCurrency("INR");
+            exchange.setProperty(TRANSACTION_LIST_ELEMENT, new Transaction());
+
         });
+
     }
 
     @And("The body should be of GSMA parcelable")

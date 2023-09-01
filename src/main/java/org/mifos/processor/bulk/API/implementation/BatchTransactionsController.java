@@ -1,8 +1,17 @@
 package org.mifos.processor.bulk.api.implementation;
 
+<<<<<<< HEAD
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+=======
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import javax.servlet.http.HttpServletResponse;
+>>>>>>> b898933 (PHEE-307 Resolve checkstyle errors manually and update gradle command in CI)
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
@@ -25,6 +34,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartException;
+<<<<<<< HEAD
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -41,6 +51,9 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.HEADER_CLIENT_CORREL
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.HEADER_PLATFORM_TENANT_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.HEADER_TYPE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
+=======
+import org.springframework.web.multipart.MultipartFile;
+>>>>>>> b898933 (PHEE-307 Resolve checkstyle errors manually and update gradle command in CI)
 
 @Slf4j
 @RestController
@@ -65,6 +78,7 @@ public class BatchTransactionsController implements BatchTransactions {
 
     @SneakyThrows
     @Override
+<<<<<<< HEAD
     public String batchTransactions(
             HttpServletRequest httpServletRequest,
             HttpServletResponse httpServletResponse,
@@ -116,10 +130,30 @@ public class BatchTransactionsController implements BatchTransactions {
             httpServletResponse.setStatus(response.getStatus());
             return response.getBody();
         }
+=======
+    public String batchTransactions(HttpServletResponse httpServletResponse, String requestId, MultipartFile file, String fileName,
+            String purpose, String type, String tenant) throws IOException {
+        log.info("Inside api logic");
+        String localFileName = fileStorageService.save(file);
+        Headers headers = new Headers.HeaderBuilder().addHeader("X-CorrelationID", requestId).addHeader(PURPOSE, purpose)
+                .addHeader(FILE_NAME, localFileName).addHeader("Type", type).addHeader("Platform-TenantId", tenant).build();
+
+        Exchange exchange = SpringWrapperUtil.getDefaultWrappedExchange(producerTemplate.getCamelContext(), headers);
+        exchange = producerTemplate.send("direct:post-batch-transactions", exchange);
+        int statusCode = exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE, Integer.class);
+        httpServletResponse.setStatus(statusCode);
+        return exchange.getIn().getBody(String.class);
+>>>>>>> b898933 (PHEE-307 Resolve checkstyle errors manually and update gradle command in CI)
     }
 
     @ExceptionHandler({ MultipartException.class })
     public String handleMultipartException(HttpServletResponse httpServletResponse) {
+<<<<<<< HEAD
+=======
+        JSONObject json = new JSONObject();
+        json.put("Error Information: ", "File not uploaded");
+        json.put("Error Description : ", "There was no fie uploaded with the request. " + "Please upload a file and try again.");
+>>>>>>> b898933 (PHEE-307 Resolve checkstyle errors manually and update gradle command in CI)
         httpServletResponse.setStatus(httpServletResponse.SC_BAD_REQUEST);
         return getErrorResponse("File not uploaded", "There was no fie uploaded with the request. " +
                 "Please upload a file and try again.", 400);

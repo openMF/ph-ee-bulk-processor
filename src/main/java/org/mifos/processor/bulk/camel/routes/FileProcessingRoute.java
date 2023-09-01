@@ -9,6 +9,7 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETED_AMOUNT;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FAILED_AMOUNT;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ONGOING_AMOUNT;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TOTAL_AMOUNT;
+
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.SequenceWriter;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;

@@ -11,9 +11,7 @@ import org.mifos.connector.common.interceptor.annotation.EnableJsonWebSignature;
 import org.mifos.processor.bulk.api.ApiOriginFilter;
 import org.mifos.processor.bulk.camel.config.HttpClientConfigurerTrustAllCACerts;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 
@@ -56,7 +54,7 @@ public class BulkProcessorApplication {
         registration.setFilter(new ApiOriginFilter());
         registration.addUrlPatterns("/**");
         registration.setName("apiOriginFilter");
-        registration.setOrder(Integer.MIN_VALUE+1);
+        registration.setOrder(Integer.MIN_VALUE + 1);
         return registration;
     }
 

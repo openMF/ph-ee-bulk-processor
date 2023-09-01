@@ -120,12 +120,19 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     int index = exchange.getProperty(Exchange.LOOP_INDEX, Integer.class);
                     List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
                     Transaction transaction = transactionList.get(index);
-                exchange.setProperty(REQUEST_ID, transaction.getRequestId());
-                  logger.info("REQUEST_ID: {}", transaction.getRequestId());
+                    exchange.setProperty(REQUEST_ID, transaction.getRequestId());
+                    logger.info("REQUEST_ID: {}", transaction.getRequestId());
                     exchange.setProperty(TRANSACTION_LIST_ELEMENT, transaction);
+<<<<<<< HEAD
                 }).setHeader("Platform-TenantId", exchangeProperty(TENANT_NAME))
                 .to("direct:dynamic-payload-setter")
                 .to("direct:external-api-call").to("direct:external-api-response-handler").end() // end loop block
+=======
+                }).setHeader("Platform-TenantId", exchangeProperty(TENANT_NAME)).setHeader("X-CorrelationID", exchangeProperty(REQUEST_ID))
+                .to("direct:dynamic-payload-setter").to("direct:external-api-call").to("direct:external-api-response-handler").end() // end
+                                                                                                                                     // loop
+                                                                                                                                     // block
+>>>>>>> b898933 (PHEE-307 Resolve checkstyle errors manually and update gradle command in CI)
                 .endChoice();
 
         from("direct:dynamic-payload-setter").id("direct:runtime-payload-test").log("Starting route direct:runtime-payload-test")
@@ -183,12 +190,15 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 .log(LoggingLevel.DEBUG, "Making API call to endpoint ${exchangeProperty.extEndpoint} and body: ${body}")
                 .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
                 .setHeader(BATCH_ID_HEADER, simple("${exchangeProperty." + BATCH_ID + "}"))
+<<<<<<< HEAD
                 .setHeader(HEADER_CLIENT_CORRELATION_ID, simple("${exchangeProperty." + REQUEST_ID + "}"))
                 .setHeader(HEADER_REGISTERING_INSTITUTE_ID, simple("${exchangeProperty." + HEADER_REGISTERING_INSTITUTE_ID + "}"))
                 .process(exchange -> {
                     log.debug("Variables: {}", exchange.getProperties());
                     log.debug("Emergency: {}", exchange.getIn().getHeaders());
                 })
+=======
+>>>>>>> b898933 (PHEE-307 Resolve checkstyle errors manually and update gradle command in CI)
                 .toD(channelURL + "${exchangeProperty.extEndpoint}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
                 .log(LoggingLevel.DEBUG, "Response body: ${body}").otherwise().endChoice();
 
