@@ -237,7 +237,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                 .setProperty(OVERRIDE_HEADER, constant(true)) // default header in CSV file will be used
                 .to("direct:update-file-v2")
                 .otherwise()
-                .log(LoggingLevel.DEBUG, "No update");
+                .log(LoggingLevel.INFO, "No update");
 
         from("direct:start-batch-process-csv")
                 .id("direct:start-batch-process-csv")
@@ -263,14 +263,14 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     
                     logger.debug("File absolute path: {}", file.getAbsolutePath());
                     boolean verifyData = verifyData(file);
-                    logger.debug("Data verification result {}", verifyData);
+                    logger.info("Data verification result {}", verifyData);
                     if (!verifyData) {
                         note = "Invalid data in file data processing stopped";
                     }
 
                     String nm = fileTransferService.uploadFile(file, bucketName);
 
-                    logger.debug("File uploaded {}", nm);
+                    logger.info("File uploaded {}", nm);
 
                     //extracting  and setting callback Url
                     String callbackUrl = exchange.getIn().getHeader("X-Callback-URL", String.class);
@@ -295,7 +295,10 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     variables.put(REGISTERING_INSTITUTE_ID, exchange.getProperty(REGISTERING_INSTITUTE_ID));
                     variables.put(IS_FILE_VALID, true);
                     setConfigProperties(variables);
+
 					logger.debug("Zeebe variables published: {}", variables);
+                    log.info("Variables published to zeebe: {}", variables);
+
                     JSONObject response = new JSONObject();
 
                     try {
