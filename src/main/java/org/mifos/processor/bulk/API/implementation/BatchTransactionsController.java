@@ -88,7 +88,7 @@ public class BatchTransactionsController implements BatchTransactions {
             log.info("This is file based request");
             String localFileName = fileStorageService.save(JWSUtil.parseFormData(httpServletRequest), fileName);
             Headers headers = headerBuilder.addHeader(FILE_NAME, localFileName).build();
-            log.info("Headers passed: {}", headers);
+            log.info("Headers passed: {}", headers.getHeaders());
 
             CamelApiResponse response = sendRequestToCamel(headers);
             httpServletResponse.setStatus(response.getStatus());
