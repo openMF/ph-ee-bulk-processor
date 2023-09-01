@@ -191,6 +191,9 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 .log(LoggingLevel.DEBUG, "Making API call to endpoint ${exchangeProperty.extEndpoint} and body: ${body}")
                 .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
                 .setHeader(BATCH_ID_HEADER, simple("${exchangeProperty." + BATCH_ID + "}"))
+                .process(exchange -> {
+                    log.info("Emergency: {}", exchange.getIn().getHeaders());
+                })
                 .toD(ChannelURL + "${exchangeProperty.extEndpoint}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
                 .log(LoggingLevel.DEBUG, "Response body: ${body}").otherwise().endChoice();
 
