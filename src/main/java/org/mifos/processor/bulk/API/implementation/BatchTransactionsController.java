@@ -42,7 +42,7 @@ public class BatchTransactionsController implements BatchTransactions {
                                     String requestId, MultipartFile file, String fileName,
                                     String purpose, String type, String tenant,
                                     String registeringInstitutionId, String programId) throws IOException {
-        log.info("Inside api logic");
+        log.debug("Inside api logic");
         String localFileName = fileStorageService.save(file);
         Headers headers = new Headers.HeaderBuilder()
                 .addHeader(HEADER_CLIENT_CORRELATION_ID, requestId)
@@ -53,10 +53,10 @@ public class BatchTransactionsController implements BatchTransactions {
                 .addHeader(HEADER_REGISTERING_INSTITUTE_ID, registeringInstitutionId)
                 .addHeader(HEADER_PROGRAM_ID, programId)
                 .build();
-		log.info("Headers passed: {}", headers);
+		log.debug("Headers passed: {}", headers);
         Exchange exchange = SpringWrapperUtil.getDefaultWrappedExchange(producerTemplate.getCamelContext(),
               headers);
-        log.info("Header in exchange: {}", exchange.getIn().getHeaders());
+        log.debug("Header in exchange: {}", exchange.getIn().getHeaders());
         exchange = producerTemplate.send("direct:post-batch-transactions", exchange);
         int statusCode = exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE, Integer.class);
 		httpServletResponse.setStatus(statusCode);
