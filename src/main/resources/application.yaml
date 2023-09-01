@@ -1,6 +1,6 @@
 camel:
   server-port: 5001
-  disable-ssl: false
+  disable-ssl: true
   springboot:
     main-run-controller: true
     dataformat:
@@ -38,15 +38,15 @@ operations-app:
     batch-transaction: "/api/v1/batch/transactions"
 
 channel:
-  hostname: "http://ph-ee-connector-channel"
+  hostname: "https://channel.sandbox.fynarfin.io"
 
 cloud:
   aws:
     enabled: true
     s3-base-url: "https://paymenthub-ee.s3.ap-south-1.amazonaws.com"
     credentials:
-      access-key: ""
-      secret-key: ""
+      access-key: ${AWS_ACCESS_KEY:access_key_from_aws}
+      secret-key: ${AWS_SECRET_KEY:secret_key_from_aws}
     region:
       static: ap-south-1
     stack:
@@ -80,20 +80,20 @@ bpmn:
 config:
   minimum-successful-tx-ratio: 0.90
   partylookup:
-    enable: true
+    enable: false
   approval:
-    enable: true
+    enable: false
   ordering:
-    enable: true
+    enable: false
     field: "payerIdentifier"
   splitting:
-    enable: false
+    enable: true
     sub-batch-size: 5
   formatting:
     enable: false
     standard: "DEFAULT"
   mergeback:
-    enable: false
+    enable: true
   backpressure:
     enable: false
   completion-threshold-check:
@@ -163,3 +163,19 @@ management:
         enabled: true
       readiness:
         enabled: true
+
+payment-mode:
+  mappings:
+    - id: "GSMA"
+      type: "PAYMENT"
+      endpoint: "/channel/gsma/transfer"
+    - id: "MOJALOOP"
+      type: "PAYMENT"
+      endpoint: "/channel/transfer"
+    - id: "SLCB"
+      type: "BULK"
+      endpoint: "bulk_connector_{MODE}-{dfspid}"
+    - id: "CLOSEDLOOP"
+      type: "BULK"
+      endpoint: "bulk_connector_{MODE}-{dfspid}"
+      debulkingDfspid: "lion"

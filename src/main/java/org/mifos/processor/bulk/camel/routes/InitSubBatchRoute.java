@@ -132,7 +132,6 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                   logger.info("REQUEST_ID: {}", transaction.getRequestId());
                     exchange.setProperty(TRANSACTION_LIST_ELEMENT, transaction);
                 }).setHeader("Platform-TenantId", exchangeProperty(TENANT_NAME))
-                .setHeader("X-CorrelationID", exchangeProperty(REQUEST_ID))
                 .to("direct:dynamic-payload-setter")
                 .to("direct:external-api-call").to("direct:external-api-response-handler").end() // end loop block
                 .endChoice();
@@ -191,11 +190,13 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 .log(LoggingLevel.DEBUG, "Making API call to endpoint ${exchangeProperty.extEndpoint} and body: ${body}")
                 .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
                 .setHeader(BATCH_ID_HEADER, simple("${exchangeProperty." + BATCH_ID + "}"))
+                .setHeader("X-CorrelationID", simple("${exchangeProperty." + REQUEST_ID + "}"))
                 .process(exchange -> {
+                    log.info("Variables: {}", exchange.getProperties());
                     log.info("Emergency: {}", exchange.getIn().getHeaders());
                 })
                 .toD(ChannelURL + "${exchangeProperty.extEndpoint}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
-                .log(LoggingLevel.DEBUG, "Response body: ${body}").otherwise().endChoice();
+                .log(LoggingLevel.INFO, "Response body: ${body}").otherwise().endChoice();
 
         from("direct:validate-payment-mode").id("direct:validate-payment-mode").log("Starting route direct:validate-payment-mode")
                 .process(exchange -> {
