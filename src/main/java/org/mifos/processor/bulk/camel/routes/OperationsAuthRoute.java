@@ -1,5 +1,6 @@
 package org.mifos.processor.bulk.camel.routes;
 
+import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PLATFORM_TENANT_ID;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.OPS_APP_ACCESS_TOKEN;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
 
@@ -44,7 +45,7 @@ public class OperationsAuthRoute extends BaseRouteBuilder {
                         simpleF("username=%s&password=%s&grant_type=%s", operationsAppConfig.username, operationsAppConfig.password,
                                 "password"))
                 .setHeader("Authorization", constant("Basic Y2xpZW50Og=="))
-                .setHeader("Platform-TenantId", simple("${exchangeProperty." + TENANT_ID + "}"))
+                .setHeader(HEADER_PLATFORM_TENANT_ID, simple("${exchangeProperty." + TENANT_ID + "}"))
                 .toD(operationsAppConfig.authUrl + "?bridgeEndpoint=true").log(LoggingLevel.INFO, "Auth response: \n\n ${body}");
 
         /**

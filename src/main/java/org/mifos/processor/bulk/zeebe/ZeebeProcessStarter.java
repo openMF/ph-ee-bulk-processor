@@ -71,6 +71,7 @@ public class ZeebeProcessStarter {
                 .send().join();
 
         logger.info("zeebee workflow instance from process {} started with transactionId {}", workflowId, transactionId);
+        logger.debug("Variables published in initial workflow initialisation: {}", variables);
         return transactionId;
     }
 

@@ -12,11 +12,14 @@ import org.mifos.processor.bulk.utility.Headers;
 import org.mifos.processor.bulk.utility.SpringWrapperUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+
+import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
 
@@ -37,19 +40,23 @@ public class BatchTransactionsController implements BatchTransactions {
     @Override
     public String batchTransactions(HttpServletResponse httpServletResponse,
                                     String requestId, MultipartFile file, String fileName,
-                                    String purpose, String type, String tenant) throws IOException {
-        log.info("Inside api logic");
+                                    String purpose, String type, String tenant,
+                                    String registeringInstitutionId, String programId) throws IOException {
+        log.debug("Inside api logic");
         String localFileName = fileStorageService.save(file);
         Headers headers = new Headers.HeaderBuilder()
-                .addHeader("X-CorrelationID", requestId)
+                .addHeader(HEADER_CLIENT_CORRELATION_ID, requestId)
                 .addHeader(PURPOSE,purpose)
                 .addHeader(FILE_NAME,localFileName)
                 .addHeader("Type",type)
-                .addHeader("Platform-TenantId",tenant)
+                .addHeader(HEADER_PLATFORM_TENANT_ID,tenant)
+                .addHeader(HEADER_REGISTERING_INSTITUTE_ID, registeringInstitutionId)
+                .addHeader(HEADER_PROGRAM_ID, programId)
                 .build();
-
+		log.debug("Headers passed: {}", headers);
         Exchange exchange = SpringWrapperUtil.getDefaultWrappedExchange(producerTemplate.getCamelContext(),
               headers);
+        log.debug("Header in exchange: {}", exchange.getIn().getHeaders());
         exchange = producerTemplate.send("direct:post-batch-transactions", exchange);
         int statusCode = exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE, Integer.class);
 		httpServletResponse.setStatus(statusCode);

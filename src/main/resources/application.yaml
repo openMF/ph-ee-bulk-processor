@@ -16,7 +16,7 @@ kafka:
       name: slcb
 
 application:
-  bucket-name: paymenthub-ee-dev
+  bucket-name: paymenthub-ee
 
 zeebe:
   client:
@@ -43,12 +43,12 @@ channel:
 cloud:
   aws:
     enabled: true
-    s3-base-url: "https://paymenthub-ee-dev.s3.us-east-2.amazonaws.com"
+    s3-base-url: "https://paymenthub-ee.s3.ap-south-1.amazonaws.com"
     credentials:
       access-key: ${AWS_ACCESS_KEY:access_key_from_aws}
       secret-key: ${AWS_SECRET_KEY:secret_key_from_aws}
     region:
-      static: us-east-2
+      static: ap-south-1
     stack:
       auto: false
   azure:
@@ -153,3 +153,13 @@ budget-account:
           name: "Social Welfare"
           identifierType: "ACCOUNT"
           identifierValue: "123456789"
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      liveness:
+        enabled: true
+      readiness:
+        enabled: true

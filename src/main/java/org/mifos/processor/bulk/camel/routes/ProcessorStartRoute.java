@@ -1,39 +1,8 @@
 package org.mifos.processor.bulk.camel.routes;
 
-import static org.mifos.processor.bulk.camel.config.CamelProperties.BATCH_REQUEST_TYPE;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.REGISTERING_INSTITUTE_ID;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.TENANT_NAME;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.PROGRAM_ID;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.IS_UPDATED;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.RESULT_TRANSACTION_LIST;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.OVERRIDE_HEADER;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.LOCAL_FILE_PATH;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.APPROVAL_ENABLED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BULK_NOTIF_FAILURE;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BULK_NOTIF_SUCCESS;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK_URL;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETION_THRESHOLD;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETION_THRESHOLD_CHECK_ENABLED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FORMATTING_ENABLED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MAX_CALLBACK_RETRY;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MAX_STATUS_RETRY;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MERGE_ENABLED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ORDERING_ENABLED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_LOOKUP_ENABLED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PHASES;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PHASE_COUNT;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REQUEST_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SPLITTING_ENABLED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.THRESHOLD_DELAY;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PROGRAM_NAME;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYER_IDENTIFIER_TYPE;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYER_IDENTIFIER_VALUE;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.NOTE;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -163,7 +132,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                 .id("direct:validate-tenant")
                 .log("Validating tenant")
                 .process(exchange -> {
-                    String tenantName = exchange.getIn().getHeader("Platform-TenantId", String.class);
+                    String tenantName = exchange.getIn().getHeader(HEADER_PLATFORM_TENANT_ID, String.class);
                     // validation is disabled for now
                     /*if (tenantName == null || tenantName.isEmpty() || !tenants.contains(tenantName)) {
                         throw new Exception("Invalid tenant value.");
@@ -185,27 +154,27 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                 .process(exchange -> {
                     String registeringInstituteId = exchange.getProperty(REGISTERING_INSTITUTE_ID, String.class);
                     String programId = exchange.getProperty(PROGRAM_ID, String.class);
-                    logger.info("Inst id: {}, prog id: {}", registeringInstituteId, programId);
+                    logger.debug("Inst id: {}, prog id: {}", registeringInstituteId, programId);
                     if (!(StringUtils.hasText(registeringInstituteId) && StringUtils.hasText(programId))) {
                         // this will make sure the file is not updated since there is no update in data
-                        logger.info("Reh or pro is null");
+                        logger.debug("InstitutionId or programId is null");
                         exchange.setProperty(IS_UPDATED, false);
                         return;
                     }
                     List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
-                    logger.info("Size: {}", transactionList.size());
+                    logger.debug("Size: {}", transactionList.size());
                     RegisteringInstitutionConfig registeringInstitutionConfig = budgetAccountConfig
                             .getByRegisteringInstituteId(registeringInstituteId);
                     if (registeringInstitutionConfig == null) {
-                        logger.info("Element in nested in config: {}", budgetAccountConfig.getRegisteringInstitutions().get(0).getPrograms().size());
-                        logger.info("Registering institute id is null");
+                        logger.debug("Element in nested in config: {}", budgetAccountConfig.getRegisteringInstitutions().get(0).getPrograms().size());
+                        logger.debug("Registering institute id is null");
                         exchange.setProperty(IS_UPDATED, false);
                         return;
                     }
                     Program program = registeringInstitutionConfig.getByProgramId(programId);
                     if (program == null) {
                         // this will make sure the file is not updated since there is no update in data
-                        logger.info("Program is null");
+                        logger.debug("Program is null");
                         exchange.setProperty(IS_UPDATED, false);
                         return;
                     }
@@ -216,7 +185,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                         transaction.setPayerIdentifier(program.getIdentifierValue());
                         resultTransactionList.add(transaction);
                         try {
-                            logger.info("Txn: {}", objectMapper.writeValueAsString(transaction));
+                            logger.debug("Txn: {}", objectMapper.writeValueAsString(transaction));
                         } catch (JsonProcessingException e) {
                             throw new RuntimeException(e);
                         }
@@ -251,14 +220,14 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                         purpose = "test payment";
                     }
 
-                    logger.info("\n\n Filename: {}", fileName);
-                    logger.info("\n\n BatchId: {} ", batchId);
+                    logger.debug("\n\n Filename: {}", fileName);
+                    logger.debug("\n\n BatchId: {} ", batchId);
 
                     File file = new File(fileName);
                     file.setWritable(true);
                     file.setReadable(true);
                     
-                    logger.info("File absolute path: {}", file.getAbsolutePath());
+                    logger.debug("File absolute path: {}", file.getAbsolutePath());
                     boolean verifyData = verifyData(file);
                     logger.debug("Data verification result {}", verifyData);
                     if (!verifyData) {
@@ -274,7 +243,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     exchange.setProperty(CALLBACK_URL,callbackUrl);
 
                     List<Integer> phases = phaseUtils.getValues();
-                    logger.info(phases.toString());
+                    logger.debug(phases.toString());
                     Map<String, Object> variables = new HashMap<>();
                     variables.put(BATCH_ID, batchId);
                     variables.put(FILE_NAME, fileName);
@@ -285,12 +254,14 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     variables.put(PHASES, phases);
                     variables.put(PHASE_COUNT, phases.size());
                     variables.put(NOTE, note);
+                    variables.put(CLIENT_CORRELATION_ID, exchange.getProperty(CLIENT_CORRELATION_ID));
                     variables.put(PROGRAM_NAME, exchange.getProperty(PROGRAM_NAME));
                     variables.put(PAYER_IDENTIFIER_TYPE, exchange.getProperty(PAYER_IDENTIFIER_TYPE));
                     variables.put(PAYER_IDENTIFIER_VALUE, exchange.getProperty(PAYER_IDENTIFIER_VALUE));
                     variables.put(REGISTERING_INSTITUTE_ID, exchange.getProperty(REGISTERING_INSTITUTE_ID));
+                    variables.put(IS_FILE_VALID, true);
                     setConfigProperties(variables);
-
+					logger.debug("Zeebe variables published: {}", variables);
                     JSONObject response = new JSONObject();
 
                     try {
@@ -338,10 +309,16 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     String requestId = exchange.getIn().getHeader("X-CorrelationID", String.class);
                     String purpose = exchange.getIn().getHeader("Purpose", String.class);
                     String type = exchange.getIn().getHeader("Type", String.class);
+                    String clientCorrelationId = exchange.getIn().getHeader(HEADER_CLIENT_CORRELATION_ID, String.class);
+                    String registeringInstitutionId = exchange.getIn().getHeader(HEADER_REGISTERING_INSTITUTE_ID, String.class);
+                    String programId = exchange.getIn().getHeader(HEADER_PROGRAM_ID, String.class);
                     exchange.setProperty(FILE_NAME, filename);
                     exchange.setProperty(REQUEST_ID, requestId);
                     exchange.setProperty(PURPOSE, purpose);
                     exchange.setProperty(BATCH_REQUEST_TYPE, type);
+                    exchange.setProperty(CLIENT_CORRELATION_ID, clientCorrelationId);
+                    exchange.setProperty(REGISTERING_INSTITUTE_ID, registeringInstitutionId);
+                    exchange.setProperty(PROGRAM_ID, programId);
                 })
                 .choice()
                 .when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("raw"))
@@ -376,7 +353,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                         setErrorResponse(exchange, 400, "Invalid file structure",
                                 "The file uploaded contains wrong structure." + " Please upload correct file columns and try again.");
                     } else {
-                        logger.info("Filename: {}", fileName);
+                        logger.debug("Filename: {}", fileName);
                         setResponse(exchange, 200);
                     }
 
@@ -384,10 +361,10 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
 
         from("direct:validate-file").id("direct:validate-file").log("Starting route direct:validate-file").process(exchange -> {
             File f = new File(exchange.getIn().getHeader(FILE_NAME, String.class));
-            logger.info("File name: {} ", f.getName());
+            logger.debug("File name: {} ", f.getName());
             Tika tika = new Tika();
             String fileType = tika.detect(f.getName());
-            logger.info("File type: {} ", fileType);
+            logger.debug("File type: {} ", fileType);
             if (f.getName().isEmpty()) {
                 setErrorResponse(exchange, 400, "File not uploaded",
                         "There was no fie uploaded with the request. " + "Please upload a file and try again.");
@@ -411,7 +388,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
         while ((line = br.readLine()) != null) {
             String[] row = line.split(",");
             if (row.length != columnNames.size()) {
-                logger.info("Row invalid {} {}", row.length, columnNames.size());
+                logger.debug("Row invalid {} {}", row.length, columnNames.size());
                 return false;
             }
             if (!verifyRow(row)) {
@@ -428,14 +405,14 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                 int j = row[i].indexOf("MSISDN");
                 if (!(j == row.length)) {
                     if (!row[j + 1].matches("^[0-9]*$")) {
-                        logger.info("MSISDN invalid");
+                        logger.debug("MSISDN invalid");
                         return false;
                     }
                 }
             } else if (row[i].contains("amount")) {
                 int j = row[i].indexOf("amount");
                 if (!row[j].matches("^[0-9]*$")) {
-                    logger.info("Amount invalid");
+                    logger.debug("Amount invalid");
                     return false;
                 }
 
@@ -450,12 +427,12 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
         String[] columns = new String[0];
         if (header != null) {
             columns = header.split(",");
-            logger.info("Columns in the csv file are {}", Arrays.toString(columns));
+            logger.debug("Columns in the csv file are {}", Arrays.toString(columns));
         }
         int i = 0;
         while (i < columns.length) {
             if (columnNames.contains(columns[i])) {
-                logger.info("Column name {} is at index {} ", columns[i], columnNames.indexOf(columns[i]));
+                logger.debug("Column name {} is at index {} ", columns[i], columnNames.indexOf(columns[i]));
                 i++;
 
             } else {

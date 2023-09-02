@@ -122,7 +122,7 @@ public class ZeebeVariables {
 
     public static final String DEBULKINGDFSPID = "debulkingDfspid";
 
-    public static final String FILE_VALIDITY = "isFileValid";
+    public static final String IS_FILE_VALID = "isFileValid";
 
     public static final String NOTE = "note";
     public static final String PARTY_LOOKUP_FSP_ID = "partyLookupFspId";
