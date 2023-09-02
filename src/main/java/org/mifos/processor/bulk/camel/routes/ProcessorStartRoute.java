@@ -2,7 +2,6 @@ package org.mifos.processor.bulk.camel.routes;
 
 import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -203,7 +202,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                 .setProperty(OVERRIDE_HEADER, constant(true)) // default header in CSV file will be used
                 .to("direct:update-file-v2")
                 .otherwise()
-                .log(LoggingLevel.DEBUG, "No update");
+                .log(LoggingLevel.INFO, "No update");
 
         from("direct:start-batch-process-csv")
                 .id("direct:start-batch-process-csv")
@@ -261,7 +260,10 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     variables.put(REGISTERING_INSTITUTE_ID, exchange.getProperty(REGISTERING_INSTITUTE_ID));
                     variables.put(IS_FILE_VALID, true);
                     setConfigProperties(variables);
+
 					logger.debug("Zeebe variables published: {}", variables);
+                    log.debug("Variables published to zeebe: {}", variables);
+
                     JSONObject response = new JSONObject();
 
                     try {

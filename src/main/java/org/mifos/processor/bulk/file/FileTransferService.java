@@ -8,6 +8,8 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public interface FileTransferService {
 
+    byte[] downloadFile(String fileName, String bucketName);
+
     String uploadFile(MultipartFile file, String bucketName);
 
     String uploadFile(File file, String bucketName);
