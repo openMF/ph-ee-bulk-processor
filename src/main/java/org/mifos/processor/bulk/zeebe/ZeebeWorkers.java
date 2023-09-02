@@ -1,11 +1,17 @@
 package org.mifos.processor.bulk.zeebe;
 
+import static org.mifos.processor.bulk.camel.config.CamelProperties.IS_BATCH_READY;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.IS_SAMPLE_READY;
+
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import io.camunda.zeebe.client.ZeebeClient;
 import org.apache.camel.CamelContext;
+import java.io.InputStream;
+import java.util.Map;
 import org.apache.camel.Exchange;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.support.DefaultExchange;
@@ -17,13 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.io.InputStream;
-import java.util.Map;
-
-import static org.mifos.processor.bulk.camel.config.CamelProperties.IS_BATCH_READY;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.IS_SAMPLE_READY;
 
 @Component
 @Deprecated

@@ -1,19 +1,18 @@
 package org.mifos.processor.cucumber.stepdef;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST_ELEMENT;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYMENT_MODE;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import java.util.UUID;
 import org.mifos.connector.common.channel.dto.TransactionChannelRequestDTO;
 import org.mifos.connector.common.gsma.dto.GSMATransaction;
 import org.mifos.processor.bulk.schema.Transaction;
-
-import java.util.UUID;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST_ELEMENT;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYMENT_MODE;
 
 public class InitRouteStepDef extends BaseStepDef {
 

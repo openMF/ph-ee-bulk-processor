@@ -1,5 +1,10 @@
 package org.mifos.processor.bulk.utility;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import org.mifos.connector.common.channel.dto.TransactionChannelRequestDTO;
 import org.mifos.connector.common.gsma.dto.Fee;
 import org.mifos.connector.common.gsma.dto.GSMATransaction;
@@ -15,12 +20,6 @@ import org.mifos.connector.common.mojaloop.dto.PartyIdInfo;
 import org.mifos.connector.common.mojaloop.type.IdentifierType;
 import org.mifos.processor.bulk.schema.Transaction;
 import org.mifos.processor.bulk.schema.TransactionResult;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 
 public class Utils {
 

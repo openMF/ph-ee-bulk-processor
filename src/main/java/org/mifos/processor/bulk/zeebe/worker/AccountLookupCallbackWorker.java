@@ -4,6 +4,7 @@ import static org.mifos.processor.bulk.camel.config.CamelProperties.PAYEE_PARTY_
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CHANNEL_REQUEST;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ORIGIN_CHANNEL_REQUEST;
 import static org.mifos.processor.bulk.zeebe.worker.Worker.ACCOUNT_LOOKUP_CALLBACK;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.camunda.zeebe.client.ZeebeClient;
 import org.apache.camel.CamelContext;
