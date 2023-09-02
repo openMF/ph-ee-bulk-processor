@@ -1,12 +1,5 @@
 package org.mifos.processor.bulk.camel.routes;
 
-import org.apache.camel.Exchange;
-import org.apache.camel.LoggingLevel;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
-
 import static org.mifos.processor.bulk.camel.config.CamelProperties.CALLBACK_RESPONSE_CODE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK_RETRY;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK_SUCCESS;
@@ -17,6 +10,12 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ERROR_DESCRIPTION;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MAX_CALLBACK_RETRY;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PHASES;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PHASE_COUNT;
+
+import java.util.List;
+import org.apache.camel.Exchange;
+import org.apache.camel.LoggingLevel;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 @Component
 public class SendCallbackRoute extends BaseRouteBuilder {
@@ -40,8 +39,12 @@ public class SendCallbackRoute extends BaseRouteBuilder {
                             exchange.getProperty(COMPLETION_RATE).toString());
                     callbackUrl = exchange.getProperty(CALLBACK_URL).toString();
                     return body;
-                }).to("direct:set-jws-signature").toD("${header.callbackUrl}?bridgeEndpoint=true&throwExceptionOnFailure=false").choice()
-                .when(header("CamelHttpResponseCode").startsWith("2")).log(LoggingLevel.INFO, "Callback sending was successful")
+                })
+                .to("direct:set-jws-signature")
+                .toD("${header.callbackUrl}?bridgeEndpoint=true&throwExceptionOnFailure=false")
+                .choice()
+                .when(header("CamelHttpResponseCode").startsWith("2"))
+                .log(LoggingLevel.INFO, "Callback sending was successful")
                 .process(exchange -> {
                     List<Integer> phases = (List<Integer>) exchange.getProperty(PHASES);
 

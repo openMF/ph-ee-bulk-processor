@@ -1,5 +1,9 @@
 package org.mifos.processor.bulk;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.PostConstruct;
 import org.mifos.processor.bulk.format.Standard;
 import org.mifos.processor.bulk.schema.Transaction;
 import org.mifos.processor.bulk.zeebe.worker.WorkerConfig;
@@ -8,11 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 public class ConfigurationValidator {

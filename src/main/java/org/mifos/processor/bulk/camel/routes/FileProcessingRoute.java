@@ -1,20 +1,5 @@
 package org.mifos.processor.bulk.camel.routes;
 
-import com.fasterxml.jackson.databind.MappingIterator;
-import com.fasterxml.jackson.databind.SequenceWriter;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import org.mifos.processor.bulk.schema.Transaction;
-import org.mifos.processor.bulk.schema.TransactionResult;
-import org.mifos.processor.bulk.utility.CsvWriter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.io.File;
-import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.mifos.processor.bulk.camel.config.CamelProperties.LOCAL_FILE_PATH;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.OVERRIDE_HEADER;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.RESULT_TRANSACTION_LIST;
@@ -24,6 +9,20 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETED_AMOUNT;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FAILED_AMOUNT;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ONGOING_AMOUNT;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TOTAL_AMOUNT;
+import com.fasterxml.jackson.databind.MappingIterator;
+import com.fasterxml.jackson.databind.SequenceWriter;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import org.mifos.processor.bulk.schema.Transaction;
+import org.mifos.processor.bulk.schema.TransactionResult;
+import org.mifos.processor.bulk.utility.CsvWriter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class FileProcessingRoute extends BaseRouteBuilder {

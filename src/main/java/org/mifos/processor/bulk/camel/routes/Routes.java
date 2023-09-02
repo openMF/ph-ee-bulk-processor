@@ -1,19 +1,18 @@
 package org.mifos.processor.bulk.camel.routes;
 
-import com.google.gson.Gson;
-import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-
 import static org.mifos.processor.bulk.camel.config.CamelProperties.IS_BATCH_READY;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.IS_SAMPLE_READY;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SAMPLED_TX_IDS;
+
+import com.google.gson.Gson;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 @Component
 public class Routes extends BaseRouteBuilder {

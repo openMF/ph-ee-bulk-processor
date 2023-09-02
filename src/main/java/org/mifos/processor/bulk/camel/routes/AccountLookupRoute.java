@@ -1,16 +1,16 @@
 package org.mifos.processor.bulk.camel.routes;
 
-import org.apache.camel.Exchange;
-import org.apache.camel.LoggingLevel;
-import org.mifos.processor.bulk.camel.processor.AccountLookupCallbackProcessor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import static org.mifos.processor.bulk.camel.config.CamelProperties.ENDPOINT;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.HOST;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.PAYEE_IDENTITY;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.PAYMENT_MODALITY;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK;
+
+import org.apache.camel.Exchange;
+import org.apache.camel.LoggingLevel;
+import org.mifos.processor.bulk.camel.processor.AccountLookupCallbackProcessor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class AccountLookupRoute extends BaseRouteBuilder {

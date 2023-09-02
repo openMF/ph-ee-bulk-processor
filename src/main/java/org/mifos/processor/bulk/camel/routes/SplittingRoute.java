@@ -1,14 +1,5 @@
 package org.mifos.processor.bulk.camel.routes;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.mifos.processor.bulk.camel.config.CamelProperties.LOCAL_FILE_PATH;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_SUB_BATCH_FILE_NAME_ARRAY;
@@ -16,6 +7,14 @@ import static org.mifos.processor.bulk.camel.config.CamelProperties.SUB_BATCH_CO
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SUB_BATCH_CREATED;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SUB_BATCH_FILE_ARRAY;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SPLITTING_FAILED;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 @Component
 public class SplittingRoute extends BaseRouteBuilder {

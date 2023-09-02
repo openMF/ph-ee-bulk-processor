@@ -14,6 +14,7 @@ public class SpringWrapperUtil {
         for (String headerKey : headers.getHeadersKey()) {
             exchange.getIn().setHeader(headerKey, headers.get(headerKey));
         }
+
         return exchange;
     }
 }

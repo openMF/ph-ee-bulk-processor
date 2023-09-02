@@ -1,17 +1,22 @@
 package org.mifos.processor.bulk.api.definition;
 
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
+import com.amazonaws.services.dynamodbv2.xspec.S;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.camel.util.json.JsonObject;
+import org.json.JSONObject;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.mail.Multipart;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PROGRAM_ID;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_REGISTERING_INSTITUTE_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.HEADER_CLIENT_CORRELATION_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.HEADER_PLATFORM_TENANT_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.HEADER_TYPE;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
+
+import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_CLIENT_CORRELATION_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PLATFORM_TENANT_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
 
 public interface BatchTransactions {
 

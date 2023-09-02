@@ -1,12 +1,5 @@
 package org.mifos.processor.bulk.camel.routes;
 
-import org.apache.camel.Exchange;
-import org.mifos.processor.bulk.utility.Utils;
-import org.springframework.stereotype.Component;
-
-import java.io.File;
-import java.util.List;
-
 import static org.mifos.processor.bulk.camel.config.CamelProperties.FILE_1;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.FILE_2;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.LOCAL_FILE_PATH;
@@ -17,6 +10,12 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MERGE_FAILED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MERGE_FILE_LIST;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MERGE_ITERATION;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.RESULT_FILE;
+
+import java.io.File;
+import java.util.List;
+import org.apache.camel.Exchange;
+import org.mifos.processor.bulk.utility.Utils;
+import org.springframework.stereotype.Component;
 
 @Component
 public class MergeBackRoute extends BaseRouteBuilder {
