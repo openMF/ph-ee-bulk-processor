@@ -1,14 +1,5 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
-import org.apache.camel.Exchange;
-import org.apache.camel.support.DefaultExchange;
-import org.mifos.processor.bulk.camel.routes.RouteId;
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_SUB_BATCH_FILE_NAME_ARRAY;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SUB_BATCH_CREATED;
@@ -17,6 +8,14 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.INIT_FAILURE_SUB_BAT
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.INIT_SUCCESS_SUB_BATCHES;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SPLITTING_FAILED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SUB_BATCHES;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import org.apache.camel.Exchange;
+import org.apache.camel.support.DefaultExchange;
+import org.mifos.processor.bulk.camel.routes.RouteId;
+import org.springframework.stereotype.Component;
 
 @Component
 public class SplittingWorker extends BaseWorker {

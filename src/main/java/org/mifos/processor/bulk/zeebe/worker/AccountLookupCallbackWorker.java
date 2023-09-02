@@ -1,20 +1,18 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
+import static org.mifos.processor.bulk.camel.config.CamelProperties.PAYEE_PARTY_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CHANNEL_REQUEST;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ORIGIN_CHANNEL_REQUEST;
+import static org.mifos.processor.bulk.zeebe.worker.Worker.ACCOUNT_LOOKUP_CALLBACK;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.camunda.zeebe.client.ZeebeClient;
 import org.apache.camel.CamelContext;
+import java.util.Map;
 import org.mifos.connector.common.channel.dto.TransactionChannelRequestDTO;
 import org.mifos.connector.common.mojaloop.dto.Party;
 import org.mifos.connector.common.mojaloop.dto.PartyIdInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
-
-import static org.mifos.processor.bulk.camel.config.CamelProperties.PAYEE_PARTY_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CHANNEL_REQUEST;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ORIGIN_CHANNEL_REQUEST;
-import static org.mifos.processor.bulk.zeebe.worker.Worker.ACCOUNT_LOOKUP_CALLBACK;
 
 @Component
 public class AccountLookupCallbackWorker extends BaseWorker {

@@ -1,14 +1,5 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
-import org.apache.camel.Exchange;
-import org.apache.camel.support.DefaultExchange;
-import org.mifos.processor.bulk.camel.routes.RouteId;
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.TENANT_NAME;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
@@ -22,6 +13,14 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REQUEST_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SPLITTING_ENABLED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SUB_BATCHES;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import org.apache.camel.Exchange;
+import org.apache.camel.support.DefaultExchange;
+import org.mifos.processor.bulk.camel.routes.RouteId;
+import org.springframework.stereotype.Component;
 
 @Component
 public class InitSubBatchWorker extends BaseWorker {

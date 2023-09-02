@@ -1,22 +1,21 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
-import org.apache.camel.Exchange;
-import org.apache.camel.support.DefaultExchange;
-import org.mifos.processor.bulk.camel.routes.RouteId;
-import org.mifos.processor.bulk.schema.Transaction;
-import org.springframework.stereotype.Component;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ORDERED_BY;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ORDERING_FAILED;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-
-import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ORDERED_BY;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ORDERING_FAILED;
+import org.apache.camel.Exchange;
+import org.apache.camel.support.DefaultExchange;
+import org.mifos.processor.bulk.camel.routes.RouteId;
+import org.mifos.processor.bulk.schema.Transaction;
+import org.springframework.stereotype.Component;
 
 @Component
 public class OrderingWorker extends BaseWorker {

@@ -1,14 +1,5 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
-import org.apache.camel.Exchange;
-import org.apache.camel.support.DefaultExchange;
-import org.mifos.processor.bulk.camel.routes.RouteId;
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.INIT_FAILURE_SUB_BATCHES;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.INIT_SUCCESS_SUB_BATCHES;
@@ -18,6 +9,14 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MERGE_FILE_LIST;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MERGE_ITERATION;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.RESULT_FILE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SUB_BATCHES;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import org.apache.camel.Exchange;
+import org.apache.camel.support.DefaultExchange;
+import org.mifos.processor.bulk.camel.routes.RouteId;
+import org.springframework.stereotype.Component;
 
 @Component
 public class MergeBackWorker extends BaseWorker {
