@@ -1,9 +1,10 @@
 package org.mifos.processor.bulk.camel.routes;
 
-import org.apache.camel.LoggingLevel;
-import org.apache.camel.builder.RouteBuilder;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.ENDPOINT;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.HOST;
+
+import org.apache.camel.LoggingLevel;
+import org.apache.camel.builder.RouteBuilder;
 
 //@Component
 public class ExternalApiCallRoute extends RouteBuilder {
