@@ -42,10 +42,14 @@ public class RestRequestConvertor implements EntityMapper<BatchRequestDTO, Trans
         Transaction transaction = new Transaction();
         transaction.setCurrency(object.getCurrency());
         transaction.setAmount(object.getAmount());
-        transaction.setPayerIdentifierType(object.getDebitParty().get(0).getKey());
-        transaction.setPayerIdentifier(object.getDebitParty().get(0).getValue());
-        transaction.setPayeeIdentifierType(object.getCreditParty().get(0).getKey());
-        transaction.setPayeeIdentifier(object.getCreditParty().get(0).getValue());
+        if (object.getDebitParty() != null && object.getDebitParty().size() > 0) {
+            transaction.setPayerIdentifierType(object.getDebitParty().get(0).getKey());
+            transaction.setPayerIdentifier(object.getDebitParty().get(0).getValue());
+        }
+        if (object.getCreditParty() != null && object.getCreditParty().size() > 0) {
+            transaction.setPayeeIdentifierType(object.getCreditParty().get(0).getKey());
+            transaction.setPayeeIdentifier(object.getCreditParty().get(0).getValue());
+        }
         transaction.setNote(object.getDescriptionText());
         transaction.setPaymentMode(object.getSubType());
 
