@@ -108,7 +108,9 @@ public class BatchTransactionsController implements BatchTransactions {
 
             String localFileName = UUID.randomUUID() + ".csv";
             CsvWriter.writeToCsv(transactionList, Transaction.class, csvMapper, true, localFileName);
-            Headers headers = headerBuilder.addHeader(FILE_NAME, localFileName).build();
+            Headers headers = headerBuilder
+                    .addHeader(HEADER_TYPE, "csv")
+                    .addHeader(FILE_NAME, localFileName).build();
 
             CamelApiResponse response = sendRequestToCamel(headers);
             httpServletResponse.setStatus(response.getStatus());
