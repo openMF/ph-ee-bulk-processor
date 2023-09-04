@@ -11,11 +11,11 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
 
 public interface BulkTransfer {
+
+    @Deprecated
     @PostMapping(value = "/bulk/transfer/{requestId}/{fileName}", produces = "application/json")
     String bulkTransfer(@RequestHeader(value = "X-CorrelationID", required = false) String requestId,
-                        @RequestParam("data") MultipartFile file,
-                        @RequestHeader(value = FILE_NAME, required = false) String fileName,
-                        @RequestHeader(value = PURPOSE, required = false) String purpose,
-                        @RequestHeader(value = "Type", required = false) String type,
-                        @RequestHeader(value = "Platform-TenantId") String tenant) throws IOException;
+            @RequestParam("data") MultipartFile file, @RequestHeader(value = FILE_NAME, required = false) String fileName,
+            @RequestHeader(value = PURPOSE, required = false) String purpose, @RequestHeader(value = "Type", required = false) String type,
+            @RequestHeader(value = "Platform-TenantId") String tenant) throws IOException;
 }

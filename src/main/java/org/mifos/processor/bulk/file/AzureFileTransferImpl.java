@@ -72,8 +72,8 @@ public class AzureFileTransferImpl implements FileTransferService {
         try {
             File temp = new File("/temp/" + fileName);
             BlobInputStream csvInputStream = client.containerName(bucketName).blobName(fileName).buildClient().openInputStream();
-//            byte[] content = Files.Paths.get(temp.getPath()));
-//            temp.delete();
+            // byte[] content = Files.Paths.get(temp.getPath()));
+            // temp.delete();
             return csvInputStream;
         } catch (Exception e) {
             e.printStackTrace();

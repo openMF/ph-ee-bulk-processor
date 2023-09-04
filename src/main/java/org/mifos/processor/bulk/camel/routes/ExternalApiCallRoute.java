@@ -5,7 +5,6 @@ import static org.mifos.processor.bulk.camel.config.CamelProperties.HOST;
 
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
-import org.springframework.stereotype.Component;
 
 //@Component
 public class ExternalApiCallRoute extends RouteBuilder {

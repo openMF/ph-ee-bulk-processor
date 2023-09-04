@@ -12,7 +12,7 @@ jobs:
     executor: docker-executor
     environment:
       JVM_OPTS: -Xmx512m
-      TERM: dumb  
+      TERM: dumb
       GITHUB_TOKEN: ${GITHUB_TOKEN}  # Add the GitHub token as an environment variable
 
     steps:
@@ -40,7 +40,7 @@ jobs:
             docker push "openmf/ph-ee-bulk-processor:$IMAGE_TAG"
 
           # when: always  # The job will be executed even if there's no match for the tag filter
-  
+
   build_and_push_latest_image:
     executor: docker-executor
     environment:
@@ -68,7 +68,7 @@ jobs:
       # Push the Docker image to DockerHub
       - run:
           name: Push Docker image to DockerHub
-          command: docker push openmf/ph-ee-bulk-processor:latest        
+          command: docker push openmf/ph-ee-bulk-processor:latest
 
 workflows:
   version: 2
@@ -79,8 +79,7 @@ workflows:
             tags:
               only: /^v\d+\.\d+\.\d+$/  # Match tags in the format v1.2.3
           context:
-              - DOCKER
+            - DOCKER
       - build_and_push_latest_image:
           context:
-              - DOCKER
-             
+            - DOCKER

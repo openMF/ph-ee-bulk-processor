@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.mifos.processor.bulk.schema.Transaction;
 import org.mifos.processor.bulk.schema.TransactionResult;
+import org.mifos.processor.bulk.utility.CsvWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -77,7 +78,7 @@ public class FileProcessingRoute extends BaseRouteBuilder {
                     // getting header
                     Boolean overrideHeader = exchange.getProperty(OVERRIDE_HEADER, Boolean.class);
 
-                    csvWriter(transactionList, TransactionResult.class, csvMapper, overrideHeader, filepath);
+                    CsvWriter.writeToCsv(transactionList, TransactionResult.class, csvMapper, overrideHeader, filepath);
                 }).log("Update complete");
 
         /**
@@ -112,21 +113,5 @@ public class FileProcessingRoute extends BaseRouteBuilder {
                 writer.write(transaction);
             }
         });
-    }
-
-    private <T> void csvWriter(List<T> data, Class<T> tClass, CsvMapper csvMapper, boolean overrideHeader, String filepath)
-            throws IOException {
-        CsvSchema csvSchema = csvMapper.schemaFor(tClass);
-        if (overrideHeader) {
-            csvSchema = csvSchema.withHeader();
-        } else {
-            csvSchema = csvSchema.withoutHeader();
-        }
-
-        File file = new File(filepath);
-        SequenceWriter writer = csvMapper.writerWithSchemaFor(tClass).with(csvSchema).writeValues(file);
-        for (T object : data) {
-            writer.write(object);
-        }
     }
 }
