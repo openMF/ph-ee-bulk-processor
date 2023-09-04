@@ -32,6 +32,7 @@ import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PROGRAM_ID;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_REGISTERING_INSTITUTE_ID;
@@ -84,6 +85,12 @@ public class BatchTransactionsController implements BatchTransactions {
                 .addHeader(HEADER_REGISTERING_INSTITUTE_ID, registeringInstitutionId)
                 .addHeader(HEADER_PROGRAM_ID, programId);
 
+        Optional<String> validationResponse = isValidRequest(httpServletRequest, fileName, type);
+        if (validationResponse.isPresent()) {
+            httpServletResponse.setStatus(httpServletResponse.SC_BAD_REQUEST);
+            return validationResponse.get();
+        }
+
         if (JWSUtil.isMultipartRequest(httpServletRequest)) {
             log.info("This is file based request");
             String localFileName = fileStorageService.save(JWSUtil.parseFormData(httpServletRequest), fileName);
@@ -111,11 +118,9 @@ public class BatchTransactionsController implements BatchTransactions {
 
     @ExceptionHandler({ MultipartException.class })
     public String handleMultipartException(HttpServletResponse httpServletResponse) {
-        JSONObject json = new JSONObject();
-        json.put("Error Information: ", "File not uploaded");
-        json.put("Error Description : ", "There was no fie uploaded with the request. " + "Please upload a file and try again.");
         httpServletResponse.setStatus(httpServletResponse.SC_BAD_REQUEST);
-        return json.toString();
+        return getErrorResponse("File not uploaded", "There was no fie uploaded with the request. " +
+                "Please upload a file and try again.", 400);
     }
 
     private CamelApiResponse sendRequestToCamel(Headers headers) {
@@ -126,4 +131,40 @@ public class BatchTransactionsController implements BatchTransactions {
         return new CamelApiResponse(body, statusCode);
     }
 
+    private String getErrorResponse(String information, String description, int code) {
+        JSONObject json = new JSONObject();
+        json.put("errorInformation", "File not uploaded");
+        json.put("errorDescription", "There was no fie uploaded with the request. " + "Please upload a file and try again.");
+        json.put("errorCode", code);
+        return json.toString();
+    }
+
+    // validates the request header, and return errorJson string if the request is invalid else an empty optional
+    private Optional<String> isValidRequest(HttpServletRequest httpServletRequest,
+                                             String fileName,
+                                             String type) {
+
+		Optional<String> response = Optional.empty();
+        if ((JWSUtil.isMultipartRequest(httpServletRequest) && !type.equalsIgnoreCase("csv")) ||
+                (!JWSUtil.isMultipartRequest(httpServletRequest) && !type.equalsIgnoreCase("raw"))) {
+            String errorJson = getErrorResponse("Type mismatch",
+                    "The value of the header \"" + HEADER_TYPE +
+                    "\" doesn't match with the request content-type", 400);
+            response = Optional.of(errorJson);
+
+        }
+        if (JWSUtil.isMultipartRequest(httpServletRequest) && fileName.isEmpty()) {
+            String errorJson = getErrorResponse("Header can't be empty",
+                    "If the request is of type csv, the header \"" +
+                            FILE_NAME + "\"can't be empty", 400);
+            response = Optional.of(errorJson);
+        }
+        if (!type.equalsIgnoreCase("raw") && !type.equalsIgnoreCase("csv")) {
+            String errorJson = getErrorResponse("Invalid TYPE header value passed",
+                    "The value of the header \"" + HEADER_TYPE +
+                            "\" can be \"[raw,csv]\" but is " + type, 400);
+            response = Optional.of(errorJson);
+        }
+		return response;
+    }
 }
