@@ -1,20 +1,6 @@
 package org.mifos.processor.bulk.camel.routes;
 
-import static org.mifos.processor.bulk.camel.config.CamelProperties.BATCH_ID_HEADER;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.EXTERNAL_ENDPOINT;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.EXTERNAL_ENDPOINT_FAILED;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_CLIENT_CORRELATION_ID;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.IS_PAYMENT_MODE_VALID;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.LOCAL_FILE_PATH;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.OVERRIDE_HEADER;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.PAYMENT_MODE_TYPE;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.RESULT_TRANSACTION_LIST;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.TENANT_NAME;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST_ELEMENT;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST_LENGTH;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.ZEEBE_VARIABLE;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETED_AMOUNT;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.DEBULKINGDFSPID;
@@ -133,6 +119,7 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                   logger.info("REQUEST_ID: {}", transaction.getRequestId());
                     exchange.setProperty(TRANSACTION_LIST_ELEMENT, transaction);
                 }).setHeader("Platform-TenantId", exchangeProperty(TENANT_NAME))
+                .setHeader("X-CorrelationID", exchangeProperty(REQUEST_ID))
                 .to("direct:dynamic-payload-setter")
                 .to("direct:external-api-call").to("direct:external-api-response-handler").end() // end loop block
                 .endChoice();
@@ -152,10 +139,9 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
         from("direct:external-api-response-handler").id("direct:external-api-response-handler")
                 .log("Starting route direct:external-api-response-handler").choice().when(header("CamelHttpResponseCode").isEqualTo(200))
                 .process(exchange -> {
-                    logger.info("INIT_SUB_BATCH_FAILED is false");
+                    logger.info("reached here");
                     exchange.setProperty(INIT_SUB_BATCH_FAILED, false);
                 }).otherwise().process(exchange -> {
-                    logger.info("INIT_SUB_BATCH_FAILED is false");
                     exchange.setProperty(INIT_SUB_BATCH_FAILED, true);
                 }).endChoice();
 
@@ -192,13 +178,9 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 .log(LoggingLevel.DEBUG, "Making API call to endpoint ${exchangeProperty.extEndpoint} and body: ${body}")
                 .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
                 .setHeader(BATCH_ID_HEADER, simple("${exchangeProperty." + BATCH_ID + "}"))
-                .setHeader(HEADER_CLIENT_CORRELATION_ID, simple("${exchangeProperty." + REQUEST_ID + "}"))
-                .process(exchange -> {
-                    log.debug("Variables: {}", exchange.getProperties());
-                    log.debug("Emergency: {}", exchange.getIn().getHeaders());
-                })
+                .setHeader(HEADER_REGISTERING_INSTITUTE_ID, simple("${exchangeProperty." + HEADER_REGISTERING_INSTITUTE_ID + "}"))
                 .toD(ChannelURL + "${exchangeProperty.extEndpoint}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
-                .log(LoggingLevel.INFO, "Response body: ${body}").otherwise().endChoice();
+                .log(LoggingLevel.DEBUG, "Response body: ${body}").otherwise().endChoice();
 
         from("direct:validate-payment-mode").id("direct:validate-payment-mode").log("Starting route direct:validate-payment-mode")
                 .process(exchange -> {

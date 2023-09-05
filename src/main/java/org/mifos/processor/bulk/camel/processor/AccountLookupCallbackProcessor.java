@@ -45,6 +45,10 @@ public class AccountLookupCallbackProcessor implements Processor {
             variables.put(PAYEE_PARTY_ID_TYPE, accountLookupResponseDTO.getPaymentModalityList().get(0).getPaymentModality());
             variables.put(PARTY_LOOKUP_FSP_ID, accountLookupResponseDTO.getPaymentModalityList().get(0).getBankingInstitutionCode());
             exchange.setProperty(CACHED_TRANSACTION_ID, accountLookupResponseDTO.getRequestId());
+            Boolean isValidated  = accountLookupResponseDTO.getIsValidated();
+            if(!isValidated){
+                variables.put(ACCOUNT_LOOKUP_FAILED, true);
+            }
         } catch (IOException e) {
             variables.put(ACCOUNT_LOOKUP_FAILED, true);
             error = objectMapper.readValue(response, String.class);
