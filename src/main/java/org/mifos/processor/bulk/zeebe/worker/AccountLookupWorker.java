@@ -86,7 +86,7 @@ public class AccountLookupWorker extends BaseWorker {
             Response response = RestAssured.given(requestSpec)
                     .baseUri(identityMapperURL)
                     .header("X-CallbackURL",bulkURL + "/accountLookup/Callback" )
-                    .header("registeringInstitutionId", existingVariables.get(HEADER_REGISTERING_INSTITUTE_ID).toString())
+                    .header("X-Registering-Institution-ID", existingVariables.get(HEADER_REGISTERING_INSTITUTE_ID).toString())
                     .queryParam("requestId", job.getKey())
                     .queryParam("payeeIdentity", payeeIdentity)
                     .queryParam("paymentModality", paymentModality)
