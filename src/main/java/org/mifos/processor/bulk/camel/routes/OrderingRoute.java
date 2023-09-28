@@ -1,5 +1,6 @@
 package org.mifos.processor.bulk.camel.routes;
 
+import static org.mifos.processor.bulk.camel.config.CamelProperties.OVERRIDE_HEADER;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ORDERED_BY;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ORDERING_FAILED;
@@ -26,7 +27,9 @@ public class OrderingRoute extends BaseRouteBuilder {
          * 4. Update file with the updated data. 5. Uploads the updated file in cloud.
          */
         from(RouteId.ORDERING.getValue()).id(RouteId.ORDERING.getValue()).log("Starting route " + RouteId.ORDERING.name())
-                .to("direct:download-file").to("direct:get-transaction-array").to("direct:order-data").to("direct:update-file")
+                .to("direct:download-file").to("direct:get-transaction-array").to("direct:order-data")
+                .setProperty(OVERRIDE_HEADER, constant(true))
+                .to("direct:update-file")
                 .to("direct:upload-file").process(exchange -> {
                     exchange.setProperty(ORDERING_FAILED, false);
                     exchange.setProperty(ORDERED_BY, orderingField);
@@ -42,13 +45,13 @@ public class OrderingRoute extends BaseRouteBuilder {
                     case "id":
                         key = "" + transaction.getId();
                     break;
-                    case "request_id":
+                    case "requestId":
                         key = transaction.getRequestId();
                     break;
-                    case "account_number":
+                    case "accountNumber":
                         key = transaction.getAccountNumber();
                     break;
-                    case "payee_identifier":
+                    case "payerIdentifier":
                         key = transaction.getPayeeIdentifier();
                     break;
                     case "amount":
