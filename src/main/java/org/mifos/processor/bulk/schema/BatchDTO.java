@@ -1,7 +1,14 @@
 package org.mifos.processor.bulk.schema;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 
+@Getter
+@Setter
+@AllArgsConstructor
 public class BatchDTO {
 
     private String batchId;
@@ -35,6 +42,16 @@ public class BatchDTO {
     private String modes;
 
     private String purpose;
+
+    private String failPercentage;
+
+    private String successPercentage;
+
+    private String registeringInstitutionId;
+
+    private String payerFsp;
+
+    private String correlationId;
 
     public BatchDTO() {}
 
@@ -73,134 +90,6 @@ public class BatchDTO {
         this.createdAt = created_at;
         this.status = status;
         this.modes = modes;
-        this.purpose = purpose;
-    }
-
-    public String getBatch_id() {
-        return batchId;
-    }
-
-    public void setBatch_id(String batch_id) {
-        this.batchId = batch_id;
-    }
-
-    public String getRequest_id() {
-        return requestId;
-    }
-
-    public void setRequest_id(String request_id) {
-        this.requestId = request_id;
-    }
-
-    public Long getTotal() {
-        return total;
-    }
-
-    public void setTotal(Long total) {
-        this.total = total;
-    }
-
-    public Long getOngoing() {
-        return ongoing;
-    }
-
-    public void setOngoing(Long ongoing) {
-        this.ongoing = ongoing;
-    }
-
-    public Long getFailed() {
-        return failed;
-    }
-
-    public void setFailed(Long failed) {
-        this.failed = failed;
-    }
-
-    public Long getSuccessful() {
-        return successful;
-    }
-
-    public void setSuccessful(Long successful) {
-        this.successful = successful;
-    }
-
-    public BigDecimal getTotalAmount() {
-        return totalAmount;
-    }
-
-    public void setTotalAmount(BigDecimal totalAmount) {
-        this.totalAmount = totalAmount;
-    }
-
-    public BigDecimal getSuccessfulAmount() {
-        return successfulAmount;
-    }
-
-    public void setSuccessfulAmount(BigDecimal successfulAmount) {
-        this.successfulAmount = successfulAmount;
-    }
-
-    public BigDecimal getPendingAmount() {
-        return pendingAmount;
-    }
-
-    public void setPendingAmount(BigDecimal pendingAmount) {
-        this.pendingAmount = pendingAmount;
-    }
-
-    public BigDecimal getFailedAmount() {
-        return failedAmount;
-    }
-
-    public void setFailedAmount(BigDecimal failedAmount) {
-        this.failedAmount = failedAmount;
-    }
-
-    public String getFile() {
-        return file;
-    }
-
-    public void setFile(String file) {
-        this.file = file;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
-    }
-
-    public String getCreated_at() {
-        return createdAt;
-    }
-
-    public void setCreated_at(String created_at) {
-        this.createdAt = created_at;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getModes() {
-        return modes;
-    }
-
-    public void setModes(String modes) {
-        this.modes = modes;
-    }
-
-    public String getPurpose() {
-        return purpose;
-    }
-
-    public void setPurpose(String purpose) {
         this.purpose = purpose;
     }
 }
