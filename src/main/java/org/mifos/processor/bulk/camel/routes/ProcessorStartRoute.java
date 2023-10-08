@@ -435,6 +435,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
     }
 
     private Map<String, Object> setConfigProperties(Map<String, Object> variables) {
+        variables.put(BATCH_AGGREGATE_ENABLED, workerConfig.isBatchAggregateEnabled);
         variables.put(PARTY_LOOKUP_ENABLED, workerConfig.isPartyLookUpWorkerEnabled);
         variables.put(APPROVAL_ENABLED, workerConfig.isApprovalWorkerEnabled);
         variables.put(ORDERING_ENABLED, workerConfig.isOrderingWorkerEnabled);

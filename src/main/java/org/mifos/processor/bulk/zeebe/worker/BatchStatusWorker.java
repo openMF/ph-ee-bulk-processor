@@ -22,6 +22,7 @@ public class BatchStatusWorker extends BaseWorker{
     public void setup() {
 
         newWorker(Worker.BATCH_STATUS, ((client, job) -> {
+            logger.info("Started batchStatusWorker");
             logger.debug("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
 
             Map<String, Object> variables = job.getVariablesAsMap();
