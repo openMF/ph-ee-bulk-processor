@@ -2,6 +2,7 @@ package org.mifos.processor.bulk.schema;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
@@ -9,11 +10,12 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @AllArgsConstructor
+@NoArgsConstructor
 public class BatchDTO {
 
-    private String batchId;
+    private String batch_id;
 
-    private String requestId;
+    private String request_id;
 
     private Long total;
 
@@ -35,7 +37,7 @@ public class BatchDTO {
 
     private String notes;
 
-    private String createdAt;
+    private String created_at;
 
     private String status;
 
@@ -53,43 +55,4 @@ public class BatchDTO {
 
     private String correlationId;
 
-    public BatchDTO() {}
-
-    public BatchDTO(String batchId, String requestId, Long totalTransactions, Long ongoing, Long failed, Long completed,
-            BigDecimal total_amount, BigDecimal completed_amount, BigDecimal ongoing_amount, BigDecimal failed_amount, String result_file,
-            String note) {
-        this.batchId = batchId;
-        this.requestId = requestId;
-        this.total = totalTransactions;
-        this.ongoing = ongoing;
-        this.failed = failed;
-        this.successful = completed;
-        this.totalAmount = total_amount;
-        this.successfulAmount = completed_amount;
-        this.pendingAmount = ongoing_amount;
-        this.failedAmount = failed_amount;
-        this.file = result_file;
-        this.notes = note;
-    }
-
-    public BatchDTO(String batch_id, String request_id, Long total, Long ongoing, Long failed, Long successful, BigDecimal totalAmount,
-            BigDecimal successfulAmount, BigDecimal pendingAmount, BigDecimal failedAmount, String file, String notes, String created_at,
-            String status, String modes, String purpose) {
-        this.batchId = batch_id;
-        this.requestId = request_id;
-        this.total = total;
-        this.ongoing = ongoing;
-        this.failed = failed;
-        this.successful = successful;
-        this.totalAmount = totalAmount;
-        this.successfulAmount = successfulAmount;
-        this.pendingAmount = pendingAmount;
-        this.failedAmount = failedAmount;
-        this.file = file;
-        this.notes = notes;
-        this.createdAt = created_at;
-        this.status = status;
-        this.modes = modes;
-        this.purpose = purpose;
-    }
 }
