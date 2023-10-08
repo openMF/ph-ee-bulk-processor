@@ -48,6 +48,7 @@ public class AggregateWorker extends BaseWorker {
 
             logger.info("Retry: {} and Success Rate: {}", retry, successRate);
             client.newCompleteCommand(job.getKey()).variables(variables).send();
+            logger.info("Completed batchAggregateWorker");
         });
     }
 

@@ -33,6 +33,7 @@ public class InitSubBatchWorker extends BaseWorker {
          * Parse the data into POJO. 3. Initiates workflow based on the payment_mode
          */
         newWorker(Worker.INIT_SUB_BATCH, (client, job) -> {
+            logger.info("Started INIT_SUB_BATCH worker");
             logger.debug("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
             Map<String, Object> variables = job.getVariablesAsMap();
 
@@ -78,6 +79,7 @@ public class InitSubBatchWorker extends BaseWorker {
             variables.put(INIT_FAILURE_SUB_BATCHES, failureSubBatches);
 
             client.newCompleteCommand(job.getKey()).variables(variables).send();
+            logger.info("Completed INIT_SUB_BATCH worker. Remaining subbatches {}", subBatches.size());
         });
     }
 

@@ -32,6 +32,7 @@ public class BatchStatusWorker extends BaseWorker{
             float successRate = calculateSuccessPercentage(batchDTOResponse);
             variables.put(COMPLETION_RATE, successRate);
             client.newCompleteCommand(job.getKey()).variables(variables).send();
+            logger.info("Completed batchStatusWorker");
         }));
     }
 
