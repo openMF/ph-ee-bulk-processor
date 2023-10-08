@@ -48,7 +48,7 @@ public class BatchAggregateRoute extends BaseRouteBuilder {
                 .setHeader("Authorization", simple("Bearer ${exchangeProperty." + OPS_APP_ACCESS_TOKEN + "}"))
                 .setHeader(HEADER_PLATFORM_TENANT_ID, simple("${exchangeProperty." + TENANT_ID + "}")).process(exchange -> {
                     logger.info(exchange.getIn().getHeaders().toString());
-                }).toD(operationsAppConfig.batchAggregateUrl + exchangeProperty(BATCH_ID) + "?bridgeEndpoint=true")
+                }).toD(operationsAppConfig.batchAggregateUrl + "${exchangeProperty." + BATCH_ID + "}?bridgeEndpoint=true")
                 .log(LoggingLevel.DEBUG, "Batch aggregate API response: \n\n ${body}");
 
         from("direct:batch-aggregate-response-handler")
