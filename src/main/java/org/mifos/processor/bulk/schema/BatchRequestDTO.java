@@ -15,6 +15,6 @@ public class BatchRequestDTO {
 
     List<Party> creditParty, debitParty;
 
-    String subType, amount, currency, descriptionText;
+    String paymentMode, amount, currency, descriptionText;
 
 }
