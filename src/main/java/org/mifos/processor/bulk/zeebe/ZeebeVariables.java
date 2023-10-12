@@ -54,6 +54,8 @@ public class ZeebeVariables {
 
     public static final String FORMATTING_ENABLED = "formattingEnabled";
 
+    public static final String BATCH_AGGREGATE_ENABLED = "batchAggregateEnabled";
+
     public static final String COMPLETION_THRESHOLD_CHECK_ENABLED = "completionThresholdCheckEnabled";
 
     public static final String MERGE_ENABLED = "mergeEnabled";

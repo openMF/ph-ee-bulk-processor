@@ -6,6 +6,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class WorkerConfig {
 
+    @Value("${config.batchAggregate.enable}")
+    public boolean isBatchAggregateEnabled;
+
     @Value("${config.partylookup.enable}")
     public boolean isPartyLookUpWorkerEnabled;
 

@@ -49,7 +49,7 @@ public class Consumers {
     @KafkaListener(topics = "${kafka.topic.gsma.name}", groupId = "group_id")
     public void listenTopicGsma(String message) throws JsonProcessingException {
         log.debug("Received Message in topic GSMA and group group_id: {}", message);
-        TransactionOlder transaction = objectMapper.readValue((String) message, TransactionOlder.class);
+        TransactionOlder transaction = objectMapper.readValue(message, TransactionOlder.class);
         String tenantId = "ibank-usa";
 
         GSMATransaction gsmaChannelRequest = new GSMATransaction();

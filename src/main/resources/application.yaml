@@ -36,6 +36,7 @@ operations-app:
     auth: "/oauth/token"
     batch-summary: "/api/v1/batch"
     batch-transaction: "/api/v1/batch/transactions"
+    batch-aggregate: "/api/v1/batch/"
 
 channel:
   hostname: "https://ph-ee-connector-channel:8443"
@@ -79,6 +80,8 @@ bpmn:
 
 config:
   minimum-successful-tx-ratio: 0.90
+  batchAggregate:
+    enable: true
   partylookup:
     enable: true
   approval:
@@ -100,7 +103,7 @@ config:
     enable: false
     completion-threshold: 95 # in percentage
     max-retry: 4 #can be as high as 30
-    delay: 60 # in seconds
+    delay: 2 # in seconds
   deduplication:
     enabled: true
 
