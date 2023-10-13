@@ -39,7 +39,7 @@ operations-app:
     batch-aggregate: "/api/v1/batch/"
 
 mock-payment-schema:
-  contactpoint: "http://localhost:8080"
+  contactpoint: "http://ph-ee-connector-mock-payment-schema:8080"
   endpoints:
     authorization: "/batches/"
 
