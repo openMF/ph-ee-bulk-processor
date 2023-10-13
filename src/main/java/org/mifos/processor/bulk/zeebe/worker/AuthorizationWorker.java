@@ -20,7 +20,7 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_ACCEPT
 @Component
 public class AuthorizationWorker extends BaseWorker {
 
-    @Value("${batch-authorization.callback-path}")
+    @Value("${batch-authorization.callback-url}")
     private String callbackURLPath;
 
     @Value("${mock-payment-schema.contactpoint}")
