@@ -255,15 +255,18 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                         String tenantSpecificWorkflowId = workflowId.replace("{dfspid}", exchange.getProperty(TENANT_NAME).toString());
                         String txnId = zeebeProcessStarter.startZeebeWorkflow(tenantSpecificWorkflowId, "", variables);
                         if (txnId == null || txnId.isEmpty()) {
+                            logger.debug("error: Issue in starting the zeebe workflow, check the zeebe configuration");
                             response.put("errorCode", 500);
                             response.put("errorDescription", "Unable to start zeebe workflow");
                             response.put("developerMessage", "Issue in starting the zeebe workflow, check the zeebe configuration");
                         } else {
+                            logger.debug("successful: zeebe workflow started {}",txnId);
                             response.put("batch_id", batchId);
                             response.put("request_id", requestId);
                             response.put("status", "queued");
                         }
                     } catch (Exception e) {
+                        logger.debug("error: Issue in starting the zeebe workflow {}", e.getLocalizedMessage());
                         response.put("errorCode", 500);
                         response.put("errorDescription", "Unable to start zeebe workflow");
                         response.put("developerMessage", e.getLocalizedMessage());
@@ -363,7 +366,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
         String line;
         br.readLine();
         while ((line = br.readLine()) != null) {
-            String[] row = line.split(",");
+            String[] row = line.split(",", -1);
             if (row.length != columnNames.size()) {
                 logger.debug("Row invalid {} {}", row.length, columnNames.size());
                 return false;
