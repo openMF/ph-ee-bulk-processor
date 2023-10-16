@@ -38,6 +38,11 @@ operations-app:
     batch-transaction: "/api/v1/batch/transactions"
     batch-aggregate: "/api/v1/batch/"
 
+mock-payment-schema:
+  contactpoint: "http://ph-ee-connector-mock-payment-schema:8080"
+  endpoints:
+    authorization: "/batches/"
+
 channel:
   hostname: "https://ph-ee-connector-channel:8443"
 
@@ -48,6 +53,7 @@ cloud:
     credentials:
       access-key: ${AWS_ACCESS_KEY:access_key_from_aws}
       secret-key: ${AWS_SECRET_KEY:secret_key_from_aws}
+
     region:
       static: ap-south-1
     stack:
@@ -84,6 +90,8 @@ config:
     enable: true
   partylookup:
     enable: true
+  authorization:
+    enabled: true
   approval:
     enable: true
   ordering:
@@ -182,3 +190,5 @@ payment-mode:
       type: "BULK"
       endpoint: "bulk_connector_{MODE}-{dfspid}"
       debulkingDfspid: "lion"
+batch-authorization:
+  callback-url: "https://ph-ee-connector-bulk:80/authorization/callback"

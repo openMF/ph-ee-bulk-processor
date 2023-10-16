@@ -66,7 +66,7 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
     private ExternalApiPayloadConfig externalApiPayloadConfig;
 
     @Value("${channel.hostname}")
-    private String ChannelURL;
+    private String channelURL;
 
     @Override
     public void configure() throws Exception {
@@ -76,8 +76,12 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
          * Builds the [Transaction] array using [direct:get-transaction-array] route. 3. Loops through each transaction
          * and start the respective workflow
          */
-        from(RouteId.INIT_SUB_BATCH.getValue()).id(RouteId.INIT_SUB_BATCH.getValue()).log("Starting route " + RouteId.INIT_SUB_BATCH.name())
-                .to("direct:download-file").to("direct:get-transaction-array").to("direct:start-workflow-step1");
+        from(RouteId.INIT_SUB_BATCH.getValue())
+                .id(RouteId.INIT_SUB_BATCH.getValue())
+                .log("Starting route " + RouteId.INIT_SUB_BATCH.name())
+                .to("direct:download-file")
+                .to("direct:get-transaction-array")
+                .to("direct:start-workflow-step1");
 
         // crates the zeebe variables map and starts the workflow by calling >> direct:start-workflow-step2
         from("direct:start-workflow-step1").id("direct:start-flow-step1").log("Starting route direct:start-flow-step1")
@@ -197,8 +201,8 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     log.debug("Variables: {}", exchange.getProperties());
                     log.debug("Emergency: {}", exchange.getIn().getHeaders());
                 })
-                .toD(ChannelURL + "${exchangeProperty.extEndpoint}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
-                .log(LoggingLevel.INFO, "Response body: ${body}").otherwise().endChoice();
+                .toD(channelURL + "${exchangeProperty.extEndpoint}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
+                .log(LoggingLevel.DEBUG, "Response body: ${body}").otherwise().endChoice();
 
         from("direct:validate-payment-mode").id("direct:validate-payment-mode").log("Starting route direct:validate-payment-mode")
                 .process(exchange -> {
