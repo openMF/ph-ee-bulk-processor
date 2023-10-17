@@ -63,6 +63,7 @@ public class AuthorizationWorker extends BaseWorker {
     }
 
     private HttpStatus invokeBatchAuthorizationApi(String batchId, AuthorizationRequest requestPayload, String clientCorrelationId) {
+        logger.info("Calling auth API");
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.add(X_CLIENT_CORRELATION_ID, clientCorrelationId);
@@ -71,6 +72,8 @@ public class AuthorizationWorker extends BaseWorker {
         HttpEntity<AuthorizationRequest> requestEntity = new HttpEntity<>(requestPayload, headers);
         String endpoint = mockPaymentSchemaContactPoint + authorizationEndpoint + batchId;
 
+        logger.info("Auth API request headers: {}", headers);
+        logger.info("Endpoint: {}", endpoint);
         ResponseEntity<String> responseEntity = restTemplate.exchange(endpoint, HttpMethod.POST, requestEntity, String.class);
         return responseEntity.getStatusCode();
     }

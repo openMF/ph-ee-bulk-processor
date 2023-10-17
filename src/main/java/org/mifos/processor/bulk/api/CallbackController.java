@@ -1,5 +1,7 @@
 package org.mifos.processor.bulk.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.camunda.zeebe.client.ZeebeClient;
 import java.time.Duration;
 import java.util.HashMap;
@@ -21,13 +23,18 @@ public class CallbackController {
     @Autowired
     private ZeebeClient zeebeClient;
 
+    @Autowired
+    ObjectMapper objectMapper;
+
     protected Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private static final String EXPECTED_AUTH_STATUS = "Y";
 
 
     @PostMapping("/authorization/callback")
-    public ResponseEntity<Object> handleAuthorizationCallback(@RequestBody AuthorizationResponse authResponse) {
+    public ResponseEntity<Object> handleAuthorizationCallback(@RequestBody AuthorizationResponse authResponse) throws JsonProcessingException {
+        logger.info("Callback received");
+        logger.info("Auth response: {}", objectMapper.writeValueAsString(authResponse));
         Map<String, Object> variables = new HashMap<>();
 
         boolean isAuthorizationSuccessful = EXPECTED_AUTH_STATUS.equals(authResponse.getStatus());
@@ -46,6 +53,7 @@ public class CallbackController {
                     .correlationKey(authResponse.getClientCorrelationId())
                     .timeToLive(Duration.ofMillis(500000))
                     .variables(variables).send();
+            logger.info("Published zeebe message event {}", AUTHORIZATION_RESPONSE);
         }
         return ResponseEntity.ok().build();
     }
