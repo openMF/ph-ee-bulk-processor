@@ -2,7 +2,11 @@ package org.mifos.processor.bulk.zeebe.worker;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.mifos.processor.bulk.schema.AuthorizationRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -34,6 +38,9 @@ public class AuthorizationWorker extends BaseWorker {
 
     private static final String X_CALLBACK_URL = "X-CallbackURL";
 
+    @Autowired
+    ObjectMapper objectMapper;
+
     @Override
     public void setup() {
         newWorker(Worker.AUTHORIZATION, (client, job) -> {
@@ -63,7 +70,7 @@ public class AuthorizationWorker extends BaseWorker {
         });
     }
 
-    private HttpStatus invokeBatchAuthorizationApi(String batchId, AuthorizationRequest requestPayload, String clientCorrelationId) {
+    private HttpStatus invokeBatchAuthorizationApi(String batchId, AuthorizationRequest requestPayload, String clientCorrelationId) throws JsonProcessingException {
         logger.info("Calling auth API");
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -74,9 +81,9 @@ public class AuthorizationWorker extends BaseWorker {
         String endpoint = mockPaymentSchemaContactPoint + authorizationEndpoint + batchId;
         endpoint = endpoint + "?command=authorize";
 
-
         logger.info("Auth API request headers: {}", headers);
         logger.info("Endpoint: {}", endpoint);
+        logger.info("Body: {}", objectMapper.writeValueAsString(requestPayload));
         ResponseEntity<String> responseEntity = restTemplate.exchange(endpoint, HttpMethod.POST, requestEntity, String.class);
         return responseEntity.getStatusCode();
     }
