@@ -1,5 +1,6 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
+import java.util.HashMap;
 import java.util.Map;
 import org.mifos.processor.bulk.schema.AuthorizationRequest;
 import org.springframework.beans.factory.annotation.Value;
@@ -71,6 +72,8 @@ public class AuthorizationWorker extends BaseWorker {
 
         HttpEntity<AuthorizationRequest> requestEntity = new HttpEntity<>(requestPayload, headers);
         String endpoint = mockPaymentSchemaContactPoint + authorizationEndpoint + batchId;
+        endpoint = endpoint + "?command=authorize";
+
 
         logger.info("Auth API request headers: {}", headers);
         logger.info("Endpoint: {}", endpoint);
