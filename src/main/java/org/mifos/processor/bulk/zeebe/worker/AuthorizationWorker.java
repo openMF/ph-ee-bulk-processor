@@ -53,6 +53,8 @@ public class AuthorizationWorker extends BaseWorker {
                 return;
             }
 
+            logger.info("Variables: {}", variables);
+
             String payerIdentifier = (String) variables.get("payerIdentifier");
             String totalBatchAmount = (String) variables.get("partyLookupSuccessfulTransactionAmount");
             String currency = (String) variables.get("currency");
