@@ -213,3 +213,16 @@ security-server:
 gov-stack-client:
   header-key: "X-GovStack-Client"
   header-value: "PAYMENT-BB"
+
+
+bpmns:
+  tenants:
+    - id: "gorilla"
+      flows:
+        batch-transactions: "bulk_processor-{dfspid}"
+    - id: "lion"
+      flows:
+        batch-transactions: "bulk_processor_account_lookup-{dfspid}"
+    - id: "rhino"
+      flows:
+        batch-transactions: "bulk_processor-{dfspid}"
