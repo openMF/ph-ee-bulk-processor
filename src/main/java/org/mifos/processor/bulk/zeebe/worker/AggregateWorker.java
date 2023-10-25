@@ -19,7 +19,7 @@ public class AggregateWorker extends BaseWorker {
 
     @Override
     public void setup() {
-//        newWorker(Worker.BATCH_STATUS, (client, job) -> {
+        // newWorker(Worker.BATCH_STATUS, (client, job) -> {
         newWorker(Worker.BATCH_AGGREGATE, (client, job) -> {
             logger.info("Started batchAggregateWorker");
             logger.debug("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());

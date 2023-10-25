@@ -1,13 +1,7 @@
 package org.mifos.processor.bulk.file;
 
-<<<<<<< HEAD
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.io.InputStream;
-=======
->>>>>>> b898933 (PHEE-307 Resolve checkstyle errors manually and update gradle command in CI)
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -38,7 +32,7 @@ public class FileStorageServiceImpl implements FileStorageService {
         try {
             Files.copy(inputStream, this.root.resolve(uniqueFileName));
         } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
+            throw new RuntimeException("Failed to save file: " + e.getMessage(), e);
         }
         return uniqueFileName;
     }

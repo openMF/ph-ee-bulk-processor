@@ -1,14 +1,13 @@
-package org.mifos.processor.bulk.API.definition;
+package org.mifos.processor.bulk.api.definition;
 
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
+
+import java.io.IOException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
 
 public interface BulkTransfer {
 

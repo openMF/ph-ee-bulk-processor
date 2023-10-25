@@ -63,12 +63,8 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
          * Builds the [Transaction] array using [direct:get-transaction-array] route. 3. Loops through each transaction
          * and start the respective workflow
          */
-        from(RouteId.INIT_SUB_BATCH.getValue())
-                .id(RouteId.INIT_SUB_BATCH.getValue())
-                .log("Starting route " + RouteId.INIT_SUB_BATCH.name())
-                .to("direct:download-file")
-                .to("direct:get-transaction-array")
-                .to("direct:start-workflow-step1");
+        from(RouteId.INIT_SUB_BATCH.getValue()).id(RouteId.INIT_SUB_BATCH.getValue()).log("Starting route " + RouteId.INIT_SUB_BATCH.name())
+                .to("direct:download-file").to("direct:get-transaction-array").to("direct:start-workflow-step1");
 
         // crates the zeebe variables map and starts the workflow by calling >> direct:start-workflow-step2
         from("direct:start-workflow-step1").id("direct:start-flow-step1").log("Starting route direct:start-flow-step1")
@@ -123,16 +119,8 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     exchange.setProperty(REQUEST_ID, transaction.getRequestId());
                     logger.info("REQUEST_ID: {}", transaction.getRequestId());
                     exchange.setProperty(TRANSACTION_LIST_ELEMENT, transaction);
-<<<<<<< HEAD
-                }).setHeader("Platform-TenantId", exchangeProperty(TENANT_NAME))
-                .to("direct:dynamic-payload-setter")
+                }).setHeader("Platform-TenantId", exchangeProperty(TENANT_NAME)).to("direct:dynamic-payload-setter")
                 .to("direct:external-api-call").to("direct:external-api-response-handler").end() // end loop block
-=======
-                }).setHeader("Platform-TenantId", exchangeProperty(TENANT_NAME)).setHeader("X-CorrelationID", exchangeProperty(REQUEST_ID))
-                .to("direct:dynamic-payload-setter").to("direct:external-api-call").to("direct:external-api-response-handler").end() // end
-                                                                                                                                     // loop
-                                                                                                                                     // block
->>>>>>> b898933 (PHEE-307 Resolve checkstyle errors manually and update gradle command in CI)
                 .endChoice();
 
         from("direct:dynamic-payload-setter").id("direct:runtime-payload-test").log("Starting route direct:runtime-payload-test")
@@ -190,15 +178,13 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 .log(LoggingLevel.DEBUG, "Making API call to endpoint ${exchangeProperty.extEndpoint} and body: ${body}")
                 .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
                 .setHeader(BATCH_ID_HEADER, simple("${exchangeProperty." + BATCH_ID + "}"))
-<<<<<<< HEAD
                 .setHeader(HEADER_CLIENT_CORRELATION_ID, simple("${exchangeProperty." + REQUEST_ID + "}"))
                 .setHeader(HEADER_REGISTERING_INSTITUTE_ID, simple("${exchangeProperty." + HEADER_REGISTERING_INSTITUTE_ID + "}"))
                 .process(exchange -> {
                     log.debug("Variables: {}", exchange.getProperties());
                     log.debug("Emergency: {}", exchange.getIn().getHeaders());
                 })
-=======
->>>>>>> b898933 (PHEE-307 Resolve checkstyle errors manually and update gradle command in CI)
+
                 .toD(channelURL + "${exchangeProperty.extEndpoint}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
                 .log(LoggingLevel.DEBUG, "Response body: ${body}").otherwise().endChoice();
 

@@ -1,6 +1,12 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
-import java.util.HashMap;
+
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.APPROVED_AMOUNT;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_ACCEPTED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_SUCCESSFUL;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CLIENT_CORRELATION_ID;
+
 import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -16,12 +22,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_SUCCESSFUL;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.APPROVED_AMOUNT;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CLIENT_CORRELATION_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_ACCEPTED;
 
 @Component
 public class AuthorizationWorker extends BaseWorker {

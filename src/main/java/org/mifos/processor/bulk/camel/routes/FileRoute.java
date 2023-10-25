@@ -5,7 +5,6 @@ import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import org.mifos.processor.bulk.file.FileTransferService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

@@ -2,6 +2,13 @@ package org.mifos.processor.bulk.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.APPROVED_AMOUNT;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_FAIL_REASON;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_RESPONSE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_STATUS;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_SUCCESSFUL;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CLIENT_CORRELATION_ID;
+
 import io.camunda.zeebe.client.ZeebeClient;
 import java.time.Duration;
 import java.util.HashMap;
@@ -15,8 +22,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
-
 @RestController
 public class CallbackController {
 
@@ -29,7 +34,6 @@ public class CallbackController {
     protected Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private static final String EXPECTED_AUTH_STATUS = "Y";
-
 
     @PostMapping("/authorization/callback")
     public ResponseEntity<Object> handleAuthorizationCallback(@RequestBody AuthorizationResponse authResponse) throws JsonProcessingException {
@@ -56,6 +60,8 @@ public class CallbackController {
                     .timeToLive(Duration.ofMillis(500000))
                     .variables(variables).send();
             logger.debug("Published zeebe message event {}", AUTHORIZATION_RESPONSE);
+            zeebeClient.newPublishMessageCommand().messageName(AUTHORIZATION_RESPONSE).correlationKey(authResponse.getClientCorrelationId())
+                    .timeToLive(Duration.ofMillis(500000)).variables(variables).send();
         }
         return ResponseEntity.ok().build();
     }

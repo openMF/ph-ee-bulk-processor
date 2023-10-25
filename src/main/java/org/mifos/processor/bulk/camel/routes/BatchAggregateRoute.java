@@ -1,6 +1,8 @@
 package org.mifos.processor.bulk.camel.routes;
 
-import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.BATCH_STATUS_FAILED;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PLATFORM_TENANT_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.OPS_APP_ACCESS_TOKEN;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETION_RATE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ERROR_CODE;
@@ -32,19 +34,13 @@ public class BatchAggregateRoute extends BaseRouteBuilder {
          * Uploads the updated file in cloud.
          */
         from(RouteId.BATCH_AGGREGATE.getValue()).id(RouteId.BATCH_AGGREGATE.getValue())
-                .log("Starting route " + RouteId.BATCH_AGGREGATE.name())
-                .to("direct:get-access-token")
-                .choice()
+                .log("Starting route " + RouteId.BATCH_AGGREGATE.name()).to("direct:get-access-token").choice()
                 .when(exchange -> exchange.getProperty(OPS_APP_ACCESS_TOKEN, String.class) != null)
-                .log(LoggingLevel.INFO, "Got access token, moving on to API call")
-                .to("direct:batch-aggregate-api-call")
-                .to("direct:batch-aggregate-response-handler")
-                .otherwise()
-                .log(LoggingLevel.INFO, "Authentication failed.")
-                .endChoice();
+                .log(LoggingLevel.INFO, "Got access token, moving on to API call").to("direct:batch-aggregate-api-call")
+                .to("direct:batch-aggregate-response-handler").otherwise().log(LoggingLevel.INFO, "Authentication failed.").endChoice();
 
         getBaseExternalApiRequestRouteDefinition("batch-aggregate-api-call", HttpRequestMethod.GET)
-//                .setHeader(Exchange.REST_HTTP_QUERY, simple("batchId=${exchangeProperty." + BATCH_ID + "}"))
+                // .setHeader(Exchange.REST_HTTP_QUERY, simple("batchId=${exchangeProperty." + BATCH_ID + "}"))
                 .setHeader("Authorization", simple("Bearer ${exchangeProperty." + OPS_APP_ACCESS_TOKEN + "}"))
                 .setHeader(HEADER_PLATFORM_TENANT_ID, simple("${exchangeProperty." + TENANT_ID + "}")).process(exchange -> {
                     logger.info(exchange.getIn().getHeaders().toString());
@@ -52,8 +48,7 @@ public class BatchAggregateRoute extends BaseRouteBuilder {
                 .log(LoggingLevel.DEBUG, "Batch aggregate API response: \n\n ${body}")
                 .log(LoggingLevel.INFO, "Aggregate Response body: ${body}");
 
-        from("direct:batch-aggregate-response-handler")
-                .id("direct:batch-aggregate-response-handler")
+        from("direct:batch-aggregate-response-handler").id("direct:batch-aggregate-response-handler")
                 .log("Starting route direct:batch-aggregate-response-handler")
                 // .setBody(exchange -> exchange.getIn().getBody(String.class))
                 .choice().when(header("CamelHttpResponseCode").isEqualTo("200")).log(LoggingLevel.INFO, "Batch summary request successful")
