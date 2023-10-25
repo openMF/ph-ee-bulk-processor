@@ -1,28 +1,20 @@
-package org.mifos.processor.bulk.api.implementation;
-
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
+package org.mifos.processor.bulk.API.implementation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
 import org.apache.camel.Exchange;
 import org.apache.camel.ProducerTemplate;
-import org.mifos.processor.bulk.api.definition.BulkTransfer;
+import org.mifos.processor.bulk.API.definition.BulkTransfer;
 import org.mifos.processor.bulk.file.FileStorageService;
 import org.mifos.processor.bulk.utility.Headers;
 import org.mifos.processor.bulk.utility.SpringWrapperUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-<<<<<<< HEAD
+
 import java.io.IOException;
+
 import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PLATFORM_TENANT_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.HEADER_CLIENT_CORRELATION_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.HEADER_TYPE;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
-=======
->>>>>>> b898933 (PHEE-307 Resolve checkstyle errors manually and update gradle command in CI)
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
 
 @RestController
 public class BulkTransferController implements BulkTransfer {
@@ -39,13 +31,8 @@ public class BulkTransferController implements BulkTransfer {
     @Override
     public String bulkTransfer(String requestId, MultipartFile file, String fileName, String purpose, String type, String tenant)
             throws IOException {
-<<<<<<< HEAD
         Headers headers = new Headers.HeaderBuilder().addHeader(HEADER_CLIENT_CORRELATION_ID, requestId).addHeader(PURPOSE, purpose)
                 .addHeader(FILE_NAME, fileName).addHeader(HEADER_TYPE, type).addHeader(HEADER_PLATFORM_TENANT_ID, tenant).build();
-=======
-        Headers headers = new Headers.HeaderBuilder().addHeader("X-CorrelationID", requestId).addHeader(PURPOSE, purpose)
-                .addHeader(FILE_NAME, fileName).addHeader("Type", type).addHeader("Platform-TenantId", tenant).build();
->>>>>>> b898933 (PHEE-307 Resolve checkstyle errors manually and update gradle command in CI)
         Exchange exchange = SpringWrapperUtil.getDefaultWrappedExchange(producerTemplate.getCamelContext(), headers);
         fileStorageService.save(file);
         producerTemplate.send("direct:post-bulk-transfer", exchange);

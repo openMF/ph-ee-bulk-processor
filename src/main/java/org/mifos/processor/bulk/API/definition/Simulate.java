@@ -1,8 +1,9 @@
-package org.mifos.processor.bulk.api.definition;
+package org.mifos.processor.bulk.API.definition;
 
-import java.io.IOException;
-import javax.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.PostMapping;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 // from("rest:post:/simulate").log("Reached Simulation");
 public interface Simulate {
