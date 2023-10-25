@@ -69,7 +69,7 @@ public class AuthorizationWorker extends BaseWorker {
         headers.add(X_CALLBACK_URL, callbackURLPath);
 
         HttpEntity<AuthorizationRequest> requestEntity = new HttpEntity<>(requestPayload, headers);
-        String endpoint = mockPaymentSchemaContactPoint + authorizationEndpoint + batchId;
+        String endpoint = mockPaymentSchemaContactPoint + authorizationEndpoint + batchId+ "?command=authorize";
 
         ResponseEntity<String> responseEntity = restTemplate.exchange(endpoint, HttpMethod.POST, requestEntity, String.class);
         return responseEntity.getStatusCode();
