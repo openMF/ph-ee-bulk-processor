@@ -1,7 +1,12 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
+import java.util.HashMap;
 import java.util.Map;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.mifos.processor.bulk.schema.AuthorizationRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -33,6 +38,9 @@ public class AuthorizationWorker extends BaseWorker {
 
     private static final String X_CALLBACK_URL = "X-CallbackURL";
 
+    @Autowired
+    ObjectMapper objectMapper;
+
     @Override
     public void setup() {
         newWorker(Worker.AUTHORIZATION, (client, job) -> {
@@ -44,6 +52,8 @@ public class AuthorizationWorker extends BaseWorker {
                 client.newCompleteCommand(job.getKey()).variables(variables).send();
                 return;
             }
+
+            logger.debug("Variables: {}", variables);
 
             String payerIdentifier = (String) variables.get("payerIdentifier");
             String totalBatchAmount = (String) variables.get("partyLookupSuccessfulTransactionAmount");
@@ -62,7 +72,8 @@ public class AuthorizationWorker extends BaseWorker {
         });
     }
 
-    private HttpStatus invokeBatchAuthorizationApi(String batchId, AuthorizationRequest requestPayload, String clientCorrelationId) {
+    private HttpStatus invokeBatchAuthorizationApi(String batchId, AuthorizationRequest requestPayload, String clientCorrelationId) throws JsonProcessingException {
+        logger.info("Calling auth API");
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.add(X_CLIENT_CORRELATION_ID, clientCorrelationId);
@@ -70,7 +81,11 @@ public class AuthorizationWorker extends BaseWorker {
 
         HttpEntity<AuthorizationRequest> requestEntity = new HttpEntity<>(requestPayload, headers);
         String endpoint = mockPaymentSchemaContactPoint + authorizationEndpoint + batchId;
+        endpoint = endpoint + "?command=authorize";
 
+        logger.debug("Auth API request headers: {}", headers);
+        logger.debug("Endpoint: {}", endpoint);
+        logger.debug("Body: {}", objectMapper.writeValueAsString(requestPayload));
         ResponseEntity<String> responseEntity = restTemplate.exchange(endpoint, HttpMethod.POST, requestEntity, String.class);
         return responseEntity.getStatusCode();
     }
