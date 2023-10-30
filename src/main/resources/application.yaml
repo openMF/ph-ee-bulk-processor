@@ -191,4 +191,4 @@ payment-mode:
       endpoint: "bulk_connector_{MODE}-{dfspid}"
       debulkingDfspid: "lion"
 batch-authorization:
-  callback-url: "https://bulk-connector.sandbox.fynarfin.io/authorization/callback"
+  callback-url: "http://mockpaymentschema.sandbox.fynarfin.io/authorization/callback"

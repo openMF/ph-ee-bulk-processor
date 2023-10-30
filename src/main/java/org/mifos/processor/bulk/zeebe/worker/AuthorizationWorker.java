@@ -53,7 +53,7 @@ public class AuthorizationWorker extends BaseWorker {
                 return;
             }
 
-            logger.debug("Variables: {}", variables);
+            logger.info("Variables: {}", variables);
 
             String payerIdentifier = (String) variables.get("payerIdentifier");
             String totalBatchAmount = (String) variables.get("partyLookupSuccessfulTransactionAmount");
@@ -88,9 +88,9 @@ public class AuthorizationWorker extends BaseWorker {
         String endpoint = mockPaymentSchemaContactPoint + authorizationEndpoint + batchId;
         endpoint = endpoint + "?command=authorize";
 
-        logger.debug("Auth API request headers: {}", headers);
-        logger.debug("Endpoint: {}", endpoint);
-        logger.debug("Body: {}", objectMapper.writeValueAsString(requestPayload));
+        logger.info("Auth API request headers: {}", headers);
+        logger.info("Endpoint: {}", endpoint);
+        logger.info("Body: {}", objectMapper.writeValueAsString(requestPayload));
         ResponseEntity<String> responseEntity = restTemplate.exchange(endpoint, HttpMethod.POST, requestEntity, String.class);
         return responseEntity.getStatusCode();
     }
