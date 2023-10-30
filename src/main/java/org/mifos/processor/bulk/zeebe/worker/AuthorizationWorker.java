@@ -65,6 +65,8 @@ public class AuthorizationWorker extends BaseWorker {
             AuthorizationRequest requestPayload = new AuthorizationRequest(batchId, payerIdentifier, currency, totalBatchAmount);
             HttpStatus httpStatus = invokeBatchAuthorizationApi(batchId, requestPayload, clientCorrelationId);
 
+            logger.info("Httpstatus: {}", httpStatus);
+
             variables.put(APPROVED_AMOUNT, totalBatchAmount);
             variables.put(CLIENT_CORRELATION_ID, clientCorrelationId);
             variables.put(AUTHORIZATION_ACCEPTED, httpStatus.is2xxSuccessful());
