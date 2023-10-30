@@ -46,7 +46,7 @@ public class AuthorizationWorker extends BaseWorker {
             }
 
             String payerIdentifier = (String) variables.get("payerIdentifier");
-            String totalBatchAmount = (String) variables.get("partyLookupSuccessfulTransactionAmount");
+            String totalBatchAmount = (variables.get("partyLookupSuccessfulTransactionAmount")!=null?(String) variables.get("partyLookupSuccessfulTransactionAmount"): String.valueOf(0));
             String currency = (String) variables.get("currency");
 
             String batchId = (String) variables.get(BATCH_ID);
