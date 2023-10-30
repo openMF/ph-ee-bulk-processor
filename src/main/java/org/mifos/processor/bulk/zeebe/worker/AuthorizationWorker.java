@@ -74,6 +74,9 @@ public class AuthorizationWorker extends BaseWorker {
 
     private HttpStatus invokeBatchAuthorizationApi(String batchId, AuthorizationRequest requestPayload, String clientCorrelationId) throws JsonProcessingException {
         logger.info("Calling auth API");
+        if (requestPayload.getAmount() == null || requestPayload.getAmount().isEmpty()) {
+            requestPayload.setAmount("0");
+        }
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.add(X_CLIENT_CORRELATION_ID, clientCorrelationId);
