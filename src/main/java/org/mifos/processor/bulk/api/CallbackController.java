@@ -34,7 +34,7 @@ public class CallbackController {
     @PostMapping("/authorization/callback")
     public ResponseEntity<Object> handleAuthorizationCallback(@RequestBody AuthorizationResponse authResponse) throws JsonProcessingException {
         logger.info("Callback received");
-        logger.info("Auth response: {}", objectMapper.writeValueAsString(authResponse));
+        logger.debug("Auth response: {}", objectMapper.writeValueAsString(authResponse));
         Map<String, Object> variables = new HashMap<>();
 
         boolean isAuthorizationSuccessful = EXPECTED_AUTH_STATUS.equals(authResponse.getStatus());
@@ -47,13 +47,15 @@ public class CallbackController {
             variables.put(APPROVED_AMOUNT, 0);
         }
 
+        logger.info("Is auth successful: {}", isAuthorizationSuccessful);
+
         if (zeebeClient != null) {
             zeebeClient.newPublishMessageCommand()
                     .messageName(AUTHORIZATION_RESPONSE)
                     .correlationKey(authResponse.getClientCorrelationId())
                     .timeToLive(Duration.ofMillis(500000))
                     .variables(variables).send();
-            logger.info("Published zeebe message event {}", AUTHORIZATION_RESPONSE);
+            logger.debug("Published zeebe message event {}", AUTHORIZATION_RESPONSE);
         }
         return ResponseEntity.ok().build();
     }
