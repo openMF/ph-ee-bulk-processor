@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.core.instrument.util.StringUtils;
 import org.mifos.processor.bulk.schema.AuthorizationRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -65,6 +66,8 @@ public class AuthorizationWorker extends BaseWorker {
             AuthorizationRequest requestPayload = new AuthorizationRequest(batchId, payerIdentifier, currency, totalBatchAmount);
             HttpStatus httpStatus = invokeBatchAuthorizationApi(batchId, requestPayload, clientCorrelationId);
 
+            logger.info("Httpstatus: {}", httpStatus);
+
             variables.put(APPROVED_AMOUNT, totalBatchAmount);
             variables.put(CLIENT_CORRELATION_ID, clientCorrelationId);
             variables.put(AUTHORIZATION_ACCEPTED, httpStatus.is2xxSuccessful());
@@ -74,6 +77,9 @@ public class AuthorizationWorker extends BaseWorker {
 
     private HttpStatus invokeBatchAuthorizationApi(String batchId, AuthorizationRequest requestPayload, String clientCorrelationId) throws JsonProcessingException {
         logger.info("Calling auth API");
+        if (StringUtils.isBlank(requestPayload.getAmount())) {
+            requestPayload.setAmount("0");
+        }
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.add(X_CLIENT_CORRELATION_ID, clientCorrelationId);
@@ -84,7 +90,7 @@ public class AuthorizationWorker extends BaseWorker {
         endpoint = endpoint + "?command=authorize";
 
         logger.debug("Auth API request headers: {}", headers);
-        logger.debug("Endpoint: {}", endpoint);
+        logger.info("MockPaymentSchema endpoint: {}", endpoint);
         logger.debug("Body: {}", objectMapper.writeValueAsString(requestPayload));
         ResponseEntity<String> responseEntity = restTemplate.exchange(endpoint, HttpMethod.POST, requestEntity, String.class);
         return responseEntity.getStatusCode();
