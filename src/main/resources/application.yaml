@@ -146,11 +146,13 @@ security:
     response:
       enable: true
 
-identity-account-mapper:
-  hostname : "https://identity.sandbox.mifos.io"
+identity_account_mapper:
+  hostname : "http://ph-ee-identity-account-mapper:80"
+  account_lookup: /beneficiary
+  account_lookup_callback: /accountLookupCallback
 
-bulk-processor:
-  hostname : "https://bulk-connector.sandbox.mifos.io"
+bulk_processor:
+  hostname : "http://ph-ee-connector-bulk:8080"
 
 csv:
   columnNames: "id,request_id,payment_mode,payer_identifier_type,payer_identifier,payee_identifier_type,payee_identifier,amount,currency,note,account_number,program_shortcode,cycle"
