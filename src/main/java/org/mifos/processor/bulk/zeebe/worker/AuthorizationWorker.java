@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.core.instrument.util.StringUtils;
 import org.mifos.processor.bulk.schema.AuthorizationRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -76,7 +77,7 @@ public class AuthorizationWorker extends BaseWorker {
 
     private HttpStatus invokeBatchAuthorizationApi(String batchId, AuthorizationRequest requestPayload, String clientCorrelationId) throws JsonProcessingException {
         logger.info("Calling auth API");
-        if (requestPayload.getAmount() == null || requestPayload.getAmount().isEmpty()) {
+        if (StringUtils.isBlank(requestPayload.getAmount())) {
             requestPayload.setAmount("0");
         }
         RestTemplate restTemplate = new RestTemplate();
