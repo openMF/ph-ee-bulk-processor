@@ -1,39 +1,44 @@
 package org.mifos.processor.bulk.camel.routes;
 
-import static org.mifos.processor.bulk.camel.config.CamelProperties.ENDPOINT;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.HOST;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.PAYEE_IDENTITY;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.PAYMENT_MODALITY;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK;
-
 import org.apache.camel.Exchange;
-import org.apache.camel.LoggingLevel;
-import org.mifos.processor.bulk.camel.processor.AccountLookupCallbackProcessor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.camel.Processor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import javax.net.ssl.HttpsURLConnection;
+
+import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK;
 
 @Component
 public class AccountLookupRoute extends BaseRouteBuilder {
-
-    @Autowired
-    AccountLookupCallbackProcessor accountLookupCallbackProcessor;
-
+    @Value("${identity_account_mapper.account_lookup}")
+    private String accountLookupEndpoint;
+    @Value("${identity_account_mapper.hostname}")
+    private String identityURL;
     @Override
     public void configure() throws Exception {
-
-        from("rest:POST:/accountLookup/Callback").log(LoggingLevel.DEBUG, "######## -> ACCOUNT LOOKUP CALLBACK")
-                .process(accountLookupCallbackProcessor).setBody(constant("Received")).setHeader(Exchange.HTTP_RESPONSE_CODE, constant(200))
-                .end();
-
-        from("direct:send-account-lookup").id("account-lookup").process(exchange -> {
-            String callbackUrl = exchange.getProperty(CALLBACK, String.class);
-            exchange.getIn().setHeader(CALLBACK, callbackUrl);
-        }).setHeader(Exchange.HTTP_METHOD, constant("GET"))
-                .setHeader(Exchange.HTTP_QUERY,
-                        simple(new StringBuilder().append(PAYEE_IDENTITY).append("=${exchangeProperty.").append(PAYEE_IDENTITY).append("}&")
-                                .append(PAYMENT_MODALITY).append("=${exchangeProperty.").append(PAYMENT_MODALITY).append("}&")
-                                .append("requestId=${exchangeProperty.requestId}").toString()))
-                .setProperty(HOST, simple("{{identity-account-mapper.hostname}}"))
-                .setProperty(ENDPOINT, simple("identityAccountMapper/accountLookup/")).to("direct:external-api-calling");
+        Processor disableSslProcessor = new Processor() {
+            @Override
+            public void process(Exchange exchange) throws Exception {
+                // Disable SSL certificate validation
+                HttpsURLConnection.setDefaultHostnameVerifier((hostname, sslSession) -> true);
+            }
+        };
+        from("direct:send-account-lookup")
+                .id("account-lookup")
+                .process(exchange -> {
+                    String callbackUrl = exchange.getProperty(CALLBACK, String.class);
+                    String registeringInstitutionId = exchange.getProperty(HEADER_REGISTERING_INSTITUTE_ID, String.class);
+                    exchange.getIn().setHeader(CALLBACK, callbackUrl);
+                    exchange.getIn().setHeader(HEADER_REGISTERING_INSTITUTE_ID, registeringInstitutionId);
+                })
+                .setHeader(Exchange.HTTP_METHOD, constant("GET"))
+                .toD(identityURL + accountLookupEndpoint + "?"
+                        + PAYEE_IDENTITY + "=${exchangeProperty.payeeIdentity}&"
+                        + PAYMENT_MODALITY + "=${exchangeProperty.paymentModality}&"
+                        + "requestId=${exchangeProperty.requestId}")
+                .log("API Response: ${body}")
+                .process(disableSslProcessor);
     }
 }
