@@ -9,8 +9,6 @@ plugins {
     id 'checkstyle'
     id 'org.springframework.boot' version '2.6.2'
     id 'com.diffplug.spotless' version '6.19.0'
-    id 'com.github.hierynomus.license' version '0.16.1'
-    id 'com.github.jk1.dependency-license-report' version '2.1'
 }
 
 repositories {
@@ -43,32 +41,6 @@ spotless {
         trimTrailingWhitespace()
     }
     lineEndings 'UNIX'
-}
-// Configuration for Gradle license plug-in
-// https://github.com/hierynomus/license-gradle-plugin
-license {
-    header rootProject.file("$rootDir/LICENSE.md")
-    excludes([
-        "**/gradlew*",
-        "**/git.properties",
-        "**/*.html",
-        "**/templates/**",
-        "**/features/**",
-        "**/results/**",
-        "**/package-info.java",
-        "**/keystore.jks",
-        "**/legacy-docs/**",
-        "**/banner.txt",
-        "**/build.gradle.mustache",
-        "**/pom.mustache",
-        "**/avro/**/*.java",
-        "**/org/apache/fineract/client/**/*.java"
-    ])
-    strictCheck true
-}
-
-licenseReport {
-    outputDir = "$projectDir/licenses"
 }
 
 ext {
@@ -145,9 +117,7 @@ configure(this) {
     apply plugin: 'eclipse'
     apply plugin: 'checkstyle'
     apply plugin: 'com.diffplug.spotless'
-    apply plugin: 'com.github.hierynomus.license'
-    apply plugin: 'project-report'
-    apply plugin: 'com.github.jk1.dependency-license-report'
+
     configurations {
         implementation.setCanBeResolved(true)
         api.setCanBeResolved(true)

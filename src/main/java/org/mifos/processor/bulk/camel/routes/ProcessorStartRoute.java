@@ -1,13 +1,21 @@
 package org.mifos.processor.bulk.camel.routes;
 
-import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.BATCH_REQUEST_TYPE;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_CLIENT_CORRELATION_ID;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PLATFORM_TENANT_ID;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.BATCH_REQUEST_TYPE;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PROGRAM_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_REGISTERING_INSTITUTE_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.IS_UPDATED;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.LOCAL_FILE_PATH;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.OVERRIDE_HEADER;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.PROGRAM_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.REGISTERING_INSTITUTE_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.RESULT_TRANSACTION_LIST;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.TENANT_NAME;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.APPROVAL_ENABLED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_ENABLED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_AGGREGATE_ENABLED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BULK_NOTIF_FAILURE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BULK_NOTIF_SUCCESS;
@@ -17,19 +25,25 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETION_THRESHOLD
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETION_THRESHOLD_CHECK_ENABLED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FORMATTING_ENABLED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.IS_FILE_VALID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MAX_CALLBACK_RETRY;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MAX_STATUS_RETRY;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MERGE_ENABLED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.NOTE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ORDERING_ENABLED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_LOOKUP_ENABLED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYER_IDENTIFIER_TYPE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYER_IDENTIFIER_VALUE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PHASES;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PHASE_COUNT;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PROGRAM_NAME;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REQUEST_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SPLITTING_ENABLED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.THRESHOLD_DELAY;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -37,13 +51,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.ArrayList;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.tika.Tika;
@@ -141,19 +154,15 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
             exchange.setProperty(PURPOSE, purpose);
         }).wireTap("direct:start-batch-process-csv").to("direct:pollingOutput");
 
-        from("direct:validate-tenant")
-                .id("direct:validate-tenant")
-                .log("Validating tenant")
-                .process(exchange -> {
-                    String tenantName = exchange.getIn().getHeader(HEADER_PLATFORM_TENANT_ID, String.class);
-                    // validation is disabled for now
-                    /*if (tenantName == null || tenantName.isEmpty() || !tenants.contains(tenantName)) {
-                        throw new Exception("Invalid tenant value.");
-                    }*/
-                    exchange.setProperty(TENANT_NAME, tenantName);
-                })
-                .setHeader("Content-Type", constant("application/json;charset=UTF-8"))
-                .log("Completed route direct:validate-tenant");
+        from("direct:validate-tenant").id("direct:validate-tenant").log("Validating tenant").process(exchange -> {
+            String tenantName = exchange.getIn().getHeader(HEADER_PLATFORM_TENANT_ID, String.class);
+            // validation is disabled for now
+            /*
+             * if (tenantName == null || tenantName.isEmpty() || !tenants.contains(tenantName)) { throw new
+             * Exception("Invalid tenant value."); }
+             */
+            exchange.setProperty(TENANT_NAME, tenantName);
+        }).setHeader("Content-Type", constant("application/json;charset=UTF-8")).log("Completed route direct:validate-tenant");
 
         // this route is responsible for editing the incoming records based on configuration
         // this step is done to make sure the file format of CSV is not altered and only the data is updated based on
@@ -178,7 +187,8 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     RegisteringInstitutionConfig registeringInstitutionConfig = budgetAccountConfig
                             .getByRegisteringInstituteId(registeringInstituteId);
                     if (registeringInstitutionConfig == null) {
-                        logger.debug("Element in nested in config: {}", budgetAccountConfig.getRegisteringInstitutions().get(0).getPrograms().size());
+                        logger.debug("Element in nested in config: {}",
+                                budgetAccountConfig.getRegisteringInstitutions().get(0).getPrograms().size());
                         logger.debug("Registering institute id is null");
 
                         exchange.setProperty(IS_UPDATED, false);
@@ -213,9 +223,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                 .when(exchange -> exchange.getProperty(IS_UPDATED, Boolean.class))
                 // warning: changing this flag can break things
                 .setProperty(OVERRIDE_HEADER, constant(true)) // default header in CSV file will be used
-                .to("direct:update-file-v2")
-                .otherwise()
-                .log(LoggingLevel.INFO, "No update");
+                .to("direct:update-file-v2").otherwise().log(LoggingLevel.INFO, "No update");
 
         from("direct:start-batch-process-csv").id("direct:start-batch-process-csv").log("Starting route direct:start-batch-process-csv")
                 .to("direct:update-incoming-data").process(exchange -> {
@@ -235,7 +243,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     File file = new File(fileName);
                     file.setWritable(true);
                     file.setReadable(true);
-                    
+
                     logger.debug("File absolute path: {}", file.getAbsolutePath());
 
                     boolean verifyData = verifyData(file);
@@ -272,7 +280,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     variables.put(IS_FILE_VALID, true);
                     setConfigProperties(variables);
 
-					logger.debug("Zeebe variables published: {}", variables);
+                    logger.debug("Zeebe variables published: {}", variables);
                     log.debug("Variables published to zeebe: {}", variables);
 
                     JSONObject response = new JSONObject();
@@ -324,9 +332,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     exchange.setProperty(CLIENT_CORRELATION_ID, clientCorrelationId);
                     exchange.setProperty(REGISTERING_INSTITUTE_ID, registeringInstitutionId);
                     exchange.setProperty(PROGRAM_ID, programId);
-                })
-                .choice()
-                .when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("raw"))
+                }).choice().when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("raw"))
                 .to("direct:start-batch-process-raw")
                 .when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("csv"))
                 .to("direct:start-batch-process-csv").otherwise()

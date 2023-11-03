@@ -1,14 +1,13 @@
 package org.mifos.processor.bulk.format;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import org.mifos.processor.bulk.schema.BatchRequestDTO;
 import org.mifos.processor.bulk.schema.Party;
 import org.mifos.processor.bulk.schema.PartyType;
 import org.mifos.processor.bulk.schema.Transaction;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 @Component
 public class RestRequestConvertor implements EntityMapper<BatchRequestDTO, Transaction> {

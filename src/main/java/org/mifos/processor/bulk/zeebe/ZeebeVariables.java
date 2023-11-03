@@ -1,6 +1,6 @@
 package org.mifos.processor.bulk.zeebe;
 
-public class ZeebeVariables {
+public final class ZeebeVariables {
 
     private ZeebeVariables() {}
 
@@ -149,12 +149,12 @@ public class ZeebeVariables {
 
     public static final String AUTHORIZATION_FAIL_REASON = "authorizationFailReason";
 
-     public static final String PAYER_IDENTIFIER = "payerIdentifier";
+    public static final String PAYER_IDENTIFIER = "payerIdentifier";
 
-     public static final String PARTY_LOOKUP_SUCCESSFUL_TRANSACTION_COUNT = "partyLookupSuccessfulTransactionAmount";
+    public static final String PARTY_LOOKUP_SUCCESSFUL_TRANSACTION_COUNT = "partyLookupSuccessfulTransactionAmount";
 
-     public static final String CURRENCY = "currency";
+    public static final String CURRENCY = "currency";
 
-     public static final String AUTHORIZATION_RESPONSE = "authorizationResponse";
+    public static final String AUTHORIZATION_RESPONSE = "authorizationResponse";
 
 }

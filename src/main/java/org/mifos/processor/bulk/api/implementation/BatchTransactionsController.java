@@ -1,8 +1,22 @@
 package org.mifos.processor.bulk.api.implementation;
 
+import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PROGRAM_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_REGISTERING_INSTITUTE_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.HEADER_CLIENT_CORRELATION_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.HEADER_PLATFORM_TENANT_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.HEADER_TYPE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import java.nio.charset.Charset;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
@@ -22,25 +36,8 @@ import org.mifos.processor.bulk.utility.SpringWrapperUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
-import java.nio.charset.Charset;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PROGRAM_ID;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_REGISTERING_INSTITUTE_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.HEADER_CLIENT_CORRELATION_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.HEADER_PLATFORM_TENANT_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.HEADER_TYPE;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
 
 @Slf4j
 @RestController
@@ -65,25 +62,13 @@ public class BatchTransactionsController implements BatchTransactions {
 
     @SneakyThrows
     @Override
-    public String batchTransactions(
-            HttpServletRequest httpServletRequest,
-            HttpServletResponse httpServletResponse,
-            String requestId,
-            String fileName,
-            String purpose,
-            String type,
-            String tenant,
-            String registeringInstitutionId,
-            String programId) {
+    public String batchTransactions(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, String requestId,
+            String fileName, String purpose, String type, String tenant, String registeringInstitutionId, String programId) {
 
         log.info("Inside api logic");
-        Headers.HeaderBuilder headerBuilder = new Headers.HeaderBuilder()
-                .addHeader(HEADER_CLIENT_CORRELATION_ID, requestId)
-                .addHeader(PURPOSE, purpose)
-                .addHeader(HEADER_TYPE, type)
-                .addHeader(HEADER_PLATFORM_TENANT_ID, tenant)
-                .addHeader(HEADER_REGISTERING_INSTITUTE_ID, registeringInstitutionId)
-                .addHeader(HEADER_PROGRAM_ID, programId);
+        Headers.HeaderBuilder headerBuilder = new Headers.HeaderBuilder().addHeader(HEADER_CLIENT_CORRELATION_ID, requestId)
+                .addHeader(PURPOSE, purpose).addHeader(HEADER_TYPE, type).addHeader(HEADER_PLATFORM_TENANT_ID, tenant)
+                .addHeader(HEADER_REGISTERING_INSTITUTE_ID, registeringInstitutionId).addHeader(HEADER_PROGRAM_ID, programId);
 
         Optional<String> validationResponse = isValidRequest(httpServletRequest, fileName, type);
         if (validationResponse.isPresent()) {
@@ -108,21 +93,20 @@ public class BatchTransactionsController implements BatchTransactions {
 
             String localFileName = UUID.randomUUID() + ".csv";
             CsvWriter.writeToCsv(transactionList, Transaction.class, csvMapper, true, localFileName);
-            Headers headers = headerBuilder
-                    .addHeader(HEADER_TYPE, "csv")
-                    .addHeader(FILE_NAME, localFileName).build();
+            Headers headers = headerBuilder.addHeader(HEADER_TYPE, "csv").addHeader(FILE_NAME, localFileName).build();
 
             CamelApiResponse response = sendRequestToCamel(headers);
             httpServletResponse.setStatus(response.getStatus());
             return response.getBody();
         }
+
     }
 
     @ExceptionHandler({ MultipartException.class })
     public String handleMultipartException(HttpServletResponse httpServletResponse) {
         httpServletResponse.setStatus(httpServletResponse.SC_BAD_REQUEST);
-        return getErrorResponse("File not uploaded", "There was no fie uploaded with the request. " +
-                "Please upload a file and try again.", 400);
+        return getErrorResponse("File not uploaded", "There was no fie uploaded with the request. " + "Please upload a file and try again.",
+                400);
     }
 
     private CamelApiResponse sendRequestToCamel(Headers headers) {
@@ -142,31 +126,26 @@ public class BatchTransactionsController implements BatchTransactions {
     }
 
     // validates the request header, and return errorJson string if the request is invalid else an empty optional
-    private Optional<String> isValidRequest(HttpServletRequest httpServletRequest,
-                                             String fileName,
-                                             String type) {
+    private Optional<String> isValidRequest(HttpServletRequest httpServletRequest, String fileName, String type) {
 
-		Optional<String> response = Optional.empty();
-        if ((JWSUtil.isMultipartRequest(httpServletRequest) && !type.equalsIgnoreCase("csv")) ||
-                (!JWSUtil.isMultipartRequest(httpServletRequest) && !type.equalsIgnoreCase("raw"))) {
+        Optional<String> response = Optional.empty();
+        if ((JWSUtil.isMultipartRequest(httpServletRequest) && !type.equalsIgnoreCase("csv"))
+                || (!JWSUtil.isMultipartRequest(httpServletRequest) && !type.equalsIgnoreCase("raw"))) {
             String errorJson = getErrorResponse("Type mismatch",
-                    "The value of the header \"" + HEADER_TYPE +
-                    "\" doesn't match with the request content-type", 400);
+                    "The value of the header \"" + HEADER_TYPE + "\" doesn't match with the request content-type", 400);
             response = Optional.of(errorJson);
 
         }
         if (JWSUtil.isMultipartRequest(httpServletRequest) && fileName.isEmpty()) {
             String errorJson = getErrorResponse("Header can't be empty",
-                    "If the request is of type csv, the header \"" +
-                            FILE_NAME + "\"can't be empty", 400);
+                    "If the request is of type csv, the header \"" + FILE_NAME + "\"can't be empty", 400);
             response = Optional.of(errorJson);
         }
         if (!type.equalsIgnoreCase("raw") && !type.equalsIgnoreCase("csv")) {
             String errorJson = getErrorResponse("Invalid TYPE header value passed",
-                    "The value of the header \"" + HEADER_TYPE +
-                            "\" can be \"[raw,csv]\" but is " + type, 400);
+                    "The value of the header \"" + HEADER_TYPE + "\" can be \"[raw,csv]\" but is " + type, 400);
             response = Optional.of(errorJson);
         }
-		return response;
+        return response;
     }
 }

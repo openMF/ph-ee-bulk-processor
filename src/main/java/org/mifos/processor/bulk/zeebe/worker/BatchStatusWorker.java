@@ -1,19 +1,23 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETION_RATE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Map;
 import org.mifos.processor.bulk.OperationsAppConfig;
 import org.mifos.processor.bulk.schema.BatchDTO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.Map;
-
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
-
-public class BatchStatusWorker extends BaseWorker{
+public class BatchStatusWorker extends BaseWorker {
 
     @Autowired
     public OperationsAppConfig operationsAppConfig;
@@ -36,8 +40,8 @@ public class BatchStatusWorker extends BaseWorker{
         }));
     }
 
-    private float calculateSuccessPercentage(BatchDTO batchDTO){
-        if(batchDTO.getTotal()!=null && batchDTO.getTotal()!=0){
+    private float calculateSuccessPercentage(BatchDTO batchDTO) {
+        if (batchDTO.getTotal() != null && batchDTO.getTotal() != 0) {
             return (((float) batchDTO.getSuccessful() / batchDTO.getTotal()) * 100);
         }
         return 0;
@@ -52,8 +56,7 @@ public class BatchStatusWorker extends BaseWorker{
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(url).queryParam("batchId", batchId);
         String finalUrl = uriBuilder.toUriString();
 
-        ResponseEntity<String> response = restTemplate.exchange(finalUrl, HttpMethod.GET,
-                new HttpEntity<>(null, headers), String.class);
+        ResponseEntity<String> response = restTemplate.exchange(finalUrl, HttpMethod.GET, new HttpEntity<>(null, headers), String.class);
         String batchAggregationResponse = response != null ? response.getBody() : null;
         ObjectMapper objectMapper = new ObjectMapper();
         BatchDTO batchDTO = null;

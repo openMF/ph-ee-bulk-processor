@@ -74,7 +74,8 @@ public class ZeebeWorkers {
             InputStream csvFileInputStream = fileTransferService.streamFile(fileName, bucketName);
 
             CsvSchema schema = CsvSchema.emptySchema().withHeader();
-            MappingIterator<Transaction> readValues = csvMapper.readerWithSchemaFor(Transaction.class).with(schema).readValues(csvFileInputStream);
+            MappingIterator<Transaction> readValues = csvMapper.readerWithSchemaFor(Transaction.class).with(schema)
+                    .readValues(csvFileInputStream);
 
             /*
              * while (readValues.hasNext()) { Transaction current = readValues.next(); current.setBatchId(batchId); if

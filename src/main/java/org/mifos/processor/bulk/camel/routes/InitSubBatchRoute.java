@@ -1,7 +1,21 @@
 package org.mifos.processor.bulk.camel.routes;
 
-import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.BATCH_ID_HEADER;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.EXTERNAL_ENDPOINT;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.EXTERNAL_ENDPOINT_FAILED;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_CLIENT_CORRELATION_ID;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_REGISTERING_INSTITUTE_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.IS_PAYMENT_MODE_VALID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.LOCAL_FILE_PATH;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.OVERRIDE_HEADER;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.PAYMENT_MODE_TYPE;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.RESULT_TRANSACTION_LIST;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.TENANT_NAME;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST_ELEMENT;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST_LENGTH;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.ZEEBE_VARIABLE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETED_AMOUNT;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.DEBULKINGDFSPID;
@@ -63,12 +77,8 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
          * Builds the [Transaction] array using [direct:get-transaction-array] route. 3. Loops through each transaction
          * and start the respective workflow
          */
-        from(RouteId.INIT_SUB_BATCH.getValue())
-                .id(RouteId.INIT_SUB_BATCH.getValue())
-                .log("Starting route " + RouteId.INIT_SUB_BATCH.name())
-                .to("direct:download-file")
-                .to("direct:get-transaction-array")
-                .to("direct:start-workflow-step1");
+        from(RouteId.INIT_SUB_BATCH.getValue()).id(RouteId.INIT_SUB_BATCH.getValue()).log("Starting route " + RouteId.INIT_SUB_BATCH.name())
+                .to("direct:download-file").to("direct:get-transaction-array").to("direct:start-workflow-step1");
 
         // crates the zeebe variables map and starts the workflow by calling >> direct:start-workflow-step2
         from("direct:start-workflow-step1").id("direct:start-flow-step1").log("Starting route direct:start-flow-step1")
@@ -120,11 +130,10 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     int index = exchange.getProperty(Exchange.LOOP_INDEX, Integer.class);
                     List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
                     Transaction transaction = transactionList.get(index);
-                exchange.setProperty(REQUEST_ID, transaction.getRequestId());
-                  logger.info("REQUEST_ID: {}", transaction.getRequestId());
+                    exchange.setProperty(REQUEST_ID, transaction.getRequestId());
+                    logger.info("REQUEST_ID: {}", transaction.getRequestId());
                     exchange.setProperty(TRANSACTION_LIST_ELEMENT, transaction);
-                }).setHeader("Platform-TenantId", exchangeProperty(TENANT_NAME))
-                .to("direct:dynamic-payload-setter")
+                }).setHeader("Platform-TenantId", exchangeProperty(TENANT_NAME)).to("direct:dynamic-payload-setter")
                 .to("direct:external-api-call").to("direct:external-api-response-handler").end() // end loop block
                 .endChoice();
 
@@ -189,6 +198,7 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     log.debug("Variables: {}", exchange.getProperties());
                     log.debug("Emergency: {}", exchange.getIn().getHeaders());
                 })
+
                 .toD(channelURL + "${exchangeProperty.extEndpoint}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
                 .log(LoggingLevel.DEBUG, "Response body: ${body}").otherwise().endChoice();
 

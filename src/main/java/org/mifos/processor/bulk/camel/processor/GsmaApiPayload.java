@@ -5,6 +5,7 @@ import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.function.Function;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
 import org.mifos.connector.common.gsma.dto.GSMATransaction;
 import org.mifos.processor.bulk.schema.Transaction;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
 public class GsmaApiPayload implements Function<Exchange, String> {
 
     @Autowired
@@ -26,7 +28,7 @@ public class GsmaApiPayload implements Function<Exchange, String> {
         try {
             return objectMapper.writeValueAsString(gsmaTransaction);
         } catch (JsonProcessingException e) {
-            throw new DTOJsonConversionException(GSMATransaction.class);
+            throw new DTOJsonConversionException(GSMATransaction.class, "Unable to convert GSMATransaction to Json", e);
         }
     }
 }

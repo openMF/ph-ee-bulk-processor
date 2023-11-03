@@ -1,8 +1,5 @@
 package org.mifos.processor.bulk.file;
 
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -10,6 +7,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.UUID;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class FileStorageServiceImpl implements FileStorageService {
@@ -22,7 +21,7 @@ public class FileStorageServiceImpl implements FileStorageService {
         try {
             Files.copy(file.getInputStream(), this.root.resolve(filename));
         } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
+            throw new RuntimeException("Failed to save file: " + e.getMessage(), e);
         }
         return filename;
     }
@@ -33,7 +32,7 @@ public class FileStorageServiceImpl implements FileStorageService {
         try {
             Files.copy(inputStream, this.root.resolve(uniqueFileName));
         } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
+            throw new RuntimeException("Failed to save file: " + e.getMessage(), e);
         }
         return uniqueFileName;
     }

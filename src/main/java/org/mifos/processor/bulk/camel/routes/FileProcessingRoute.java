@@ -9,13 +9,13 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETED_AMOUNT;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FAILED_AMOUNT;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ONGOING_AMOUNT;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TOTAL_AMOUNT;
+
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.SequenceWriter;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.mifos.processor.bulk.schema.Transaction;

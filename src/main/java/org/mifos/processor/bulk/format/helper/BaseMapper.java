@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import org.mifos.processor.bulk.schema.CsvSchema;
 
-public abstract class BaseMapper<FROM extends CsvSchema, TO extends CsvSchema> implements Mapper<FROM, TO> {
+public abstract class BaseMapper<F extends CsvSchema, T extends CsvSchema> implements Mapper<F, T> {
 
     @Override
-    public List<TO> convertList(List<FROM> objects) {
-        List<TO> list = new ArrayList<>();
+    public List<T> convertList(List<F> objects) {
+        List<T> list = new ArrayList<>();
         objects.forEach(transaction -> {
             list.add(convert(transaction));
         });

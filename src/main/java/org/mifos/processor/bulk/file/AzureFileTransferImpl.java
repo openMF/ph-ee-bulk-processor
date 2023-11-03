@@ -1,14 +1,13 @@
 package org.mifos.processor.bulk.file;
 
 import com.azure.storage.blob.BlobClientBuilder;
+import com.azure.storage.blob.models.BlobProperties;
+import com.azure.storage.blob.specialized.BlobInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-
-import com.azure.storage.blob.models.BlobProperties;
-import com.azure.storage.blob.specialized.BlobInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +35,7 @@ public class AzureFileTransferImpl implements FileTransferService {
             temp.delete();
             return content;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.debug("{}", e.getMessage());
         }
         return null;
     }
@@ -76,7 +75,7 @@ public class AzureFileTransferImpl implements FileTransferService {
             // temp.delete();
             return csvInputStream;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.debug(e.getMessage());
         }
         return null;
     }

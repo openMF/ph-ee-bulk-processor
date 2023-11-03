@@ -1,11 +1,10 @@
 package org.mifos.processor.bulk.schema;
 
+import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.math.BigDecimal;
 
 @Getter
 @Setter
@@ -13,9 +12,9 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class BatchDTO {
 
-    private String batch_id;
+    private String batchId;
 
-    private String request_id;
+    private String requestId;
 
     private Long total;
 
@@ -37,7 +36,7 @@ public class BatchDTO {
 
     private String notes;
 
-    private String created_at;
+    private String createdAt;
 
     private String status;
 

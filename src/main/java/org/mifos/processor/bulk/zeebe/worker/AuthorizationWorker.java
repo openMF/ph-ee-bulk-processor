@@ -1,11 +1,15 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
-import java.util.HashMap;
-import java.util.Map;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.APPROVED_AMOUNT;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_ACCEPTED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_SUCCESSFUL;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CLIENT_CORRELATION_ID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.util.StringUtils;
+import java.util.Map;
 import org.mifos.processor.bulk.schema.AuthorizationRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,12 +20,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_SUCCESSFUL;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.APPROVED_AMOUNT;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CLIENT_CORRELATION_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_ACCEPTED;
 
 @Component
 public class AuthorizationWorker extends BaseWorker {
@@ -75,7 +73,8 @@ public class AuthorizationWorker extends BaseWorker {
         });
     }
 
-    private HttpStatus invokeBatchAuthorizationApi(String batchId, AuthorizationRequest requestPayload, String clientCorrelationId) throws JsonProcessingException {
+    private HttpStatus invokeBatchAuthorizationApi(String batchId, AuthorizationRequest requestPayload, String clientCorrelationId)
+            throws JsonProcessingException {
         logger.info("Calling auth API");
         if (StringUtils.isBlank(requestPayload.getAmount())) {
             requestPayload.setAmount("0");
