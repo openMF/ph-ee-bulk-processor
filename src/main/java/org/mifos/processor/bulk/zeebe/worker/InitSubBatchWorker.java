@@ -18,10 +18,12 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SUB_BATCHES;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.camel.Exchange;
 import org.apache.camel.support.DefaultExchange;
@@ -66,18 +68,23 @@ public class InitSubBatchWorker extends BaseWorker {
                 subBatches.add((String) variables.get(FILE_NAME));
             }
 
-            String subBatchEntityListString = (String) variables.get(SUB_BATCH_DETAILS);
-            List<SubBatchEntity> subBatchEntityList = Arrays.asList(objectMapper.readValue(subBatchEntityListString, SubBatchEntity.class));
-            logger.info("Subbatch entity list in init sub batch worker: {}", objectMapper.writeValueAsString(subBatchEntityList));
+            List<Object> subBatchObjectList = (List<Object>) variables.get(SUB_BATCH_DETAILS);
+            logger.info("Subbatch entity list in init sub batch worker: {}", subBatchObjectList);
+
+            List<SubBatchEntity> subBatchEntityList = objectMapper.convertValue(subBatchObjectList,
+                    new TypeReference<>() {
+                    });
+
             String fileName = subBatches.remove(0);
             SubBatchEntity subBatchEntity = null;
-            for (SubBatchEntity batchEntity : subBatchEntityList) {
-                if (batchEntity.getRequestFile().contains(fileName)) {
-                    subBatchEntity = batchEntity;
-                    logger.info("BatchEntity for this subbatch is {}", objectMapper.writeValueAsString(subBatchEntity));
-                    break;
+
+            for(SubBatchEntity subBatch: subBatchEntityList) {
+                if (subBatch.getRequestFile().contains(fileName)) {
+                    subBatchEntity = subBatch;
+                    logger.info("SubBatchEntity found");
                 }
             }
+            logger.info("BatchEntity for this subbatch is {}", objectMapper.writeValueAsString(subBatchEntity));
 
             Exchange exchange = new DefaultExchange(camelContext);
             exchange.setProperty(TENANT_NAME, variables.get(TENANT_ID));

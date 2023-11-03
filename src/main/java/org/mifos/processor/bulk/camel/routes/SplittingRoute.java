@@ -15,6 +15,7 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CLIENT_CORRELATION_I
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYER_IDENTIFIER;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REQUEST_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SPLITTING_FAILED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -69,7 +70,7 @@ public class SplittingRoute extends BaseRouteBuilder {
             List<String> subBatchFile = new ArrayList<>();
             int subBatchCount = 1;
             for (int i = 0; i < lines.size(); i += subBatchSize) {
-                String filename = System.currentTimeMillis() + "_" + "sub-batch-" + subBatchCount + ".csv";
+                String filename = UUID.randomUUID() + "_" + "sub-batch-" + subBatchCount + ".csv";
                 FileWriter writer = new FileWriter(filename);
                 writer.write(header);
                 for (int j = i; j < Math.min(i + subBatchSize, lines.size()); j++) {
@@ -88,11 +89,16 @@ public class SplittingRoute extends BaseRouteBuilder {
 
         // Iterate through each CSVs of sub-batches and uploads in cloud
         from("direct:upload-sub-batch-file").id("direct:upload-sub-batch-file").log("Starting upload of sub-batch file")
-                .loopDoWhile(exchange -> exchange.getProperty(SUB_BATCH_FILE_ARRAY, List.class).size() > 0).process(exchange -> {
+                .loopDoWhile(exchange -> exchange.getProperty(SUB_BATCH_FILE_ARRAY, List.class).size() > 0)
+                .process(exchange -> {
                     List<String> subBatchFile = exchange.getProperty(SUB_BATCH_FILE_ARRAY, List.class);
-                    exchange.setProperty(LOCAL_FILE_PATH, subBatchFile.remove(0));
+                    String localFilePath = subBatchFile.remove(0);
+                    exchange.setProperty(LOCAL_FILE_PATH, localFilePath);
                     exchange.setProperty(SUB_BATCH_FILE_ARRAY, subBatchFile);
+                    logger.info("Local file path: {}", localFilePath);
+                    logger.info("Sub batch file array: {}, ", subBatchFile);
                 })
+                .log("LOCAL_FILE_PATH: ${exchangeProperty." + LOCAL_FILE_PATH + "}")
                 .to("direct:generate-sub-batch-entity").log("direct:generate-sub-batch-entity completed")
                 .to("direct:upload-file")
                 .process(exchange -> {
@@ -100,6 +106,7 @@ public class SplittingRoute extends BaseRouteBuilder {
                     List<String> serverSubBatchFile = exchange.getProperty(SERVER_SUB_BATCH_FILE_NAME_ARRAY, List.class);
                     serverSubBatchFile.add(serverFilename);
                     exchange.setProperty(SERVER_SUB_BATCH_FILE_NAME_ARRAY, serverSubBatchFile);
+                    logger.info("Server subbatch filename array: {}", serverSubBatchFile);
                 });
 
         // generate subBatchEntityDetails, make sure [LOCAL_FILE_PATH] has the absolute sub batch file path
@@ -110,7 +117,7 @@ public class SplittingRoute extends BaseRouteBuilder {
                 .process(exchange -> {
                     List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
                     Map<String, Object> zeebeVariables = exchange.getProperty(ZEEBE_VARIABLE, Map.class);
-                    String serverFileName = exchange.getProperty(SERVER_FILE_NAME, String.class);
+                    String serverFileName = exchange.getProperty(LOCAL_FILE_PATH, String.class);
 
                     logger.info("Generating sub batch entity for file {}", serverFileName);
                     if (transactionList.isEmpty()) {
