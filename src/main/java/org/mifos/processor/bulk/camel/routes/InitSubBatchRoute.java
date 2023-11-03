@@ -11,6 +11,7 @@ import static org.mifos.processor.bulk.camel.config.CamelProperties.OVERRIDE_HEA
 import static org.mifos.processor.bulk.camel.config.CamelProperties.PAYMENT_MODE_TYPE;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.RESULT_TRANSACTION_LIST;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.SUB_BATCH_ENTITY;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.TENANT_NAME;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST_ELEMENT;
@@ -42,6 +43,7 @@ import org.mifos.processor.bulk.config.ExternalApiPayloadConfig;
 import org.mifos.processor.bulk.config.PaymentModeConfiguration;
 import org.mifos.processor.bulk.config.PaymentModeMapping;
 import org.mifos.processor.bulk.config.PaymentModeType;
+import org.mifos.processor.bulk.schema.SubBatchEntity;
 import org.mifos.processor.bulk.schema.Transaction;
 import org.mifos.processor.bulk.schema.TransactionResult;
 import org.mifos.processor.bulk.utility.Utils;
@@ -85,7 +87,7 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 .process(exchange -> {
                     List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
 
-                    Map<String, Object> variables = new HashMap<>();
+                    Map<String, Object> variables = exchange.getProperty(ZEEBE_VARIABLE, Map.class);
                     variables.put(BATCH_ID, exchange.getProperty(BATCH_ID));
                     variables.put(SUB_BATCH_ID, UUID.randomUUID().toString());
                     variables.put(FILE_NAME, exchange.getProperty(SERVER_FILE_NAME));
@@ -96,6 +98,11 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     variables.put(FAILED_AMOUNT, exchange.getProperty(FAILED_AMOUNT));
                     variables.put(COMPLETED_AMOUNT, exchange.getProperty(COMPLETED_AMOUNT));
                     variables.put(RESULT_FILE, String.format("Result_%s", exchange.getProperty(SERVER_FILE_NAME)));
+
+                    SubBatchEntity subBatchEntity = exchange.getProperty(SUB_BATCH_ENTITY, SubBatchEntity.class);
+                    if (subBatchEntity != null) {
+                        variables.put(SUB_BATCH_ID, subBatchEntity.getSubBatchId());
+                    }
 
                     exchange.setProperty(ZEEBE_VARIABLE, variables);
                     exchange.setProperty(PAYMENT_MODE, transactionList.get(0).getPaymentMode());
@@ -191,7 +198,17 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
         }).choice().when(exchangeProperty(EXTERNAL_ENDPOINT_FAILED).isEqualTo(false))
                 .log(LoggingLevel.DEBUG, "Making API call to endpoint ${exchangeProperty.extEndpoint} and body: ${body}")
                 .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
+                .choice()
+                .when(exchange -> exchange.getProperty(SUB_BATCH_ENTITY, SubBatchEntity.class) != null)
+                .log("Sub batch entity is not null, hence passing subBatchId while calling channel API")
+                .process(exchange -> {
+                    SubBatchEntity subBatchEntity = exchange.getProperty(SUB_BATCH_ENTITY, SubBatchEntity.class);
+                    exchange.getIn().setHeader(BATCH_ID_HEADER, subBatchEntity.getSubBatchId());
+                })
+                .otherwise()
+                .log("Sub batch entity is null, hence passing batchId while calling channel API")
                 .setHeader(BATCH_ID_HEADER, simple("${exchangeProperty." + BATCH_ID + "}"))
+                .endChoice()
                 .setHeader(HEADER_CLIENT_CORRELATION_ID, simple("${exchangeProperty." + REQUEST_ID + "}"))
                 .setHeader(HEADER_REGISTERING_INSTITUTE_ID, simple("${exchangeProperty." + HEADER_REGISTERING_INSTITUTE_ID + "}"))
                 .process(exchange -> {
