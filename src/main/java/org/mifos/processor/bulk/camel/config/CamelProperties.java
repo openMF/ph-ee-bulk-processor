@@ -19,6 +19,7 @@ public final class CamelProperties {
     public static final String SUB_BATCH_COUNT = "subBatchCount";
 
     public static final String SUB_BATCH_CREATED = "subBatchCreated";
+    public static final String SUB_BATCH_DETAILS = "subBatchDetails";
 
     public static final String SERVER_SUB_BATCH_FILE_NAME_ARRAY = "serverSubBatchFileName";
 
