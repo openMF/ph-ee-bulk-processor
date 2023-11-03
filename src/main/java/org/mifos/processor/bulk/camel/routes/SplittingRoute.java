@@ -92,8 +92,9 @@ public class SplittingRoute extends BaseRouteBuilder {
                     List<String> subBatchFile = exchange.getProperty(SUB_BATCH_FILE_ARRAY, List.class);
                     exchange.setProperty(LOCAL_FILE_PATH, subBatchFile.remove(0));
                     exchange.setProperty(SUB_BATCH_FILE_ARRAY, subBatchFile);
-                }).to("direct:upload-file")
+                })
                 .to("direct:generate-sub-batch-entity").log("direct:generate-sub-batch-entity completed")
+                .to("direct:upload-file")
                 .process(exchange -> {
                     String serverFilename = exchange.getProperty(SERVER_FILE_NAME, String.class);
                     List<String> serverSubBatchFile = exchange.getProperty(SERVER_SUB_BATCH_FILE_NAME_ARRAY, List.class);
