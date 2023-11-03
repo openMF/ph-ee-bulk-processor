@@ -1,10 +1,10 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
 import static org.mifos.processor.bulk.camel.config.CamelProperties.CACHED_TRANSACTION_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_REGISTERING_INSTITUTE_ID;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.HOST;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.PAYEE_IDENTITY;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.PAYMENT_MODALITY;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_REGISTERING_INSTITUTE_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ACCOUNT_LOOKUP_RETRY_COUNT;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CHANNEL_REQUEST;
@@ -18,19 +18,15 @@ import static org.mifos.processor.bulk.zeebe.worker.Worker.ACCOUNT_LOOKUP;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.camunda.zeebe.client.ZeebeClient;
 import java.util.Map;
-
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.support.DefaultExchange;
 import org.mifos.connector.common.channel.dto.TransactionChannelRequestDTO;
 import org.mifos.connector.common.mojaloop.dto.PartyIdInfo;
-import org.mifos.processor.bulk.schema.AuthorizationRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
 @Component
 public class AccountLookupWorker extends BaseWorker {
@@ -86,7 +82,6 @@ public class AccountLookupWorker extends BaseWorker {
             exchange.setProperty(TENANT_ID, tenantId);
             exchange.setProperty(HEADER_REGISTERING_INSTITUTE_ID, existingVariables.get(HEADER_REGISTERING_INSTITUTE_ID));
             producerTemplate.send("direct:send-account-lookup", exchange);
-
 
             client.newCompleteCommand(job.getKey()).variables(existingVariables).send();
         }).name(String.valueOf(ACCOUNT_LOOKUP)).open();

@@ -1,7 +1,5 @@
 package org.mifos.processor.bulk.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.APPROVED_AMOUNT;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_FAIL_REASON;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_RESPONSE;
@@ -9,6 +7,8 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_STATUS
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_SUCCESSFUL;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CLIENT_CORRELATION_ID;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.camunda.zeebe.client.ZeebeClient;
 import java.time.Duration;
 import java.util.HashMap;
@@ -36,7 +36,8 @@ public class CallbackController {
     private static final String EXPECTED_AUTH_STATUS = "Y";
 
     @PostMapping("/authorization/callback")
-    public ResponseEntity<Object> handleAuthorizationCallback(@RequestBody AuthorizationResponse authResponse) throws JsonProcessingException {
+    public ResponseEntity<Object> handleAuthorizationCallback(@RequestBody AuthorizationResponse authResponse)
+            throws JsonProcessingException {
         logger.info("Callback received");
         logger.debug("Auth response: {}", objectMapper.writeValueAsString(authResponse));
         Map<String, Object> variables = new HashMap<>();
@@ -54,11 +55,8 @@ public class CallbackController {
         logger.info("Is auth successful: {}", isAuthorizationSuccessful);
 
         if (zeebeClient != null) {
-            zeebeClient.newPublishMessageCommand()
-                    .messageName(AUTHORIZATION_RESPONSE)
-                    .correlationKey(authResponse.getClientCorrelationId())
-                    .timeToLive(Duration.ofMillis(500000))
-                    .variables(variables).send();
+            zeebeClient.newPublishMessageCommand().messageName(AUTHORIZATION_RESPONSE).correlationKey(authResponse.getClientCorrelationId())
+                    .timeToLive(Duration.ofMillis(500000)).variables(variables).send();
             logger.debug("Published zeebe message event {}", AUTHORIZATION_RESPONSE);
             zeebeClient.newPublishMessageCommand().messageName(AUTHORIZATION_RESPONSE).correlationKey(authResponse.getClientCorrelationId())
                     .timeToLive(Duration.ofMillis(500000)).variables(variables).send();

@@ -1,17 +1,15 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
-
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.APPROVED_AMOUNT;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_ACCEPTED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_SUCCESSFUL;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CLIENT_CORRELATION_ID;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.util.StringUtils;
+import java.util.Map;
 import org.mifos.processor.bulk.schema.AuthorizationRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -75,7 +73,8 @@ public class AuthorizationWorker extends BaseWorker {
         });
     }
 
-    private HttpStatus invokeBatchAuthorizationApi(String batchId, AuthorizationRequest requestPayload, String clientCorrelationId) throws JsonProcessingException {
+    private HttpStatus invokeBatchAuthorizationApi(String batchId, AuthorizationRequest requestPayload, String clientCorrelationId)
+            throws JsonProcessingException {
         logger.info("Calling auth API");
         if (StringUtils.isBlank(requestPayload.getAmount())) {
             requestPayload.setAmount("0");
