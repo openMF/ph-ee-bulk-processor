@@ -89,7 +89,6 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
 
                     Map<String, Object> variables = exchange.getProperty(ZEEBE_VARIABLE, Map.class);
                     variables.put(BATCH_ID, exchange.getProperty(BATCH_ID));
-                    variables.put(SUB_BATCH_ID, UUID.randomUUID().toString());
                     variables.put(FILE_NAME, exchange.getProperty(SERVER_FILE_NAME));
                     variables.put(REQUEST_ID, exchange.getProperty(REQUEST_ID));
                     variables.put(PURPOSE, exchange.getProperty(PURPOSE));
@@ -98,11 +97,6 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     variables.put(FAILED_AMOUNT, exchange.getProperty(FAILED_AMOUNT));
                     variables.put(COMPLETED_AMOUNT, exchange.getProperty(COMPLETED_AMOUNT));
                     variables.put(RESULT_FILE, String.format("Result_%s", exchange.getProperty(SERVER_FILE_NAME)));
-
-                    SubBatchEntity subBatchEntity = exchange.getProperty(SUB_BATCH_ENTITY, SubBatchEntity.class);
-                    if (subBatchEntity != null) {
-                        variables.put(SUB_BATCH_ID, subBatchEntity.getSubBatchId());
-                    }
 
                     exchange.setProperty(ZEEBE_VARIABLE, variables);
                     exchange.setProperty(PAYMENT_MODE, transactionList.get(0).getPaymentMode());
