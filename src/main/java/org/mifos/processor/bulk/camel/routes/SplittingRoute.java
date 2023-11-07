@@ -25,6 +25,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import org.apache.camel.LoggingLevel;
 import org.mifos.processor.bulk.schema.SubBatchEntity;
 import org.mifos.processor.bulk.schema.Transaction;
 import org.springframework.beans.factory.annotation.Value;
@@ -95,10 +97,10 @@ public class SplittingRoute extends BaseRouteBuilder {
                     String localFilePath = subBatchFile.remove(0);
                     exchange.setProperty(LOCAL_FILE_PATH, localFilePath);
                     exchange.setProperty(SUB_BATCH_FILE_ARRAY, subBatchFile);
-                    logger.info("Local file path: {}", localFilePath);
-                    logger.info("Sub batch file array: {}, ", subBatchFile);
+                    logger.debug("Local file path: {}", localFilePath);
+                    logger.debug("Sub batch file array: {}, ", subBatchFile);
                 })
-                .log("LOCAL_FILE_PATH: ${exchangeProperty." + LOCAL_FILE_PATH + "}")
+                .log(LoggingLevel.DEBUG, "LOCAL_FILE_PATH: ${exchangeProperty." + LOCAL_FILE_PATH + "}")
                 .to("direct:generate-sub-batch-entity").log("direct:generate-sub-batch-entity completed")
                 .to("direct:upload-file")
                 .process(exchange -> {
@@ -106,7 +108,7 @@ public class SplittingRoute extends BaseRouteBuilder {
                     List<String> serverSubBatchFile = exchange.getProperty(SERVER_SUB_BATCH_FILE_NAME_ARRAY, List.class);
                     serverSubBatchFile.add(serverFilename);
                     exchange.setProperty(SERVER_SUB_BATCH_FILE_NAME_ARRAY, serverSubBatchFile);
-                    logger.info("Server subbatch filename array: {}", serverSubBatchFile);
+                    logger.debug("Server subbatch filename array: {}", serverSubBatchFile);
                 });
 
         // generate subBatchEntityDetails, make sure [LOCAL_FILE_PATH] has the absolute sub batch file path
@@ -142,12 +144,12 @@ public class SplittingRoute extends BaseRouteBuilder {
                     subBatchEntity.setOngoingAmount(totalAmount);
                     subBatchEntity.setStartedAt(new Date(System.currentTimeMillis()));
 
-                    logger.info("SubBatchEntity: {}", objectMapper.writeValueAsString(subBatchEntity));
+                    logger.debug("SubBatchEntity: {}", objectMapper.writeValueAsString(subBatchEntity));
 					// update the sub batch details array
                     List<SubBatchEntity> subBatchEntityList = exchange.getProperty(SUB_BATCH_DETAILS, List.class);
                     subBatchEntityList.add(subBatchEntity);
                     exchange.setProperty(SUB_BATCH_DETAILS, subBatchEntityList);
-                    logger.info("generate-sub-batch-entity route end: {}", objectMapper.writeValueAsString(subBatchEntityList));
+                    logger.debug("generate-sub-batch-entity route end: {}", objectMapper.writeValueAsString(subBatchEntityList));
                 });
     }
     private SubBatchEntity getDefaultSubBatchEntity() {

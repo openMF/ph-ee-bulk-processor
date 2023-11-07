@@ -69,7 +69,7 @@ public class InitSubBatchWorker extends BaseWorker {
             }
 
             List<Object> subBatchObjectList = (List<Object>) variables.get(SUB_BATCH_DETAILS);
-            logger.info("Subbatch entity list in init sub batch worker: {}", subBatchObjectList);
+            logger.debug("Subbatch entity list in init sub batch worker: {}", subBatchObjectList);
 
             List<SubBatchEntity> subBatchEntityList = objectMapper.convertValue(subBatchObjectList,
                     new TypeReference<>() {
@@ -84,7 +84,7 @@ public class InitSubBatchWorker extends BaseWorker {
                     logger.info("SubBatchEntity found");
                 }
             }
-            logger.info("BatchEntity for this subbatch is {}", objectMapper.writeValueAsString(subBatchEntity));
+            logger.debug("BatchEntity for this subbatch is {}", objectMapper.writeValueAsString(subBatchEntity));
 
             Exchange exchange = new DefaultExchange(camelContext);
             exchange.setProperty(TENANT_NAME, variables.get(TENANT_ID));
