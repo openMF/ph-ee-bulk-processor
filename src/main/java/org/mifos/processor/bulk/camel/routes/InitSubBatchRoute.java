@@ -28,14 +28,11 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYMENT_MODE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REQUEST_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.RESULT_FILE;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SUB_BATCH_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TOTAL_AMOUNT;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.function.Function;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
@@ -191,18 +188,13 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
             }
         }).choice().when(exchangeProperty(EXTERNAL_ENDPOINT_FAILED).isEqualTo(false))
                 .log(LoggingLevel.DEBUG, "Making API call to endpoint ${exchangeProperty.extEndpoint} and body: ${body}")
-                .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
-                .choice()
+                .setHeader(Exchange.CONTENT_TYPE, constant("application/json")).choice()
                 .when(exchange -> exchange.getProperty(SUB_BATCH_ENTITY, SubBatchEntity.class) != null)
-                .log("Sub batch entity is not null, hence passing subBatchId while calling channel API")
-                .process(exchange -> {
+                .log("Sub batch entity is not null, hence passing subBatchId while calling channel API").process(exchange -> {
                     SubBatchEntity subBatchEntity = exchange.getProperty(SUB_BATCH_ENTITY, SubBatchEntity.class);
                     exchange.getIn().setHeader(BATCH_ID_HEADER, subBatchEntity.getSubBatchId());
-                })
-                .otherwise()
-                .log("Sub batch entity is null, hence passing batchId while calling channel API")
-                .setHeader(BATCH_ID_HEADER, simple("${exchangeProperty." + BATCH_ID + "}"))
-                .endChoice()
+                }).otherwise().log("Sub batch entity is null, hence passing batchId while calling channel API")
+                .setHeader(BATCH_ID_HEADER, simple("${exchangeProperty." + BATCH_ID + "}")).endChoice()
                 .setHeader(HEADER_CLIENT_CORRELATION_ID, simple("${exchangeProperty." + REQUEST_ID + "}"))
                 .setHeader(HEADER_REGISTERING_INSTITUTE_ID, simple("${exchangeProperty." + HEADER_REGISTERING_INSTITUTE_ID + "}"))
                 .process(exchange -> {

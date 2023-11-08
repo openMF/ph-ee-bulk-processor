@@ -17,14 +17,11 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SPLITTING_ENABLED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SUB_BATCHES;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.apache.camel.Exchange;
 import org.apache.camel.support.DefaultExchange;
 import org.mifos.processor.bulk.camel.routes.RouteId;
@@ -71,14 +68,12 @@ public class InitSubBatchWorker extends BaseWorker {
             List<Object> subBatchObjectList = (List<Object>) variables.get(SUB_BATCH_DETAILS);
             logger.debug("Subbatch entity list in init sub batch worker: {}", subBatchObjectList);
 
-            List<SubBatchEntity> subBatchEntityList = objectMapper.convertValue(subBatchObjectList,
-                    new TypeReference<>() {
-                    });
+            List<SubBatchEntity> subBatchEntityList = objectMapper.convertValue(subBatchObjectList, new TypeReference<>() {});
 
             String fileName = subBatches.remove(0);
             SubBatchEntity subBatchEntity = null;
 
-            for(SubBatchEntity subBatch: subBatchEntityList) {
+            for (SubBatchEntity subBatch : subBatchEntityList) {
                 if (subBatch.getRequestFile().contains(fileName)) {
                     subBatchEntity = subBatch;
                     logger.info("SubBatchEntity found");

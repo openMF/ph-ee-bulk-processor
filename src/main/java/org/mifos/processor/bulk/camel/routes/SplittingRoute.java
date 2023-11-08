@@ -15,7 +15,6 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CLIENT_CORRELATION_I
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYER_IDENTIFIER;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REQUEST_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SPLITTING_FAILED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -25,7 +24,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
 import org.apache.camel.LoggingLevel;
 import org.mifos.processor.bulk.schema.SubBatchEntity;
 import org.mifos.processor.bulk.schema.Transaction;
@@ -91,18 +89,15 @@ public class SplittingRoute extends BaseRouteBuilder {
 
         // Iterate through each CSVs of sub-batches and uploads in cloud
         from("direct:upload-sub-batch-file").id("direct:upload-sub-batch-file").log("Starting upload of sub-batch file")
-                .loopDoWhile(exchange -> exchange.getProperty(SUB_BATCH_FILE_ARRAY, List.class).size() > 0)
-                .process(exchange -> {
+                .loopDoWhile(exchange -> exchange.getProperty(SUB_BATCH_FILE_ARRAY, List.class).size() > 0).process(exchange -> {
                     List<String> subBatchFile = exchange.getProperty(SUB_BATCH_FILE_ARRAY, List.class);
                     String localFilePath = subBatchFile.remove(0);
                     exchange.setProperty(LOCAL_FILE_PATH, localFilePath);
                     exchange.setProperty(SUB_BATCH_FILE_ARRAY, subBatchFile);
                     logger.debug("Local file path: {}", localFilePath);
                     logger.debug("Sub batch file array: {}, ", subBatchFile);
-                })
-                .log(LoggingLevel.DEBUG, "LOCAL_FILE_PATH: ${exchangeProperty." + LOCAL_FILE_PATH + "}")
-                .to("direct:generate-sub-batch-entity").log("direct:generate-sub-batch-entity completed")
-                .to("direct:upload-file")
+                }).log(LoggingLevel.DEBUG, "LOCAL_FILE_PATH: ${exchangeProperty." + LOCAL_FILE_PATH + "}")
+                .to("direct:generate-sub-batch-entity").log("direct:generate-sub-batch-entity completed").to("direct:upload-file")
                 .process(exchange -> {
                     String serverFilename = exchange.getProperty(SERVER_FILE_NAME, String.class);
                     List<String> serverSubBatchFile = exchange.getProperty(SERVER_SUB_BATCH_FILE_NAME_ARRAY, List.class);
@@ -112,11 +107,8 @@ public class SplittingRoute extends BaseRouteBuilder {
                 });
 
         // generate subBatchEntityDetails, make sure [LOCAL_FILE_PATH] has the absolute sub batch file path
-        from("direct:generate-sub-batch-entity")
-                .id("direct:generate-sub-batch-entity")
-                .log("Generating sub batch entity")
-                .to("direct:get-transaction-array")
-                .process(exchange -> {
+        from("direct:generate-sub-batch-entity").id("direct:generate-sub-batch-entity").log("Generating sub batch entity")
+                .to("direct:get-transaction-array").process(exchange -> {
                     List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
                     Map<String, Object> zeebeVariables = exchange.getProperty(ZEEBE_VARIABLE, Map.class);
                     String serverFileName = exchange.getProperty(LOCAL_FILE_PATH, String.class);
@@ -145,13 +137,14 @@ public class SplittingRoute extends BaseRouteBuilder {
                     subBatchEntity.setStartedAt(new Date(System.currentTimeMillis()));
 
                     logger.debug("SubBatchEntity: {}", objectMapper.writeValueAsString(subBatchEntity));
-					// update the sub batch details array
+                    // update the sub batch details array
                     List<SubBatchEntity> subBatchEntityList = exchange.getProperty(SUB_BATCH_DETAILS, List.class);
                     subBatchEntityList.add(subBatchEntity);
                     exchange.setProperty(SUB_BATCH_DETAILS, subBatchEntityList);
                     logger.debug("generate-sub-batch-entity route end: {}", objectMapper.writeValueAsString(subBatchEntityList));
                 });
     }
+
     private SubBatchEntity getDefaultSubBatchEntity() {
         SubBatchEntity subBatchEntity = new SubBatchEntity();
         subBatchEntity.setAllEmptyAmount();
