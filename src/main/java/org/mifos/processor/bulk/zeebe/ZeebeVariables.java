@@ -156,5 +156,6 @@ public final class ZeebeVariables {
     public static final String CURRENCY = "currency";
 
     public static final String AUTHORIZATION_RESPONSE = "authorizationResponse";
-
+    public static final String PAYEE_PARTY_RESPONSE = "payeePartyResponse";
+    public static final String PAYEE_DFSP_ID = "payeeDFSPID";
 }
