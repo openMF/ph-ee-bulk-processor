@@ -1,18 +1,32 @@
 package org.mifos.processor.bulk.camel.routes;
 
 import static org.mifos.processor.bulk.camel.config.CamelProperties.LOCAL_FILE_PATH;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.REGISTERING_INSTITUTE_ID;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_SUB_BATCH_FILE_NAME_ARRAY;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SUB_BATCH_COUNT;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SUB_BATCH_CREATED;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.SUB_BATCH_DETAILS;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SUB_BATCH_FILE_ARRAY;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.ZEEBE_VARIABLE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CLIENT_CORRELATION_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYER_IDENTIFIER;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REQUEST_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SPLITTING_FAILED;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import org.apache.camel.LoggingLevel;
+import org.mifos.processor.bulk.schema.SubBatchEntity;
+import org.mifos.processor.bulk.schema.Transaction;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -56,7 +70,7 @@ public class SplittingRoute extends BaseRouteBuilder {
             List<String> subBatchFile = new ArrayList<>();
             int subBatchCount = 1;
             for (int i = 0; i < lines.size(); i += subBatchSize) {
-                String filename = System.currentTimeMillis() + "_" + "sub-batch-" + subBatchCount + ".csv";
+                String filename = UUID.randomUUID() + "_" + "sub-batch-" + subBatchCount + ".csv";
                 FileWriter writer = new FileWriter(filename);
                 writer.write(header);
                 for (int j = i; j < Math.min(i + subBatchSize, lines.size()); j++) {
@@ -77,13 +91,71 @@ public class SplittingRoute extends BaseRouteBuilder {
         from("direct:upload-sub-batch-file").id("direct:upload-sub-batch-file").log("Starting upload of sub-batch file")
                 .loopDoWhile(exchange -> exchange.getProperty(SUB_BATCH_FILE_ARRAY, List.class).size() > 0).process(exchange -> {
                     List<String> subBatchFile = exchange.getProperty(SUB_BATCH_FILE_ARRAY, List.class);
-                    exchange.setProperty(LOCAL_FILE_PATH, subBatchFile.remove(0));
+                    String localFilePath = subBatchFile.remove(0);
+                    exchange.setProperty(LOCAL_FILE_PATH, localFilePath);
                     exchange.setProperty(SUB_BATCH_FILE_ARRAY, subBatchFile);
-                }).to("direct:upload-file").process(exchange -> {
+                    logger.debug("Local file path: {}", localFilePath);
+                    logger.debug("Sub batch file array: {}, ", subBatchFile);
+                }).log(LoggingLevel.DEBUG, "LOCAL_FILE_PATH: ${exchangeProperty." + LOCAL_FILE_PATH + "}")
+                .to("direct:generate-sub-batch-entity").log("direct:generate-sub-batch-entity completed").to("direct:upload-file")
+                .process(exchange -> {
                     String serverFilename = exchange.getProperty(SERVER_FILE_NAME, String.class);
                     List<String> serverSubBatchFile = exchange.getProperty(SERVER_SUB_BATCH_FILE_NAME_ARRAY, List.class);
                     serverSubBatchFile.add(serverFilename);
                     exchange.setProperty(SERVER_SUB_BATCH_FILE_NAME_ARRAY, serverSubBatchFile);
+                    logger.debug("Server subbatch filename array: {}", serverSubBatchFile);
                 });
+
+        // generate subBatchEntityDetails, make sure [LOCAL_FILE_PATH] has the absolute sub batch file path
+        from("direct:generate-sub-batch-entity").id("direct:generate-sub-batch-entity").log("Generating sub batch entity")
+                .to("direct:get-transaction-array").process(exchange -> {
+                    List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
+                    Map<String, Object> zeebeVariables = exchange.getProperty(ZEEBE_VARIABLE, Map.class);
+                    String serverFileName = exchange.getProperty(LOCAL_FILE_PATH, String.class);
+
+                    logger.info("Generating sub batch entity for file {}", serverFileName);
+                    if (transactionList.isEmpty()) {
+                        logger.info("Transaction list is empty");
+                        return;
+                    }
+
+                    Long totalAmount = getTotalAmount(transactionList);
+
+                    SubBatchEntity subBatchEntity = getDefaultSubBatchEntity();
+                    subBatchEntity.setBatchId((String) zeebeVariables.get(BATCH_ID));
+                    subBatchEntity.setSubBatchId(UUID.randomUUID().toString());
+                    subBatchEntity.setRequestId((String) zeebeVariables.get(REQUEST_ID));
+                    subBatchEntity.setCorrelationId((String) zeebeVariables.get(CLIENT_CORRELATION_ID));
+                    subBatchEntity.setPayerFsp((String) zeebeVariables.get(PAYER_IDENTIFIER));
+                    subBatchEntity.setRegisteringInstitutionId((String) zeebeVariables.get(REGISTERING_INSTITUTE_ID));
+                    subBatchEntity.setPaymentMode(transactionList.get(0).getPaymentMode());
+                    subBatchEntity.setRequestFile(serverFileName);
+                    subBatchEntity.setTotalTransactions((long) transactionList.size());
+                    subBatchEntity.setOngoing((long) transactionList.size());
+                    subBatchEntity.setTotalAmount(totalAmount);
+                    subBatchEntity.setOngoingAmount(totalAmount);
+                    subBatchEntity.setStartedAt(new Date(System.currentTimeMillis()));
+
+                    logger.debug("SubBatchEntity: {}", objectMapper.writeValueAsString(subBatchEntity));
+                    // update the sub batch details array
+                    List<SubBatchEntity> subBatchEntityList = exchange.getProperty(SUB_BATCH_DETAILS, List.class);
+                    subBatchEntityList.add(subBatchEntity);
+                    exchange.setProperty(SUB_BATCH_DETAILS, subBatchEntityList);
+                    logger.debug("generate-sub-batch-entity route end: {}", objectMapper.writeValueAsString(subBatchEntityList));
+                });
+    }
+
+    private SubBatchEntity getDefaultSubBatchEntity() {
+        SubBatchEntity subBatchEntity = new SubBatchEntity();
+        subBatchEntity.setAllEmptyAmount();
+        return subBatchEntity;
+    }
+
+    private long getTotalAmount(List<Transaction> transactionList) {
+        long totalAmount = 0L;
+        for (Transaction transaction : transactionList) {
+            totalAmount += Long.parseLong(transaction.getAmount());
+        }
+        return totalAmount;
     }
 }

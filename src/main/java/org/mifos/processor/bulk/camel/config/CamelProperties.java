@@ -19,6 +19,7 @@ public final class CamelProperties {
     public static final String SUB_BATCH_COUNT = "subBatchCount";
 
     public static final String SUB_BATCH_CREATED = "subBatchCreated";
+    public static final String SUB_BATCH_DETAILS = "subBatchDetails";
 
     public static final String SERVER_SUB_BATCH_FILE_NAME_ARRAY = "serverSubBatchFileName";
 
@@ -78,5 +79,5 @@ public final class CamelProperties {
     public static final String HEADER_PLATFORM_TENANT_ID = "Platform-TenantId";
     public static final String HEADER_CLIENT_CORRELATION_ID = "X-CorrelationID";
     public static final String CLIENT_CORRELATION_ID = "clientCorrelationId";
-
+    public static final String SUB_BATCH_ENTITY = "subBatchEntity";
 }

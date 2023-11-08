@@ -1,7 +1,10 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.SUB_BATCH_DETAILS;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.SUB_BATCH_ENTITY;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.TENANT_NAME;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.ZEEBE_VARIABLE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.INIT_FAILURE_SUB_BATCHES;
@@ -14,16 +17,23 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SPLITTING_ENABLED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SUB_BATCHES;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.apache.camel.Exchange;
 import org.apache.camel.support.DefaultExchange;
 import org.mifos.processor.bulk.camel.routes.RouteId;
+import org.mifos.processor.bulk.schema.SubBatchEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class InitSubBatchWorker extends BaseWorker {
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Override
     public void setup() {
@@ -55,7 +65,21 @@ public class InitSubBatchWorker extends BaseWorker {
                 subBatches.add((String) variables.get(FILE_NAME));
             }
 
+            List<Object> subBatchObjectList = (List<Object>) variables.get(SUB_BATCH_DETAILS);
+            logger.debug("Subbatch entity list in init sub batch worker: {}", subBatchObjectList);
+
+            List<SubBatchEntity> subBatchEntityList = objectMapper.convertValue(subBatchObjectList, new TypeReference<>() {});
+
             String fileName = subBatches.remove(0);
+            SubBatchEntity subBatchEntity = null;
+
+            for (SubBatchEntity subBatch : subBatchEntityList) {
+                if (subBatch.getRequestFile().contains(fileName)) {
+                    subBatchEntity = subBatch;
+                    logger.info("SubBatchEntity found");
+                }
+            }
+            logger.debug("BatchEntity for this subbatch is {}", objectMapper.writeValueAsString(subBatchEntity));
 
             Exchange exchange = new DefaultExchange(camelContext);
             exchange.setProperty(TENANT_NAME, variables.get(TENANT_ID));
@@ -63,6 +87,8 @@ public class InitSubBatchWorker extends BaseWorker {
             exchange.setProperty(BATCH_ID, variables.get(BATCH_ID));
             exchange.setProperty(REQUEST_ID, variables.get(REQUEST_ID));
             exchange.setProperty(PURPOSE, variables.get(PURPOSE));
+            exchange.setProperty(ZEEBE_VARIABLE, variables);
+            exchange.setProperty(SUB_BATCH_ENTITY, subBatchEntity);
 
             sendToCamelRoute(RouteId.INIT_SUB_BATCH, exchange);
 
