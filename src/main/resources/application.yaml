@@ -204,7 +204,7 @@ pubsub:
 
 security-server:
   country: "INDIA"
-  organisation: fynarfin
+  organisation: mifos
   host: https://SECURITYSERVER
   baseuri: /r1/{country}/GOV/{orgs}
   endpoints:
