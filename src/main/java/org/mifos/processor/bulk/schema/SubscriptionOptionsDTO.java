@@ -15,19 +15,19 @@ public class SubscriptionOptionsDTO {
     @JsonProperty("FIFO")
     private boolean fIFO;
 
-    public static Builder builder = new Builder();
+    public static SubscriptionOptionsDTOBuilder subscriptionOptionsDTOBuilder = new SubscriptionOptionsDTOBuilder();
 
-    public static class Builder {
+    public static class SubscriptionOptionsDTOBuilder {
         private Integer tTL;
 
         private Boolean fIFO;
 
-        public Builder tTL(int tTL) {
+        public SubscriptionOptionsDTOBuilder tTL(int tTL) {
             this.tTL = tTL;
             return this;
         }
 
-        public Builder fIFO(boolean fIFO) {
+        public SubscriptionOptionsDTOBuilder fIFO(boolean fIFO) {
             this.fIFO = fIFO;
             return this;
         }

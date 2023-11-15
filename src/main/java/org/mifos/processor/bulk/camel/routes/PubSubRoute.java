@@ -43,7 +43,7 @@ public class PubSubRoute extends BaseRouteBuilder {
     }
 
     private SubscriptionDTO getDefaultSubscriptionDTO() {
-        return SubscriptionDTO.builder
+        return SubscriptionDTO.subscriptionDTOBuilder
                 .roomCode(pubSubConfig.roomCode)
                 .roomClass(pubSubConfig.roomClass)
                 .srcOperationId("bulkProcessing")
