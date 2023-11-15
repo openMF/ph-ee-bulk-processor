@@ -1,12 +1,13 @@
 package org.mifos.processor.bulk.service;
 
+import static org.mifos.processor.bulk.camel.config.CamelProperties.EVENT_TYPE;
+
+import javax.annotation.PostConstruct;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.support.DefaultExchange;
 import org.springframework.stereotype.Service;
-import javax.annotation.PostConstruct;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.EVENT_TYPE;
 
 @Service
 public class SubscriptionServiceImpl implements SubscriptionService {

@@ -1,5 +1,9 @@
 package org.mifos.processor.bulk.camel.routes;
 
+import static org.mifos.processor.bulk.camel.config.CamelProperties.ENDPOINT;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.EVENT_TYPE;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.HOST;
+
 import org.apache.camel.Exchange;
 import org.mifos.processor.bulk.config.PubSubConfig;
 import org.mifos.processor.bulk.config.SecurityServerConfig;
@@ -7,11 +11,8 @@ import org.mifos.processor.bulk.schema.SubscriptionDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
-
 @Component
 public class PubSubRoute extends BaseRouteBuilder {
-
 
     private final PubSubConfig pubSubConfig;
     private final SecurityServerConfig securityServerConfig;
@@ -31,26 +32,18 @@ public class PubSubRoute extends BaseRouteBuilder {
     public void configure() throws Exception {
 
         // needs EVENT_TYPE input from exchange
-        from("direct:subscribe")
-                .id("direct:subscribe")
+        from("direct:subscribe").id("direct:subscribe")
                 .setBody(exchange -> getEventTypeSpecificSubscriptionDTO(exchange.getProperty(EVENT_TYPE, String.class)))
                 .setHeader(Exchange.HTTP_METHOD, constant(HttpRequestMethod.POST.toString()))
                 .setHeader(govStackClientHeaderKey, constant(govStackClientHeaderValue))
-                .setProperty(HOST, constant(securityServerConfig.host))
-                .setProperty(ENDPOINT, constant(securityServerConfig.subscribingUrl))
+                .setProperty(HOST, constant(securityServerConfig.host)).setProperty(ENDPOINT, constant(securityServerConfig.subscribingUrl))
                 .to("direct:external-api-calling");
 
     }
 
     private SubscriptionDTO getDefaultSubscriptionDTO() {
-        return SubscriptionDTO.subscriptionDTOBuilder
-                .roomCode(pubSubConfig.roomCode)
-                .roomClass(pubSubConfig.roomClass)
-                .srcOperationId("bulkProcessing")
-                .srcServiceCode("bulk")
-                .dstOperationId("newRecord")
-                .dstServiceCode("bulk")
-                .build();
+        return SubscriptionDTO.subscriptionDTOBuilder.roomCode(pubSubConfig.roomCode).roomClass(pubSubConfig.roomClass)
+                .srcOperationId("bulkProcessing").srcServiceCode("bulk").dstOperationId("newRecord").dstServiceCode("bulk").build();
     }
 
     private SubscriptionDTO getEventTypeSpecificSubscriptionDTO(String eventType) {

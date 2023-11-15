@@ -1,7 +1,10 @@
 package org.mifos.processor.bulk.schema;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
@@ -10,36 +13,37 @@ import lombok.*;
 public class SubscriptionOptionsDTO {
 
     @JsonProperty("TTL")
-    private int tTL;
+    private int ttl;
 
     @JsonProperty("FIFO")
-    private boolean fIFO;
+    private boolean fifo;
 
     public static SubscriptionOptionsDTOBuilder subscriptionOptionsDTOBuilder = new SubscriptionOptionsDTOBuilder();
 
     public static class SubscriptionOptionsDTOBuilder {
-        private Integer tTL;
 
-        private Boolean fIFO;
+        private Integer ttl;
+
+        private Boolean fifo;
 
         public SubscriptionOptionsDTOBuilder tTL(int tTL) {
-            this.tTL = tTL;
+            this.ttl = tTL;
             return this;
         }
 
         public SubscriptionOptionsDTOBuilder fIFO(boolean fIFO) {
-            this.fIFO = fIFO;
+            this.fifo = fIFO;
             return this;
         }
 
         public SubscriptionOptionsDTO build() {
-            if (this.tTL == null) {
-                this.tTL = 3600;
+            if (this.ttl == null) {
+                this.ttl = 3600;
             }
-            if (this.fIFO == null) {
-                this.fIFO = false;
+            if (this.fifo == null) {
+                this.fifo = false;
             }
-            return new SubscriptionOptionsDTO(this.tTL, this.fIFO);
+            return new SubscriptionOptionsDTO(this.ttl, this.fifo);
         }
     }
 

@@ -9,7 +9,6 @@ public class PubSubConfig {
     @Value("${pubsub.room.code}")
     public String roomCode;
 
-
     @Value("${pubsub.room.class}")
     public String roomClass;
 

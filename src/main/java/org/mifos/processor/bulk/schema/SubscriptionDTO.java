@@ -1,11 +1,10 @@
 package org.mifos.processor.bulk.schema;
 
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -34,8 +33,15 @@ public class SubscriptionDTO {
     public static SubscriptionDTOBuilder subscriptionDTOBuilder = new SubscriptionDTOBuilder();
 
     public static class SubscriptionDTOBuilder {
-        private String id, roomClass, roomCode, srcServiceCode, srcOperationId,
-                dstServiceCode, dstOperationId, delivery;
+
+        private String id;
+        private String roomClass;
+        private String roomCode;
+        private String srcServiceCode;
+        private String srcOperationId;
+        private String dstServiceCode;
+        private String dstOperationId;
+        private String delivery;
         private SubscriptionOptionsDTO options;
 
         public SubscriptionDTOBuilder roomClass(String roomClass) {
@@ -110,8 +116,7 @@ public class SubscriptionDTO {
 
         public SubscriptionDTO build() {
             check();
-            return new SubscriptionDTO(this.id,
-                    this.roomClass, this.roomCode, this.srcServiceCode, this.srcOperationId,
+            return new SubscriptionDTO(this.id, this.roomClass, this.roomCode, this.srcServiceCode, this.srcOperationId,
                     this.dstServiceCode, this.dstOperationId, this.delivery, this.options);
         }
     }

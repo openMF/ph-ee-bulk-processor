@@ -1,8 +1,8 @@
 package org.mifos.processor.bulk.config;
 
+import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import javax.annotation.PostConstruct;
 
 @Configuration
 public class SecurityServerConfig {
@@ -27,7 +27,6 @@ public class SecurityServerConfig {
     @PostConstruct
     public void setup() {
         subscribingUrl = host + baseUri + subscribingEndpoint;
-        subscribingUrl = subscribingUrl.replace("{country}", country)
-                .replace("{orgs}", organisation);
+        subscribingUrl = subscribingUrl.replace("{country}", country).replace("{orgs}", organisation);
     }
 }
