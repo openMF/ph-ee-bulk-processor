@@ -160,4 +160,8 @@ public final class ZeebeVariables {
 
     public static final String AUTHORIZATION_RESPONSE = "authorizationResponse";
 
+    public static final String DUPLICATE_TRANSACTION_FILE = "duplicateTransactionFile";
+
+    public static final String DUPLICATE_TRANSACTION_COUNT = "duplicateTransactionCount";
+
 }
