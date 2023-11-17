@@ -1,6 +1,21 @@
 package org.mifos.processor.bulk.camel.routes;
 
+import static org.mifos.processor.bulk.camel.config.CamelProperties.LOCAL_FILE_PATH;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.OVERRIDE_HEADER;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.RESULT_TRANSACTION_LIST;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_LOOKUP_SUCCESSFUL_TRANSACTION_AMOUNT;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_LOOKUP_SUCCESSFUL_TRANSACTION_COUNT;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.RESULT_FILE;
+
 import io.camunda.zeebe.client.ZeebeClient;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.mifos.processor.bulk.schema.BatchAccountLookupResponseDTO;
 import org.mifos.processor.bulk.schema.BeneficiaryDTO;
 import org.mifos.processor.bulk.schema.Transaction;
@@ -9,14 +24,9 @@ import org.mifos.processor.bulk.utility.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
-
 @Component
-public class AccountLookupCallbackRoute extends BaseRouteBuilder{
+public class AccountLookupCallbackRoute extends BaseRouteBuilder {
+
     @Autowired
     private ZeebeClient zeebeClient;
     private Integer totalApprovedAmount;
@@ -24,42 +34,50 @@ public class AccountLookupCallbackRoute extends BaseRouteBuilder{
 
     @Override
     public void configure() throws Exception {
-        from("direct:accountLookupCallback").id("direct:accountLookupCallback").log("Starting route " + RouteId.ACCOUNT_LOOKUP_CALLBACK.name())
-                .to("direct:download-file").to("direct:get-transaction-array").to("direct:batch-account-lookup-callback").process(exchange -> exchange.setProperty(OVERRIDE_HEADER, true));
+        from("direct:accountLookupCallback").id("direct:accountLookupCallback")
+                .log("Starting route " + RouteId.ACCOUNT_LOOKUP_CALLBACK.name()).to("direct:download-file")
+                .to("direct:get-transaction-array").to("direct:batch-account-lookup-callback")
+                .process(exchange -> exchange.setProperty(OVERRIDE_HEADER, true));
         from("direct:batch-account-lookup-callback").id("direct:batch-account-lookup-callback").process(exchange -> {
-                    String serverFileName = exchange.getProperty(SERVER_FILE_NAME, String.class);
-                    String resultFile = String.format("Result_%s", serverFileName);
-                    BatchAccountLookupResponseDTO batchAccountLookupCallback = objectMapper.readValue(exchange.getProperty("batchAccountLookupCallback", String.class), BatchAccountLookupResponseDTO.class);
-                    List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
-                    List<TransactionResult> transactionResultList = new ArrayList<>();
-                    Map<String, Object> variables = new HashMap<>();
+            String serverFileName = exchange.getProperty(SERVER_FILE_NAME, String.class);
+            String resultFile = String.format("Result_%s", serverFileName);
+            BatchAccountLookupResponseDTO batchAccountLookupCallback = objectMapper
+                    .readValue(exchange.getProperty("batchAccountLookupCallback", String.class), BatchAccountLookupResponseDTO.class);
+            List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
+            List<TransactionResult> transactionResultList = new ArrayList<>();
+            List<Transaction> updatedTransactionList = new ArrayList<>();
+            Map<String, Object> variables = new HashMap<>();
 
+            updateTransactionStatus(transactionList, batchAccountLookupCallback.getBeneficiaryDTOList(), transactionResultList, updatedTransactionList);
+            exchange.setProperty(PARTY_LOOKUP_SUCCESSFUL_TRANSACTION_AMOUNT, totalApprovedAmount);
+            exchange.setProperty(PARTY_LOOKUP_SUCCESSFUL_TRANSACTION_COUNT, totalApprovedCount);
+            exchange.setProperty(RESULT_TRANSACTION_LIST, transactionResultList);
+            exchange.setProperty(RESULT_FILE, resultFile);
+            exchange.setProperty(TRANSACTION_LIST, updatedTransactionList);
+            Long workflowInstanceKey = Long.valueOf(exchange.getProperty("workflowInstanceKey").toString());
+            variables.put(PARTY_LOOKUP_SUCCESSFUL_TRANSACTION_AMOUNT, totalApprovedAmount);
+            variables.put(PARTY_LOOKUP_SUCCESSFUL_TRANSACTION_COUNT, totalApprovedCount);
+            if (zeebeClient != null) {
 
-                    updateTransactionStatus(transactionList, batchAccountLookupCallback.getBeneficiaryDTOList(), transactionResultList);
-                    exchange.setProperty(PARTY_LOOKUP_SUCCESSFUL_TRANSACTION_AMOUNT, totalApprovedAmount);
-                    exchange.setProperty(PARTY_LOOKUP_SUCCESSFUL_TRANSACTION_COUNT, totalApprovedCount);
-                    exchange.setProperty(RESULT_TRANSACTION_LIST, transactionResultList);
-                    exchange.setProperty(RESULT_FILE, resultFile);
-                    Long workflowInstanceKey= Long.valueOf(exchange.getProperty("workflowInstanceKey").toString());
-                    variables.put(PARTY_LOOKUP_SUCCESSFUL_TRANSACTION_AMOUNT, totalApprovedAmount);
-                    variables.put(PARTY_LOOKUP_SUCCESSFUL_TRANSACTION_COUNT, totalApprovedCount);
-                    if (zeebeClient != null) {
-
-                        zeebeClient.newSetVariablesCommand(workflowInstanceKey)
-                                .variables(variables)
-                                .send()
-                                .join();
-                    }
-                })
+                zeebeClient.newSetVariablesCommand(workflowInstanceKey).variables(variables).send().join();
+            }
+        })
                 // setting localfilepath as result file to make sure result file is uploaded
-                .setProperty(LOCAL_FILE_PATH, exchangeProperty(RESULT_FILE)).setProperty(OVERRIDE_HEADER, constant(true))
-                .process(exchange -> {
-                    logger.info("A1 {}", exchange.getProperty(RESULT_FILE));
-                    logger.info("A2 {}", exchange.getProperty(LOCAL_FILE_PATH));
-                    logger.info("A3 {}", exchange.getProperty(OVERRIDE_HEADER));
-                }).to("direct:update-result-file").to("direct:upload-file");
+                .log("updating orignal")
+                .setProperty(LOCAL_FILE_PATH, exchangeProperty(SERVER_FILE_NAME))
+                .setProperty(OVERRIDE_HEADER, constant(true))
+                .to("direct:update-file")
+                .to("direct:upload-file")
+                .log("updating failed transaction")
+                .setProperty(TRANSACTION_LIST, exchangeProperty(RESULT_TRANSACTION_LIST))
+                .setProperty(LOCAL_FILE_PATH, exchangeProperty(RESULT_FILE))
+                .setProperty(OVERRIDE_HEADER, constant(true))
+                .to("direct:update-result-file")
+                .to("direct:upload-file");
     }
-    public List<TransactionResult> updateTransactionStatus(List<Transaction> transactionList, List<BeneficiaryDTO> batchAccountLookupResponseDTO, List<TransactionResult> transactionResultList) {
+
+    public List<TransactionResult> updateTransactionStatus(List<Transaction> transactionList,
+            List<BeneficiaryDTO> batchAccountLookupResponseDTO, List<TransactionResult> transactionResultList, List<Transaction> updatedTransactionList) {
         totalApprovedCount = 0;
         totalApprovedAmount = 0;
         AtomicInteger count = new AtomicInteger(totalApprovedCount);
@@ -67,8 +85,7 @@ public class AccountLookupCallbackRoute extends BaseRouteBuilder{
 
         transactionList.forEach(transaction -> {
             Optional<BeneficiaryDTO> matchingBeneficiary = batchAccountLookupResponseDTO.stream()
-                    .filter(beneficiary -> transaction.getPayeeIdentifier().equals(beneficiary.getPayeeIdentity()))
-                    .findFirst();
+                    .filter(beneficiary -> transaction.getPayeeIdentifier().equals(beneficiary.getPayeeIdentity())).findFirst();
 
             if (matchingBeneficiary.isPresent()) {
                 count.incrementAndGet(); // Increment the count atomically
@@ -78,9 +95,9 @@ public class AccountLookupCallbackRoute extends BaseRouteBuilder{
                     logger.error(e.getMessage());
                 }
                 String identifier = matchingBeneficiary.get().getFinancialAddress();
-                TransactionResult transactionResult = Utils.mapToResultDTO(transaction);
-                transactionResult.setPayeeIdentifier(identifier);
-                transactionResultList.add(transactionResult);
+                transaction.setPayeeIdentifier(identifier);
+                transaction.setPayeeDfspId(matchingBeneficiary.get().getBankingInstitutionCode());
+                updatedTransactionList.add(transaction);
             } else {
                 TransactionResult transactionResult = Utils.mapToResultDTO(transaction);
                 transactionResult.setErrorCode("404");
@@ -94,6 +111,5 @@ public class AccountLookupCallbackRoute extends BaseRouteBuilder{
 
         return transactionResultList;
     }
-
 
 }

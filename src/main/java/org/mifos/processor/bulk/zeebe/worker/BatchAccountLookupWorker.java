@@ -1,7 +1,17 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
+import static org.mifos.processor.bulk.camel.config.CamelProperties.CACHED_TRANSACTION_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_REGISTERING_INSTITUTE_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_LOOKUP_FAILED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REQUEST_ID;
+import static org.mifos.processor.bulk.zeebe.worker.Worker.BATCH_ACCOUNT_LOOKUP;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.camunda.zeebe.client.ZeebeClient;
+import java.util.Map;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.ProducerTemplate;
@@ -11,14 +21,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-
-import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
-import static org.mifos.processor.bulk.zeebe.worker.Worker.BATCH_ACCOUNT_LOOKUP;
-
 @Component
 public class BatchAccountLookupWorker extends BaseWorker {
+
     @Autowired
     private ZeebeClient zeebeClient;
 
@@ -28,11 +33,11 @@ public class BatchAccountLookupWorker extends BaseWorker {
     private CamelContext camelContext;
     @Autowired
     private ObjectMapper objectMapper;
-    @Value("${identity-account-mapper.hostname}")
+    @Value("${identity_account_mapper.hostname}")
     private String identityMapperURL;
     @Value("${bulk-processor.hostname}")
     private String bulkURL;
-    @Value("${identity_account_mapper.endpoints.batch_account_lookup_callback}")
+    @Value("${identity_account_mapper.batch_account_lookup_callback}")
     private String batchAccountLookupCallback;
 
     @Override

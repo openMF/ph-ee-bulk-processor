@@ -44,7 +44,7 @@ public class SplittingRoute extends BaseRouteBuilder {
          * direct:create-sub-batch-file 2. direct:upload-sub-batch-file
          */
         from(RouteId.SPLITTING.getValue()).id(RouteId.SPLITTING.getValue()).log("Starting route " + RouteId.SPLITTING.name())
-                .to("direct:download-file").to("direct:create-sub-batch-file").choice()
+                .to("direct:download-file").to("direct:get-transaction-array").to("direct:create-sub-batch-file").choice()
                 .when(exchange -> exchange.getProperty(SUB_BATCH_CREATED, Boolean.class)).to("direct:upload-sub-batch-file").otherwise()
                 .log("No sub batch created, so skipping upload").end().process(exchange -> exchange.setProperty(SPLITTING_FAILED, false));
 
@@ -53,6 +53,7 @@ public class SplittingRoute extends BaseRouteBuilder {
             String filepath = exchange.getProperty(LOCAL_FILE_PATH, String.class);
             BufferedReader reader = new BufferedReader(new FileReader(filepath));
             String header = reader.readLine() + System.lineSeparator();
+            List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
             List<String> lines = new ArrayList<>();
             String line = null;
             while ((line = reader.readLine()) != null) {

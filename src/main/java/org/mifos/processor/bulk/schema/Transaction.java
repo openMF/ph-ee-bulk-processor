@@ -11,7 +11,7 @@ import lombok.Setter;
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonPropertyOrder({ "id", "request_id", "payment_mode", "account_number", "payer_identifier_type", "payer_identifier",
-        "payee_identifier_type", "payee_identifier", "amount", "currency", "note", "program_shortcode", "cycle" })
+        "payee_identifier_type", "payee_identifier", "amount", "currency", "note", "program_shortcode", "cycle", "payee_dfsp_id" })
 public class Transaction implements CsvSchema {
 
     @JsonProperty("id")
@@ -52,6 +52,9 @@ public class Transaction implements CsvSchema {
 
     @JsonProperty("cycle")
     private String cycle;
+
+    @JsonProperty("payee_dfsp_id")
+    private String payeeDfspId;
 
     @JsonIgnore
     private String batchId;

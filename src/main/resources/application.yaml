@@ -150,6 +150,8 @@ identity_account_mapper:
   hostname : "http://ph-ee-identity-account-mapper:80"
   account_lookup: /beneficiary
   account_lookup_callback: /accountLookupCallback
+  batch_account_lookup: /accountLookup
+  batch_account_lookup_callback: /batchAccountLookupCallback
 
 bulk_processor:
   hostname : "https://ph-ee-connector-bulk:8443"

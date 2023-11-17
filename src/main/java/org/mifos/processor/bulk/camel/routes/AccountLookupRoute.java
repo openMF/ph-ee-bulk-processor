@@ -10,25 +10,17 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_LOOKUP_FAILED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REGISTERING_INSTITUTION_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REQUEST_ID;
 
-import javax.net.ssl.HttpsURLConnection;
-import io.restassured.RestAssured;
-import io.restassured.builder.RequestSpecBuilder;
-import io.restassured.response.Response;
-import io.restassured.specification.RequestSpecification;
-import org.apache.camel.Exchange;
-import org.apache.camel.Processor;
-import org.springframework.beans.factory.annotation.Value;
-import org.apache.camel.LoggingLevel;
-import org.mifos.connector.common.identityaccountmapper.dto.AccountMapperRequestDTO;
-import org.mifos.connector.common.identityaccountmapper.dto.BeneficiaryDTO;
-import org.mifos.processor.bulk.schema.Transaction;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import javax.net.ssl.HttpsURLConnection;
+import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
+import org.mifos.connector.common.identityaccountmapper.dto.AccountMapperRequestDTO;
+import org.mifos.connector.common.identityaccountmapper.dto.BeneficiaryDTO;
+import org.mifos.processor.bulk.schema.Transaction;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 @Component
 public class AccountLookupRoute extends BaseRouteBuilder {
@@ -64,39 +56,33 @@ public class AccountLookupRoute extends BaseRouteBuilder {
                         + "=${exchangeProperty.paymentModality}&" + "requestId=${exchangeProperty.requestId}")
                 .log("API Response: ${body}").process(disableSslProcessor);
 
-        from(RouteId.ACCOUNT_LOOKUP.getValue()).id(RouteId.ACCOUNT_LOOKUP.getValue()).log("Starting route " + RouteId.ACCOUNT_LOOKUP.name()).process(exchange -> exchange.setProperty(OVERRIDE_HEADER, true))
-                .to("direct:download-file").to("direct:get-transaction-array").to("direct:batch-account-lookup").to("direct:update-file")
-                .to("direct:upload-file").process(exchange -> {
+        from(RouteId.ACCOUNT_LOOKUP.getValue()).id(RouteId.ACCOUNT_LOOKUP.getValue()).log("Starting route " + RouteId.ACCOUNT_LOOKUP.name())
+                .process(exchange -> exchange.setProperty(OVERRIDE_HEADER, true)).to("direct:download-file")
+                .to("direct:get-transaction-array").to("direct:batch-account-lookup").to("direct:update-file").to("direct:upload-file")
+                .process(exchange -> {
                     exchange.setProperty(PARTY_LOOKUP_FAILED, false);
                 });
-
 
         from("direct:batch-account-lookup").id("direct:batch-account-lookup").process(exchange -> {
             List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
             HashMap<String, List<Transaction>> stringListHashMap = new HashMap<>();
             List<BeneficiaryDTO> beneficiaryDTOList = new ArrayList<>();
             transactionList.forEach(transaction -> {
-                beneficiaryDTOList.add(new BeneficiaryDTO(transaction.getPayeeIdentifier(),"","",""));
+                beneficiaryDTOList.add(new BeneficiaryDTO(transaction.getPayeeIdentifier(), "", "", ""));
             });
             String requestId = exchange.getProperty(REQUEST_ID, String.class);
             String callbackUrl = exchange.getProperty(CALLBACK, String.class);
             String registeringInstitutionId = exchange.getProperty(HEADER_REGISTERING_INSTITUTE_ID, String.class);
-            AccountMapperRequestDTO accountMapperRequestDTO =  new AccountMapperRequestDTO(requestId,registeringInstitutionId, beneficiaryDTOList);
+            AccountMapperRequestDTO accountMapperRequestDTO = new AccountMapperRequestDTO(requestId, registeringInstitutionId,
+                    beneficiaryDTOList);
             String requestBody = objectMapper.writeValueAsString(accountMapperRequestDTO);
 
             exchange.getIn().setHeader(CALLBACK, callbackUrl);
             exchange.getIn().setHeader(REGISTERING_INSTITUTION_ID, registeringInstitutionId);
+            exchange.getIn().setHeader("Content-type", "application/json");
             exchange.getIn().setBody(requestBody);
-            RequestSpecification requestSpec = new RequestSpecBuilder().build();
-            requestSpec.relaxedHTTPSValidation();
-            Response response = RestAssured.given(requestSpec)
-                    .baseUri(identityMapperURL)
-                    .header("Content-Type", "application/json")
-                    .header("X-CallbackURL",identityMapperURL + batchAccountLookupCallback)
-                    .header("X-Registering-Institution-ID", registeringInstitutionId).body(requestBody)
-                    .when()
-                    .post(batchAccountLookup)
-                    .andReturn();
-        });
+        }).setHeader(Exchange.HTTP_METHOD, constant("POST")).toD(identityURL + batchAccountLookup).log("API Response: ${body}")
+                .process(disableSslProcessor);
+
     }
 }

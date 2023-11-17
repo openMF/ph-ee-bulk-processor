@@ -162,8 +162,8 @@ public final class ZeebeVariables {
     public static final String DUPLICATE_TRANSACTION_COUNT = "duplicateTransactionCount";
 
     public static final String BATCH_ACCOUNT_LOOKUP_RESPONSE = "batchAccountLookupResponse";
-    public static final String  PARTY_LOOKUP_SUCCESSFUL_TRANSACTION_AMOUNT = "totalApprovedAmount";
-    public static final String  PARTY_LOOKUP_SUCCESSFUL_TRANSACTION_COUNT = "totalApprovedCount";
+    public static final String PARTY_LOOKUP_SUCCESSFUL_TRANSACTION_AMOUNT = "totalApprovedAmount";
+    public static final String PARTY_LOOKUP_SUCCESSFUL_TRANSACTION_COUNT = "totalApprovedCount";
     public static final String REGISTERING_INSTITUTION_ID = "X-Registering-Institution-ID";
 
 }
