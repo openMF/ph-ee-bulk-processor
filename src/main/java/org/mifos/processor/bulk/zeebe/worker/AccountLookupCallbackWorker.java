@@ -4,6 +4,7 @@ import static org.mifos.processor.bulk.camel.config.CamelProperties.PAYEE_PARTY_
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CHANNEL_REQUEST;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ORIGIN_CHANNEL_REQUEST;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_LOOKUP_FSP_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYEE_DFSP_ID;
 import static org.mifos.processor.bulk.zeebe.worker.Worker.ACCOUNT_LOOKUP_CALLBACK;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,6 +43,7 @@ public class AccountLookupCallbackWorker extends BaseWorker {
             Party payee = new Party(partyIdInfo);
             transactionChannelRequestDTO.setPayee(payee);
             existingVariables.put(CHANNEL_REQUEST, objectMapper.writeValueAsString(transactionChannelRequestDTO));
+            existingVariables.put(PAYEE_DFSP_ID, payeeFspId);
             client.newCompleteCommand(job.getKey()).variables(existingVariables).send().join();
         }).name(ACCOUNT_LOOKUP_CALLBACK.getValue()).open();
     }
