@@ -194,3 +194,22 @@ payment-mode:
       debulkingDfspid: "lion"
 batch-authorization:
   callback-url: "https://ph-ee-connector-bulk:80/authorization/callback"
+
+pubsub:
+  room:
+    code: "covid-19"
+    class: "GOV"
+  event:
+    type: "bulk"
+
+security-server:
+  country: "INDIA"
+  organisation: mifos
+  host: https://SECURITYSERVER
+  baseuri: /r1/{country}/GOV/{orgs}
+  endpoints:
+    subs: /room/subs
+
+gov-stack-client:
+  header-key: "X-GovStack-Client"
+  header-value: "PAYMENT-BB"
