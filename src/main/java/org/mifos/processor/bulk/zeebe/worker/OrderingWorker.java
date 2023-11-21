@@ -46,12 +46,6 @@ public class OrderingWorker extends BaseWorker {
                 variables.put(ORDERING_FAILED, false);
                 variables.put(ORDERED_BY, exchange.getProperty(ORDERED_BY));
             }
-
-            // if (workerConfig.isTransactionDeduplicationEnabled) {
-            // List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
-            // removeDuplicates(transactionList, workerConfig.isOrderingWorkerEnabled);
-            // variables.put(TRANSACTION_LIST, transactionList);
-            // }
             client.newCompleteCommand(job.getKey()).variables(variables).send();
         });
     }

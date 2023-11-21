@@ -59,9 +59,6 @@ public class DeDuplicationRoute extends BaseRouteBuilder {
                     exchange.setProperty(DUPLICATE_TRANSACTION_COUNT, duplicateTxnCount);
                     exchange.setProperty(DUPLICATE_TRANSACTION_LIST, duplicateTransactionList);
                     exchange.setProperty(ORIGINAL_TRANSACTION_LIST, originalTransactionList);
-
-                    // todo update the existing file , create a new duplicate txn file and upload in s3
-
                 }).choice().when(exchange -> exchange.getProperty(DUPLICATE_TRANSACTION_COUNT, Integer.class) > 0)
                 .log("Updating original transaction list")
                 .setProperty(TRANSACTION_LIST, simple("${exchangeProperty." + ORIGINAL_TRANSACTION_LIST + "}"))
