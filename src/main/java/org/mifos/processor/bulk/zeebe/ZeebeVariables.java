@@ -27,6 +27,7 @@ public final class ZeebeVariables {
 
     public static final String PARTY_LOOKUP_FAILED = "partyLookupFailed";
     public static final String APPROVAL_FAILED = "approvalFailed";
+    public static final String DE_DUPLICATION_FAILED = "deduplicationFailed";
     public static final String ORDERING_FAILED = "orderingFailed";
     public static final String SPLITTING_FAILED = "splittingFailed";
     public static final String FORMATTING_FAILED = "formattingFailed";
@@ -47,6 +48,8 @@ public final class ZeebeVariables {
     public static final String PARTY_LOOKUP_ENABLED = "partyLookupEnabled";
 
     public static final String APPROVAL_ENABLED = "approvalEnabled";
+
+    public static final String DE_DUPLICATION_ENABLE = "deduplicationEnabled";
 
     public static final String ORDERING_ENABLED = "orderingEnabled";
 
@@ -156,5 +159,9 @@ public final class ZeebeVariables {
     public static final String CURRENCY = "currency";
 
     public static final String AUTHORIZATION_RESPONSE = "authorizationResponse";
+
+    public static final String DUPLICATE_TRANSACTION_FILE = "duplicateTransactionFile";
+
+    public static final String DUPLICATE_TRANSACTION_COUNT = "duplicateTransactionCount";
 
 }

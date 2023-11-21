@@ -23,6 +23,7 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK_URL;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CLIENT_CORRELATION_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETION_THRESHOLD;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETION_THRESHOLD_CHECK_ENABLED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.DE_DUPLICATION_ENABLE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FORMATTING_ENABLED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.IS_FILE_VALID;
@@ -471,6 +472,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
         variables.put(PARTY_LOOKUP_ENABLED, workerConfig.isPartyLookUpWorkerEnabled);
         variables.put(AUTHORIZATION_ENABLED, workerConfig.isAuthorizationWorkerEnabled);
         variables.put(APPROVAL_ENABLED, workerConfig.isApprovalWorkerEnabled);
+        variables.put(DE_DUPLICATION_ENABLE, workerConfig.isTransactionDeduplicationEnabled);
         variables.put(ORDERING_ENABLED, workerConfig.isOrderingWorkerEnabled);
         variables.put(SPLITTING_ENABLED, workerConfig.isSplittingWorkerEnabled);
         variables.put(FORMATTING_ENABLED, workerConfig.isFormattingWorkerEnabled);

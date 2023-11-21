@@ -1,7 +1,6 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ORDERED_BY;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ORDERING_FAILED;
@@ -46,12 +45,6 @@ public class OrderingWorker extends BaseWorker {
                 }
                 variables.put(ORDERING_FAILED, false);
                 variables.put(ORDERED_BY, exchange.getProperty(ORDERED_BY));
-            }
-
-            if (workerConfig.isTransactionDeduplicationEnabled) {
-                List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
-                removeDuplicates(transactionList, workerConfig.isOrderingWorkerEnabled);
-                variables.put(TRANSACTION_LIST, transactionList);
             }
             client.newCompleteCommand(job.getKey()).variables(variables).send();
         });

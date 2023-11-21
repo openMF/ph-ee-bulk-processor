@@ -81,4 +81,6 @@ public final class CamelProperties {
     public static final String CLIENT_CORRELATION_ID = "clientCorrelationId";
     public static final String SUB_BATCH_ENTITY = "subBatchEntity";
     public static final String EVENT_TYPE = "eventType";
+    public static final String DUPLICATE_TRANSACTION_LIST = "duplicateTransactionList";
+    public static final String ORIGINAL_TRANSACTION_LIST = "originalTransactionList";
 }
