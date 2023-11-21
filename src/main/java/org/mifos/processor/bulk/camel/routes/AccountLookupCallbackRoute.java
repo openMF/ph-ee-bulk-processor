@@ -48,7 +48,8 @@ public class AccountLookupCallbackRoute extends BaseRouteBuilder {
             List<Transaction> updatedTransactionList = new ArrayList<>();
             Map<String, Object> variables = new HashMap<>();
 
-            updateTransactionStatus(transactionList, batchAccountLookupCallback.getBeneficiaryDTOList(), transactionResultList, updatedTransactionList);
+            updateTransactionStatus(transactionList, batchAccountLookupCallback.getBeneficiaryDTOList(), transactionResultList,
+                    updatedTransactionList);
             exchange.setProperty(PARTY_LOOKUP_SUCCESSFUL_TRANSACTION_AMOUNT, totalApprovedAmount);
             exchange.setProperty(PARTY_LOOKUP_SUCCESSFUL_TRANSACTION_COUNT, totalApprovedCount);
             exchange.setProperty(RESULT_TRANSACTION_LIST, transactionResultList);
@@ -63,21 +64,16 @@ public class AccountLookupCallbackRoute extends BaseRouteBuilder {
             }
         })
                 // setting localfilepath as result file to make sure result file is uploaded
-                .log("updating orignal")
-                .setProperty(LOCAL_FILE_PATH, exchangeProperty(SERVER_FILE_NAME))
-                .setProperty(OVERRIDE_HEADER, constant(true))
-                .to("direct:update-file")
-                .to("direct:upload-file")
-                .log("updating failed transaction")
-                .setProperty(TRANSACTION_LIST, exchangeProperty(RESULT_TRANSACTION_LIST))
-                .setProperty(LOCAL_FILE_PATH, exchangeProperty(RESULT_FILE))
-                .setProperty(OVERRIDE_HEADER, constant(true))
-                .to("direct:update-result-file")
-                .to("direct:upload-file");
+                .log("updating orignal").setProperty(LOCAL_FILE_PATH, exchangeProperty(SERVER_FILE_NAME))
+                .setProperty(OVERRIDE_HEADER, constant(true)).to("direct:update-file").to("direct:upload-file")
+                .log("updating failed transaction").setProperty(TRANSACTION_LIST, exchangeProperty(RESULT_TRANSACTION_LIST))
+                .setProperty(LOCAL_FILE_PATH, exchangeProperty(RESULT_FILE)).setProperty(OVERRIDE_HEADER, constant(true))
+                .to("direct:update-result-file").to("direct:upload-file");
     }
 
     public List<TransactionResult> updateTransactionStatus(List<Transaction> transactionList,
-            List<BeneficiaryDTO> batchAccountLookupResponseDTO, List<TransactionResult> transactionResultList, List<Transaction> updatedTransactionList) {
+            List<BeneficiaryDTO> batchAccountLookupResponseDTO, List<TransactionResult> transactionResultList,
+            List<Transaction> updatedTransactionList) {
         totalApprovedCount = 0;
         totalApprovedAmount = 0;
         AtomicInteger count = new AtomicInteger(totalApprovedCount);
