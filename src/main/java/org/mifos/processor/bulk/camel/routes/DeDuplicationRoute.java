@@ -8,7 +8,7 @@ import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_
 import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.DE_DUPLICATION_FAILED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.DUPLICATE_TRANSACTION_COUNT;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.DUPLICATE_TRANSACTION_FILE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FAILED_TRANSACTION_FILE;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -67,10 +67,10 @@ public class DeDuplicationRoute extends BaseRouteBuilder {
                     String originalFileServerName = exchange.getProperty(SERVER_FILE_NAME, String.class);
                     String duplicateFileName = "duplicate_transaction_" + originalFileServerName;
 
-                    exchange.setProperty(DUPLICATE_TRANSACTION_FILE, duplicateFileName);
+                    exchange.setProperty(FAILED_TRANSACTION_FILE, duplicateFileName);
                 }).log("Updating duplicate transaction list")
                 .setProperty(TRANSACTION_LIST, simple("${exchangeProperty." + DUPLICATE_TRANSACTION_LIST + "}"))
-                .setProperty(LOCAL_FILE_PATH, simple("${exchangeProperty." + DUPLICATE_TRANSACTION_FILE + "}"))
+                .setProperty(LOCAL_FILE_PATH, simple("${exchangeProperty." + FAILED_TRANSACTION_FILE + "}"))
                 .setProperty(OVERRIDE_HEADER, constant(true)).to("direct:update-file").to("direct:upload-file").process(exchange -> {
                     // checking if file upload was success or
                     String serverFileName = exchange.getProperty(SERVER_FILE_NAME, String.class);

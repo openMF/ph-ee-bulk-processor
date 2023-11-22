@@ -4,7 +4,7 @@ import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.DE_DUPLICATION_ENABLE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.DE_DUPLICATION_FAILED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.DUPLICATE_TRANSACTION_COUNT;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.DUPLICATE_TRANSACTION_FILE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FAILED_TRANSACTION_FILE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
 
 import java.util.Map;
@@ -41,7 +41,7 @@ public class DeDuplicationWorker extends BaseWorker {
             int duplicateTransactionCount = exchange.getProperty(DUPLICATE_TRANSACTION_COUNT, Integer.class);
             if (duplicateTransactionCount > 0) {
                 // if duplicate txn exist
-                variables.put(DUPLICATE_TRANSACTION_FILE, exchange.getProperty(DUPLICATE_TRANSACTION_FILE, String.class));
+                variables.put(FAILED_TRANSACTION_FILE, exchange.getProperty(FAILED_TRANSACTION_FILE, String.class));
             }
             variables.put(DE_DUPLICATION_FAILED, deDuplicationFailed);
             variables.put(DUPLICATE_TRANSACTION_COUNT, duplicateTransactionCount);
