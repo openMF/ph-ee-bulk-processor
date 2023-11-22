@@ -66,6 +66,7 @@ public class SplittingRoute extends BaseRouteBuilder {
             List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
             List<String> subBatchFile = new ArrayList<>();
             Set<String> distinctPayeeIds = transactionList.stream().map(Transaction::getPayeeDfspId).collect(Collectors.toSet());
+            logger.info("Payee id {}", distinctPayeeIds);
             if (!distinctPayeeIds.isEmpty()) {
                 // Create a map to store transactions for each payeeid
                 Map<String, List<Transaction>> transactionsByPayeeId = new HashMap<>();
