@@ -49,8 +49,7 @@ channel:
 cloud:
   aws:
     enabled: true
-    s3-base-url: "https://paymenthub-ee.s3.ap-south-1.amazonaws.com"
-    host: "http://localhost:9000"
+    s3BaseUrl: "https://s3.ap-south-1.amazonaws.com"
     credentials:
       access-key: ${AWS_ACCESS_KEY:access_key_from_aws}
       secret-key: ${AWS_SECRET_KEY:secret_key_from_aws}
