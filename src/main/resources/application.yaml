@@ -1,6 +1,6 @@
 camel:
-  server-port: 5000
-  disable-ssl: false
+  server-port: 5001
+  disable-ssl: true
   springboot:
     main-run-controller: true
     dataformat:
@@ -8,7 +8,7 @@ camel:
         auto-discover-object-mapper: true
 
 kafka:
-  bootstrapAddress: "kafka:9092"
+#  bootstrapAddress: "kafka:9092"
   topic:
     gsma:
       name: gsma
@@ -26,10 +26,10 @@ zeebe:
     #    number-of-workers: 8
     #    evenly-allocated-max-jobs: "#{${zeebe.client.max-execution-threads} / ${zeebe.client.number-of-workers}}"
   broker:
-    contactpoint: "zeebe-zeebe-gateway:26500"
+    contactpoint: "localhost:26500"
 
 operations-app:
-  contactpoint: "https://ops-bk.sandbox.mifos.io"
+  contactpoint: "http://localhost:57170"
   username: "mifos"
   password: "password"
   endpoints:
@@ -44,15 +44,15 @@ mock-payment-schema:
     authorization: "/batches/"
 
 channel:
-  hostname: "https://ph-ee-connector-channel:8443"
+  hostname: "http://localhost:8444"
 
 cloud:
   aws:
     enabled: true
     s3-base-url: "https://paymenthub-ee.s3.ap-south-1.amazonaws.com"
     credentials:
-      access-key: ${AWS_ACCESS_KEY:access_key_from_aws}
-      secret-key: ${AWS_SECRET_KEY:secret_key_from_aws}
+      access-key: AKIAWDP6SN37EABSGFWS
+      secret-key: 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
 
     region:
       static: ap-south-1
@@ -89,31 +89,31 @@ config:
   batchAggregate:
     enable: true
   partylookup:
-    enable: true
+    enable: false
   authorization:
-    enabled: true
+    enabled: false
   approval:
-    enable: true
+    enable: false
   ordering:
-    enable: true
+    enable: false
     field: "payerIdentifier"
   splitting:
-    enable: false
+    enable: true
     sub-batch-size: 5
   formatting:
     enable: false
     standard: "DEFAULT"
   mergeback:
-    enable: false
+    enable: true
   backpressure:
     enable: false
   completion-threshold-check:
-    enable: false
+    enable: true
     completion-threshold: 95 # in percentage
     max-retry: 4 #can be as high as 30
     delay: 2 # in seconds
   deduplication:
-    enabled: true
+    enabled: false
 
 callback:
   max-retry: 3
@@ -131,12 +131,12 @@ callback-phases:
     - 100
 
 server:
-  ssl:
-    key-alias: "tomcat-https"
-    key-store: "classpath:keystore.jks"
-    key-store-type: JKS
-    key-password: "password"
-    key-store-password: "password"
+#  ssl:
+#    key-alias: "tomcat-https"
+#    key-store: "classpath:keystore.jks"
+#    key-store-type: JKS
+#    key-password: "password"
+#    key-store-password: "password"
   port: 8443
 
 
@@ -213,3 +213,7 @@ security-server:
 gov-stack-client:
   header-key: "X-GovStack-Client"
   header-value: "PAYMENT-BB"
+
+logging:
+  level:
+    root: INFO

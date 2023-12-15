@@ -52,7 +52,9 @@ public class BatchAggregateRoute extends BaseRouteBuilder {
                 .log("Starting route direct:batch-aggregate-response-handler")
                 // .setBody(exchange -> exchange.getIn().getBody(String.class))
                 .choice().when(header("CamelHttpResponseCode").isEqualTo("200")).log(LoggingLevel.INFO, "Batch summary request successful")
-                .unmarshal().json(JsonLibrary.Jackson, BatchDTO.class).process(exchange -> {
+                .log("Response body: ${body}")
+                .unmarshal().json(JsonLibrary.Jackson, BatchDTO.class)
+                .process(exchange -> {
                     BatchDTO batchAggregateResponse = exchange.getIn().getBody(BatchDTO.class);
                     int percentage = (int) (((double) batchAggregateResponse.getSuccessful() / batchAggregateResponse.getTotal()) * 100);
 

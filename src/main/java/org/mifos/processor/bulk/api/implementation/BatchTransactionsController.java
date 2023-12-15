@@ -2,6 +2,7 @@ package org.mifos.processor.bulk.api.implementation;
 
 import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PROGRAM_ID;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_REGISTERING_INSTITUTE_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.HEADER_CLIENT_CORRELATION_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.HEADER_PLATFORM_TENANT_ID;
@@ -39,6 +40,21 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartException;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
+
+import java.nio.charset.Charset;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PROGRAM_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_REGISTERING_INSTITUTE_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.HEADER_CLIENT_CORRELATION_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.HEADER_PLATFORM_TENANT_ID;
+
 @Slf4j
 @RestController
 public class BatchTransactionsController implements BatchTransactions {
@@ -63,12 +79,12 @@ public class BatchTransactionsController implements BatchTransactions {
     @SneakyThrows
     @Override
     public String batchTransactions(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, String requestId,
-            String fileName, String purpose, String type, String tenant, String registeringInstitutionId, String programId) {
+                                    String fileName, String purpose, String type, String tenant, String callbackUrl, String registeringInstitutionId, String programId) throws IOException {
 
         log.info("Inside api logic");
         Headers.HeaderBuilder headerBuilder = new Headers.HeaderBuilder().addHeader(HEADER_CLIENT_CORRELATION_ID, requestId)
                 .addHeader(PURPOSE, purpose).addHeader(HEADER_TYPE, type).addHeader(HEADER_PLATFORM_TENANT_ID, tenant)
-                .addHeader(HEADER_REGISTERING_INSTITUTE_ID, registeringInstitutionId).addHeader(HEADER_PROGRAM_ID, programId);
+                .addHeader(CALLBACK, callbackUrl).addHeader(HEADER_REGISTERING_INSTITUTE_ID, registeringInstitutionId).addHeader(HEADER_PROGRAM_ID, programId);
 
         Optional<String> validationResponse = isValidRequest(httpServletRequest, fileName, type);
         if (validationResponse.isPresent()) {

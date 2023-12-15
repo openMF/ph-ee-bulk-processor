@@ -198,12 +198,12 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                 .setHeader(HEADER_CLIENT_CORRELATION_ID, simple("${exchangeProperty." + REQUEST_ID + "}"))
                 .setHeader(HEADER_REGISTERING_INSTITUTE_ID, simple("${exchangeProperty." + HEADER_REGISTERING_INSTITUTE_ID + "}"))
                 .process(exchange -> {
-                    log.debug("Variables: {}", exchange.getProperties());
-                    log.debug("Emergency: {}", exchange.getIn().getHeaders());
+                    log.info("Variables: {}", exchange.getProperties());
+                    log.info("Emergency: {}", exchange.getIn().getHeaders());
                 })
 
                 .toD(channelURL + "${exchangeProperty.extEndpoint}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
-                .log(LoggingLevel.DEBUG, "Response body: ${body}").otherwise().endChoice();
+                .log(LoggingLevel.INFO, "Response body: ${body}").otherwise().endChoice();
 
         from("direct:validate-payment-mode").id("direct:validate-payment-mode").log("Starting route direct:validate-payment-mode")
                 .process(exchange -> {
