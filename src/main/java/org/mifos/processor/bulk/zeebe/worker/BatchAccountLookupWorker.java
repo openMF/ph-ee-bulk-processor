@@ -2,6 +2,7 @@ package org.mifos.processor.bulk.zeebe.worker;
 
 import static org.mifos.processor.bulk.camel.config.CamelProperties.CACHED_TRANSACTION_ID;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_REGISTERING_INSTITUTE_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.REGISTERING_INSTITUTE_ID;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
@@ -48,8 +49,10 @@ public class BatchAccountLookupWorker extends BaseWorker {
             Map<String, Object> variables = job.getVariablesAsMap();
             Exchange exchange = new DefaultExchange(camelContext);
             String filename = (String) variables.get(FILE_NAME);
+            String registeringInstituteId = variables.get(REGISTERING_INSTITUTE_ID).toString();
+            logger.info("registeringInstituteId in worker {}", registeringInstituteId);
             variables.put(CACHED_TRANSACTION_ID, job.getKey());
-            exchange.setProperty(HEADER_REGISTERING_INSTITUTE_ID, variables.get("registeringInstituteId").toString());
+            exchange.setProperty(HEADER_REGISTERING_INSTITUTE_ID, registeringInstituteId) ;
             exchange.setProperty(SERVER_FILE_NAME, filename);
             exchange.setProperty(REQUEST_ID, job.getKey());
             exchange.setProperty(CALLBACK, identityMapperURL + batchAccountLookupCallback);

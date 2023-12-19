@@ -333,6 +333,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     String type = exchange.getIn().getHeader("Type", String.class);
                     String clientCorrelationId = exchange.getIn().getHeader(HEADER_CLIENT_CORRELATION_ID, String.class);
                     String registeringInstitutionId = exchange.getIn().getHeader(HEADER_REGISTERING_INSTITUTE_ID, String.class);
+                    logger.info("registeringInstitutionId {}", registeringInstitutionId);
                     String programId = exchange.getIn().getHeader(HEADER_PROGRAM_ID, String.class);
                     String callbackUrl = exchange.getIn().getHeader("X-CallbackURL", String.class);
                     exchange.setProperty(FILE_NAME, filename);
