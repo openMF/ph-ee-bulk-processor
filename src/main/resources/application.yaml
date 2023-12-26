@@ -152,7 +152,7 @@ identity_account_mapper:
   account_lookup_callback: /accountLookupCallback
 
 bulk_processor:
-  hostname : "http://ph-ee-connector-bulk:8080"
+  hostname : "https://ph-ee-connector-bulk:8443"
 
 csv:
   columnNames: "id,request_id,payment_mode,payer_identifier_type,payer_identifier,payee_identifier_type,payee_identifier,amount,currency,note,account_number,program_shortcode,cycle"
