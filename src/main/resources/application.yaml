@@ -193,7 +193,7 @@ payment-mode:
       endpoint: "bulk_connector_{MODE}-{dfspid}"
       debulkingDfspid: "lion"
 batch-authorization:
-  callback-url: "https://ph-ee-connector-bulk:80/authorization/callback"
+  callback-url: "https://ph-ee-connector-bulk:8443/authorization/callback"
 
 pubsub:
   room:
