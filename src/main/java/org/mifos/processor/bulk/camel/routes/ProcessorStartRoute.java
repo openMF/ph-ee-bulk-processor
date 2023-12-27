@@ -13,36 +13,7 @@ import static org.mifos.processor.bulk.camel.config.CamelProperties.REGISTERING_
 import static org.mifos.processor.bulk.camel.config.CamelProperties.RESULT_TRANSACTION_LIST;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.TENANT_NAME;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.APPROVAL_ENABLED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.AUTHORIZATION_ENABLED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_AGGREGATE_ENABLED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BULK_NOTIF_FAILURE;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BULK_NOTIF_SUCCESS;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK_URL;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CLIENT_CORRELATION_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETION_THRESHOLD;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETION_THRESHOLD_CHECK_ENABLED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.DE_DUPLICATION_ENABLE;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FORMATTING_ENABLED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.IS_FILE_VALID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MAX_CALLBACK_RETRY;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MAX_STATUS_RETRY;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MERGE_ENABLED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.NOTE;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ORDERING_ENABLED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_LOOKUP_ENABLED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYER_IDENTIFIER_TYPE;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYER_IDENTIFIER_VALUE;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PHASES;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PHASE_COUNT;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PROGRAM_NAME;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REQUEST_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SPLITTING_ENABLED;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.THRESHOLD_DELAY;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.BufferedReader;
@@ -149,6 +120,9 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
             String requestId = exchange.getIn().getHeader("requestId", String.class);
             String purpose = exchange.getIn().getHeader("purpose", String.class);
             String batchId = UUID.randomUUID().toString();
+            // extracting and setting callback Url
+            String callbackUrl = exchange.getIn().getHeader("X-CallbackURL", String.class);
+            exchange.setProperty(CALLBACK, callbackUrl);
             exchange.setProperty(BATCH_ID, batchId);
             exchange.setProperty(FILE_NAME, fileName);
             exchange.setProperty(REQUEST_ID, requestId);
@@ -232,6 +206,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     String requestId = exchange.getProperty(REQUEST_ID, String.class);
                     String purpose = exchange.getProperty(PURPOSE, String.class);
                     String batchId = exchange.getProperty(BATCH_ID, String.class);
+                    String callbackUrl = exchange.getProperty(CALLBACK,String.class);
                     String note = null;
 
                     if (purpose == null || purpose.isEmpty()) {
@@ -248,7 +223,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     logger.debug("File absolute path: {}", file.getAbsolutePath());
 
                     boolean verifyData = verifyData(file);
-                    logger.debug("Data verification result {}", verifyData);
+                    logger.info("Data verification result {}", verifyData);
                     if (!verifyData) {
                         note = "Invalid data in file data processing stopped";
                     }
@@ -257,9 +232,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
 
                     logger.debug("File uploaded {}", nm);
 
-                    // extracting and setting callback Url
-                    String callbackUrl = exchange.getIn().getHeader("X-Callback-URL", String.class);
-                    exchange.setProperty(CALLBACK_URL, callbackUrl);
+
 
                     List<Integer> phases = phaseUtils.getValues();
                     logger.debug(phases.toString());
@@ -269,7 +242,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     variables.put(REQUEST_ID, requestId);
                     variables.put(PURPOSE, purpose);
                     variables.put(TENANT_ID, exchange.getProperty(TENANT_NAME));
-                    variables.put(CALLBACK_URL, callbackUrl);
+                    variables.put(CALLBACK, callbackUrl);
                     variables.put(PHASES, phases);
                     variables.put(PHASE_COUNT, phases.size());
                     variables.put(NOTE, note);
@@ -322,10 +295,13 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     String filename = exchange.getIn().getHeader("filename", String.class);
                     String requestId = exchange.getIn().getHeader("X-CorrelationID", String.class);
                     String purpose = exchange.getIn().getHeader("Purpose", String.class);
-                    String type = exchange.getIn().getHeader("Type", String.class);
+                    String type = exchange.getIn().getHeader("type", String.class);
                     String clientCorrelationId = exchange.getIn().getHeader(HEADER_CLIENT_CORRELATION_ID, String.class);
                     String registeringInstitutionId = exchange.getIn().getHeader(HEADER_REGISTERING_INSTITUTE_ID, String.class);
                     String programId = exchange.getIn().getHeader(HEADER_PROGRAM_ID, String.class);
+                    // extracting and setting callback Url
+                    String callbackUrl = exchange.getIn().getHeader("X-CallbackURL", String.class);
+                    exchange.setProperty(CALLBACK, callbackUrl);
                     exchange.setProperty(FILE_NAME, filename);
                     exchange.setProperty(REQUEST_ID, requestId);
                     exchange.setProperty(PURPOSE, purpose);
@@ -396,9 +372,9 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
         String line;
         br.readLine();
         while ((line = br.readLine()) != null) {
-            String[] row = line.split(",");
+            String[] row = line.split(",", -1);
             if (row.length != columnNames.size()) {
-                logger.debug("Row invalid {} {}", row.length, columnNames.size());
+                logger.info("Row invalid {} {}", row.length, columnNames.size());
                 return false;
             }
             if (!verifyRow(row)) {
@@ -415,14 +391,14 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                 int j = row[i].indexOf("MSISDN");
                 if (!(j == row.length)) {
                     if (!row[j + 1].matches("^[0-9]*$")) {
-                        logger.debug("MSISDN invalid");
+                        logger.info("MSISDN invalid");
                         return false;
                     }
                 }
             } else if (row[i].contains("amount")) {
                 int j = row[i].indexOf("amount");
                 if (!row[j].matches("^[0-9]*$")) {
-                    logger.debug("Amount invalid");
+                    logger.info("Amount invalid");
                     return false;
                 }
 
@@ -437,12 +413,12 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
         String[] columns = new String[0];
         if (header != null) {
             columns = header.split(",");
-            logger.debug("Columns in the csv file are {}", Arrays.toString(columns));
+            logger.info("Columns in the csv file are {}", Arrays.toString(columns));
         }
         int i = 0;
         while (i < columns.length) {
             if (columnNames.contains(columns[i])) {
-                logger.debug("Column name {} is at index {} ", columns[i], columnNames.indexOf(columns[i]));
+                logger.info("Column name {} is at index {} ", columns[i], columnNames.indexOf(columns[i]));
                 i++;
 
             } else {

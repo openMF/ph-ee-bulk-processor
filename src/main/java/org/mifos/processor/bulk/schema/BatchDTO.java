@@ -12,9 +12,9 @@ import lombok.Setter;
 @NoArgsConstructor
 public class BatchDTO {
 
-    private String batchId;
+    private String batch_id;
 
-    private String requestId;
+    private String request_id;
 
     private Long total;
 
@@ -36,7 +36,7 @@ public class BatchDTO {
 
     private String notes;
 
-    private String createdAt;
+    private String created_at;
 
     private String status;
 
