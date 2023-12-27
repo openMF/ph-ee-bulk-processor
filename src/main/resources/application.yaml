@@ -168,6 +168,8 @@ budget-account:
           identifierValue: "123456789"
 
 management:
+  server:
+    port: 8443
   endpoint:
     health:
       probes:
