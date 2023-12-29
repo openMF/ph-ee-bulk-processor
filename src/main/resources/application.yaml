@@ -168,8 +168,8 @@ budget-account:
           identifierValue: "123456789"
 
 management:
-  server:
-    port: 8443
+#  server:
+#    port: 8443
   endpoint:
     health:
       probes:
@@ -178,6 +178,7 @@ management:
         enabled: true
       readiness:
         enabled: true
+      show-details: always
 
 payment-mode:
   mappings:
