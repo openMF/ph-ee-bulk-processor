@@ -2,9 +2,14 @@ package org.mifos.processor.bulk.zeebe.worker;
 
 import static org.mifos.processor.bulk.camel.config.CamelProperties.BATCH_STATUS_FAILED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK_RETRY;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETION_RATE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ERROR_CODE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ERROR_DESCRIPTION;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MAX_CALLBACK_RETRY;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PHASES;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PHASE_COUNT;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.RETRY;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
 
@@ -31,7 +36,12 @@ public class AggregateWorker extends BaseWorker {
             Exchange exchange = new DefaultExchange(camelContext);
             exchange.setProperty(BATCH_ID, variables.get(BATCH_ID));
             exchange.setProperty(TENANT_ID, variables.get(TENANT_ID));
-
+            exchange.setProperty(MAX_CALLBACK_RETRY, variables.get(MAX_CALLBACK_RETRY));
+            exchange.setProperty(CALLBACK_RETRY, variables.getOrDefault(CALLBACK_RETRY, 0));
+            exchange.setProperty(CALLBACK, variables.get(CALLBACK));
+            // exchange.setProperty(COMPLETION_RATE, variables.get(COMPLETION_RATE));
+            exchange.setProperty(PHASES, variables.get(PHASES));
+            exchange.setProperty(PHASE_COUNT, variables.get(PHASE_COUNT));
             sendToCamelRoute(RouteId.BATCH_AGGREGATE, exchange);
 
             Boolean batchStatusFailed = exchange.getProperty(BATCH_STATUS_FAILED, Boolean.class);

@@ -107,7 +107,7 @@ public final class ZeebeVariables {
 
     public static final String CALLBACK_SUCCESS = "callbackSuccessful";
 
-    public static final String CALLBACK_URL = "callbackUrl";
+    public static final String CALLBACK_URL = "X-CallbackURL";
 
     public static final String MAX_CALLBACK_RETRY = "maxCallbackRetry";
 
