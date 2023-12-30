@@ -19,6 +19,7 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_AGGREGATE_ENAB
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BULK_NOTIF_FAILURE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BULK_NOTIF_SUCCESS;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK_URL;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CLIENT_CORRELATION_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETION_THRESHOLD;
@@ -149,6 +150,8 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
             String requestId = exchange.getIn().getHeader("requestId", String.class);
             String purpose = exchange.getIn().getHeader("purpose", String.class);
             String batchId = UUID.randomUUID().toString();
+            String callbackUrl = exchange.getIn().getHeader("X-CallbackURL", String.class);
+            exchange.setProperty(CALLBACK, callbackUrl);
             exchange.setProperty(BATCH_ID, batchId);
             exchange.setProperty(FILE_NAME, fileName);
             exchange.setProperty(REQUEST_ID, requestId);
@@ -232,6 +235,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     String requestId = exchange.getProperty(REQUEST_ID, String.class);
                     String purpose = exchange.getProperty(PURPOSE, String.class);
                     String batchId = exchange.getProperty(BATCH_ID, String.class);
+                    String callbackUrl = exchange.getProperty(CALLBACK, String.class);
                     String note = null;
 
                     if (purpose == null || purpose.isEmpty()) {
@@ -258,7 +262,6 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     logger.debug("File uploaded {}", nm);
 
                     // extracting and setting callback Url
-                    String callbackUrl = exchange.getIn().getHeader("X-Callback-URL", String.class);
                     exchange.setProperty(CALLBACK_URL, callbackUrl);
 
                     List<Integer> phases = phaseUtils.getValues();
@@ -269,7 +272,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     variables.put(REQUEST_ID, requestId);
                     variables.put(PURPOSE, purpose);
                     variables.put(TENANT_ID, exchange.getProperty(TENANT_NAME));
-                    variables.put(CALLBACK_URL, callbackUrl);
+                    variables.put(CALLBACK, callbackUrl);
                     variables.put(PHASES, phases);
                     variables.put(PHASE_COUNT, phases.size());
                     variables.put(NOTE, note);
