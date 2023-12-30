@@ -329,6 +329,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     String clientCorrelationId = exchange.getIn().getHeader(HEADER_CLIENT_CORRELATION_ID, String.class);
                     String registeringInstitutionId = exchange.getIn().getHeader(HEADER_REGISTERING_INSTITUTE_ID, String.class);
                     String programId = exchange.getIn().getHeader(HEADER_PROGRAM_ID, String.class);
+                    String callbackUrl = exchange.getIn().getHeader("X-CallbackURL", String.class);
                     exchange.setProperty(FILE_NAME, filename);
                     exchange.setProperty(REQUEST_ID, requestId);
                     exchange.setProperty(PURPOSE, purpose);
@@ -336,6 +337,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     exchange.setProperty(CLIENT_CORRELATION_ID, clientCorrelationId);
                     exchange.setProperty(REGISTERING_INSTITUTE_ID, registeringInstitutionId);
                     exchange.setProperty(PROGRAM_ID, programId);
+                    exchange.setProperty(CALLBACK, callbackUrl);
                 }).choice().when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("raw"))
                 .to("direct:start-batch-process-raw")
                 .when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("csv"))

@@ -1,5 +1,6 @@
 package org.mifos.processor.bulk.api.implementation;
 
+import static org.mifos.processor.bulk.camel.config.CamelProperties.CALLBACK;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PROGRAM_ID;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_REGISTERING_INSTITUTE_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
@@ -63,12 +64,14 @@ public class BatchTransactionsController implements BatchTransactions {
     @SneakyThrows
     @Override
     public String batchTransactions(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, String requestId,
-            String fileName, String purpose, String type, String tenant, String registeringInstitutionId, String programId) {
+            String fileName, String purpose, String type, String tenant, String registeringInstitutionId, String programId,
+            String callbackUrl) {
 
         log.info("Inside api logic");
         Headers.HeaderBuilder headerBuilder = new Headers.HeaderBuilder().addHeader(HEADER_CLIENT_CORRELATION_ID, requestId)
                 .addHeader(PURPOSE, purpose).addHeader(HEADER_TYPE, type).addHeader(HEADER_PLATFORM_TENANT_ID, tenant)
-                .addHeader(HEADER_REGISTERING_INSTITUTE_ID, registeringInstitutionId).addHeader(HEADER_PROGRAM_ID, programId);
+                .addHeader(HEADER_REGISTERING_INSTITUTE_ID, registeringInstitutionId).addHeader(HEADER_PROGRAM_ID, programId)
+                .addHeader(CALLBACK, callbackUrl);
 
         Optional<String> validationResponse = isValidRequest(httpServletRequest, fileName, type);
         if (validationResponse.isPresent()) {
