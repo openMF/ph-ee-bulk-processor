@@ -11,8 +11,10 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
+import org.apache.camel.ProducerTemplate;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.mifos.processor.bulk.schema.BatchDTO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +23,8 @@ public class BatchAggregateRoute extends BaseRouteBuilder {
 
     @Value("${config.completion-threshold-check.completion-threshold}")
     private int completionThreshold;
+    @Autowired
+    private ProducerTemplate producerTemplate;
 
     @Override
     public void configure() throws Exception {
@@ -52,7 +56,7 @@ public class BatchAggregateRoute extends BaseRouteBuilder {
                 .log("Starting route direct:batch-aggregate-response-handler")
                 // .setBody(exchange -> exchange.getIn().getBody(String.class))
                 .choice().when(header("CamelHttpResponseCode").isEqualTo("200")).log(LoggingLevel.INFO, "Batch summary request successful")
-                .unmarshal().json(JsonLibrary.Jackson, BatchDTO.class).process(exchange -> {
+                .log("Response body: ${body}").unmarshal().json(JsonLibrary.Jackson, BatchDTO.class).process(exchange -> {
                     BatchDTO batchAggregateResponse = exchange.getIn().getBody(BatchDTO.class);
                     int percentage = (int) (((double) batchAggregateResponse.getSuccessful() / batchAggregateResponse.getTotal()) * 100);
 
@@ -62,6 +66,7 @@ public class BatchAggregateRoute extends BaseRouteBuilder {
 
                     exchange.setProperty(COMPLETION_RATE, percentage);
 
+                    producerTemplate.send(RouteId.SEND_CALLBACK.getValue(), exchange);
                 }).otherwise().log(LoggingLevel.ERROR, "Batch aggregate request unsuccessful").process(exchange -> {
                     exchange.setProperty(BATCH_STATUS_FAILED, true);
                     exchange.setProperty(ERROR_DESCRIPTION, exchange.getIn().getBody(String.class));
