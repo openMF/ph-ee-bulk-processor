@@ -150,6 +150,8 @@ identity_account_mapper:
   hostname : "http://ph-ee-identity-account-mapper:80"
   account_lookup: /beneficiary
   account_lookup_callback: /accountLookupCallback
+  batch_account_lookup: /accountLookup
+  batch_account_lookup_callback: /batchAccountLookupCallback
 
 bulk_processor:
   hostname : "https://ph-ee-connector-bulk:8443"
@@ -213,3 +215,16 @@ security-server:
 gov-stack-client:
   header-key: "X-GovStack-Client"
   header-value: "PAYMENT-BB"
+
+
+bpmns:
+  tenants:
+    - id: "gorilla"
+      flows:
+        batch-transactions: "bulk_processor-{dfspid}"
+    - id: "rhino"
+      flows:
+        batch-transactions: "bulk_processor_account_lookup-{dfspid}"
+    - id: "lion"
+      flows:
+        batch-transactions: "bulk_processor-{dfspid}"

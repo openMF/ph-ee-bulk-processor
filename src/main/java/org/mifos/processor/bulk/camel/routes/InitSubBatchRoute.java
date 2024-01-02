@@ -128,10 +128,13 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     int index = exchange.getProperty(Exchange.LOOP_INDEX, Integer.class);
                     List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
                     Transaction transaction = transactionList.get(index);
+
                     exchange.setProperty(REQUEST_ID, transaction.getRequestId());
+                    exchange.setProperty("payeeDFSPId", transaction.getPayeeDfspId());
                     logger.info("REQUEST_ID: {}", transaction.getRequestId());
                     exchange.setProperty(TRANSACTION_LIST_ELEMENT, transaction);
-                }).setHeader("Platform-TenantId", exchangeProperty(TENANT_NAME)).to("direct:dynamic-payload-setter")
+                }).setHeader("Platform-TenantId", exchangeProperty(TENANT_NAME))
+                .setHeader("X-PayeeDFSP-ID", exchangeProperty("payeeDFSPId")).to("direct:dynamic-payload-setter")
                 .to("direct:external-api-call").to("direct:external-api-response-handler").end() // end loop block
                 .endChoice();
 

@@ -153,9 +153,6 @@ public final class ZeebeVariables {
     public static final String AUTHORIZATION_FAIL_REASON = "authorizationFailReason";
 
     public static final String PAYER_IDENTIFIER = "payerIdentifier";
-
-    public static final String PARTY_LOOKUP_SUCCESSFUL_TRANSACTION_COUNT = "partyLookupSuccessfulTransactionAmount";
-
     public static final String CURRENCY = "currency";
 
     public static final String AUTHORIZATION_RESPONSE = "authorizationResponse";
@@ -163,5 +160,10 @@ public final class ZeebeVariables {
     public static final String FAILED_TRANSACTION_FILE = "failedTransactionFile";
 
     public static final String DUPLICATE_TRANSACTION_COUNT = "duplicateTransactionCount";
+
+    public static final String BATCH_ACCOUNT_LOOKUP_RESPONSE = "batchAccountLookupResponse";
+    public static final String PARTY_LOOKUP_SUCCESSFUL_TRANSACTION_AMOUNT = "totalApprovedAmount";
+    public static final String PARTY_LOOKUP_SUCCESSFUL_TRANSACTION_COUNT = "totalApprovedCount";
+    public static final String REGISTERING_INSTITUTION_ID = "X-Registering-Institution-ID";
 
 }

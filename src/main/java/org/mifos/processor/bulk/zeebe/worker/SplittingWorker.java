@@ -8,6 +8,7 @@ import static org.mifos.processor.bulk.camel.config.CamelProperties.ZEEBE_VARIAB
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.INIT_FAILURE_SUB_BATCHES;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.INIT_SUCCESS_SUB_BATCHES;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_LOOKUP_FAILED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SPLITTING_FAILED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SUB_BATCHES;
 
@@ -39,9 +40,11 @@ public class SplittingWorker extends BaseWorker {
             }
 
             String filename = (String) variables.get(FILE_NAME);
+            Boolean partyLookupFailed = (Boolean) variables.get(PARTY_LOOKUP_FAILED);
             Exchange exchange = new DefaultExchange(camelContext);
             exchange.setProperty(SERVER_FILE_NAME, filename);
             exchange.setProperty(ZEEBE_VARIABLE, variables);
+            exchange.setProperty("partyLookupFailed", partyLookupFailed);
             exchange.setProperty(SUB_BATCH_DETAILS, new ArrayList<SubBatchEntity>());
 
             try {

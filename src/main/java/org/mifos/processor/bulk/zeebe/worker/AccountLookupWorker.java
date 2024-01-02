@@ -44,8 +44,6 @@ public class AccountLookupWorker extends BaseWorker {
     private String identityMapperURL;
     @Value("${identity_account_mapper.account_lookup_callback}")
     private String accountLookupCallback;
-    @Value("${bulk_processor.hostname}")
-    private String bulkURL;
     @Value("${identity_account_mapper.account_lookup}")
     private String accountLookupEndpoint;
 

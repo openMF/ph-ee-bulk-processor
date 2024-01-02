@@ -16,17 +16,25 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYER_IDENTIFIER;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REQUEST_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SPLITTING_FAILED;
 
+import com.fasterxml.jackson.databind.SequenceWriter;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.apache.camel.LoggingLevel;
 import org.mifos.processor.bulk.schema.SubBatchEntity;
 import org.mifos.processor.bulk.schema.Transaction;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -35,6 +43,10 @@ public class SplittingRoute extends BaseRouteBuilder {
 
     @Value("${config.splitting.sub-batch-size}")
     private int subBatchSize;
+    @Autowired
+    private CsvMapper csvMapper;
+    @Value("${config.partylookup.enable}")
+    private boolean partyLookupEnabled;
 
     @Override
     public void configure() throws Exception {
@@ -44,7 +56,7 @@ public class SplittingRoute extends BaseRouteBuilder {
          * direct:create-sub-batch-file 2. direct:upload-sub-batch-file
          */
         from(RouteId.SPLITTING.getValue()).id(RouteId.SPLITTING.getValue()).log("Starting route " + RouteId.SPLITTING.name())
-                .to("direct:download-file").to("direct:create-sub-batch-file").choice()
+                .to("direct:download-file").to("direct:get-transaction-array").to("direct:create-sub-batch-file").choice()
                 .when(exchange -> exchange.getProperty(SUB_BATCH_CREATED, Boolean.class)).to("direct:upload-sub-batch-file").otherwise()
                 .log("No sub batch created, so skipping upload").end().process(exchange -> exchange.setProperty(SPLITTING_FAILED, false));
 
@@ -53,33 +65,63 @@ public class SplittingRoute extends BaseRouteBuilder {
             String filepath = exchange.getProperty(LOCAL_FILE_PATH, String.class);
             BufferedReader reader = new BufferedReader(new FileReader(filepath));
             String header = reader.readLine() + System.lineSeparator();
-            List<String> lines = new ArrayList<>();
-            String line = null;
-            while ((line = reader.readLine()) != null) {
-                lines.add(line);
-            }
-            reader.close();
-
-            if (lines.size() <= subBatchSize) {
-                exchange.setProperty(SUB_BATCH_CREATED, false);
-                exchange.setProperty(SERVER_SUB_BATCH_FILE_NAME_ARRAY, new ArrayList<String>());
-                logger.info("Skipping creating sub batch, as batch size is less than configured sub-batch size");
-                return;
-            }
-
+            List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
             List<String> subBatchFile = new ArrayList<>();
-            int subBatchCount = 1;
-            for (int i = 0; i < lines.size(); i += subBatchSize) {
-                String filename = UUID.randomUUID() + "_" + "sub-batch-" + subBatchCount + ".csv";
-                FileWriter writer = new FileWriter(filename);
-                writer.write(header);
-                for (int j = i; j < Math.min(i + subBatchSize, lines.size()); j++) {
-                    writer.write(lines.get(j) + System.lineSeparator());
+            Set<String> distinctPayeeIds = transactionList.stream().map(Transaction::getPayeeDfspId).collect(Collectors.toSet());
+            logger.info("Payee id {}", distinctPayeeIds);
+            if (partyLookupEnabled && !distinctPayeeIds.isEmpty()) {
+                // Create a map to store transactions for each payeeid
+                Map<String, List<Transaction>> transactionsByPayeeId = new HashMap<>();
+
+                // Split the list based on distinct payeeids
+                for (String payeeId : distinctPayeeIds) {
+                    List<Transaction> transactionsForPayee = transactionList.stream()
+                            .filter(transaction -> payeeId.equals(transaction.getPayeeDfspId())).collect(Collectors.toList());
+
+                    transactionsByPayeeId.put(payeeId, transactionsForPayee);
                 }
-                writer.close();
-                logger.info("Created sub-batch with file name {}", filename);
-                subBatchFile.add(filename);
-                subBatchCount++;
+
+                for (String payeeId : distinctPayeeIds) {
+                    List<Transaction> transactionsForSpecificPayee = transactionsByPayeeId.get(payeeId);
+                    String filename = UUID.randomUUID() + "_" + "sub-batch-" + payeeId + ".csv";
+                    logger.info("Created sub-batch with file name {}", filename);
+                    CsvSchema csvSchema = csvMapper.schemaFor(Transaction.class);
+                    csvSchema = csvSchema.withHeader();
+                    File file = new File(filename);
+                    SequenceWriter writer = csvMapper.writerWithSchemaFor(Transaction.class).with(csvSchema).writeValues(file);
+                    for (Transaction transaction : transactionsForSpecificPayee) {
+                        writer.write(transaction);
+                    }
+                    subBatchFile.add(filename);
+                }
+            } else {
+                List<String> lines = new ArrayList<>();
+                String line = null;
+                while ((line = reader.readLine()) != null) {
+                    lines.add(line);
+                }
+                reader.close();
+
+                if (lines.size() <= subBatchSize) {
+                    exchange.setProperty(SUB_BATCH_CREATED, false);
+                    exchange.setProperty(SERVER_SUB_BATCH_FILE_NAME_ARRAY, new ArrayList<String>());
+                    logger.info("Skipping creating sub batch, as batch size is less than configured sub-batch size");
+                    return;
+                }
+
+                int subBatchCount = 1;
+                for (int i = 0; i < lines.size(); i += subBatchSize) {
+                    String filename = UUID.randomUUID() + "_" + "sub-batch-" + subBatchCount + ".csv";
+                    FileWriter writer = new FileWriter(filename);
+                    writer.write(header);
+                    for (int j = i; j < Math.min(i + subBatchSize, lines.size()); j++) {
+                        writer.write(lines.get(j) + System.lineSeparator());
+                    }
+                    writer.close();
+                    logger.info("Created sub-batch with file name {}", filename);
+                    subBatchFile.add(filename);
+                    subBatchCount++;
+                }
             }
             exchange.setProperty(SUB_BATCH_FILE_ARRAY, subBatchFile);
             exchange.setProperty(SUB_BATCH_COUNT, subBatchFile.size());

@@ -67,6 +67,8 @@ import org.mifos.processor.bulk.config.BudgetAccountConfig;
 import org.mifos.processor.bulk.config.Program;
 import org.mifos.processor.bulk.config.RegisteringInstitutionConfig;
 import org.mifos.processor.bulk.file.FileTransferService;
+import org.mifos.processor.bulk.properties.TenantImplementation;
+import org.mifos.processor.bulk.properties.TenantImplementationProperties;
 import org.mifos.processor.bulk.schema.Transaction;
 import org.mifos.processor.bulk.utility.PhaseUtils;
 import org.mifos.processor.bulk.utility.Utils;
@@ -85,6 +87,8 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
 
     @Autowired
     private ZeebeProcessStarter zeebeProcessStarter;
+    @Autowired
+    TenantImplementationProperties tenantImplementationProperties;
 
     @Autowired
     @Qualifier("awsStorage")
@@ -288,9 +292,10 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     log.debug("Variables published to zeebe: {}", variables);
 
                     JSONObject response = new JSONObject();
+                    String bpmn = getWorkflowForTenant(exchange.getProperty(TENANT_NAME).toString(), "batch-transactions");
 
                     try {
-                        String tenantSpecificWorkflowId = workflowId.replace("{dfspid}", exchange.getProperty(TENANT_NAME).toString());
+                        String tenantSpecificWorkflowId = bpmn.replace("{dfspid}", exchange.getProperty(TENANT_NAME).toString());
                         String txnId = zeebeProcessStarter.startZeebeWorkflow(tenantSpecificWorkflowId, "", variables);
                         if (txnId == null || txnId.isEmpty()) {
                             response.put("errorCode", 500);
@@ -328,6 +333,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     String type = exchange.getIn().getHeader("Type", String.class);
                     String clientCorrelationId = exchange.getIn().getHeader(HEADER_CLIENT_CORRELATION_ID, String.class);
                     String registeringInstitutionId = exchange.getIn().getHeader(HEADER_REGISTERING_INSTITUTE_ID, String.class);
+                    logger.info("registeringInstitutionId {}", registeringInstitutionId);
                     String programId = exchange.getIn().getHeader(HEADER_PROGRAM_ID, String.class);
                     String callbackUrl = exchange.getIn().getHeader("X-CallbackURL", String.class);
                     exchange.setProperty(FILE_NAME, filename);
@@ -411,6 +417,16 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
             }
         }
         return true;
+    }
+
+    public String getWorkflowForTenant(String tenantId, String useCase) {
+
+        for (TenantImplementation tenant : tenantImplementationProperties.getTenants()) {
+            if (tenant.getId().equals(tenantId)) {
+                return tenant.getFlows().getOrDefault(useCase, "default");
+            }
+        }
+        return "default";
     }
 
     private boolean verifyRow(String[] row) {
