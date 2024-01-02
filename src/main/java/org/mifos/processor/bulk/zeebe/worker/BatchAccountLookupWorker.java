@@ -52,7 +52,7 @@ public class BatchAccountLookupWorker extends BaseWorker {
             String registeringInstituteId = variables.get(REGISTERING_INSTITUTE_ID).toString();
             logger.info("registeringInstituteId in worker {}", registeringInstituteId);
             variables.put(CACHED_TRANSACTION_ID, job.getKey());
-            exchange.setProperty(HEADER_REGISTERING_INSTITUTE_ID, registeringInstituteId) ;
+            exchange.setProperty(HEADER_REGISTERING_INSTITUTE_ID, registeringInstituteId);
             exchange.setProperty(SERVER_FILE_NAME, filename);
             exchange.setProperty(REQUEST_ID, job.getKey());
             exchange.setProperty(CALLBACK, identityMapperURL + batchAccountLookupCallback);
