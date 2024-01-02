@@ -224,7 +224,7 @@ bpmns:
         batch-transactions: "bulk_processor-{dfspid}"
     - id: "rhino"
       flows:
-        batch-transactions: "bulk_processor_account_lookup-{dfspid}"
+        batch-transactions: "bulk_processor-{dfspid}"
     - id: "lion"
       flows:
-        batch-transactions: "bulk_processor-{dfspid}"
+        batch-transactions: "bulk_processor_account_lookup-{dfspid}"
