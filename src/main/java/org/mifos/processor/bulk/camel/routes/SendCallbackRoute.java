@@ -44,8 +44,8 @@ public class SendCallbackRoute extends BaseRouteBuilder {
                     ObjectMapper objectMapper = new ObjectMapper();
                     String jsonString = objectMapper.writeValueAsString(body);
                     exchange.getIn().setBody(jsonString);
-                }).setHeader(Exchange.HTTP_METHOD, constant("POST"))
-                .toD("${exchangeProperty.X-CallbackURL}?bridgeEndpoint=true&throwExceptionOnFailure=false")
+                }).choice().when(exchangeProperty("X-CallbackURL").isNotNull()).setHeader(Exchange.HTTP_METHOD, constant("POST"))
+                .toD("${exchangeProperty.X-CallbackURL}?bridgeEndpoint=true&throwExceptionOnFailure=false").otherwise().log("Unable to send callback: callback url is null")
                 .log(LoggingLevel.INFO, "Callback Response body: ${body}").choice()
                 .when(header(Exchange.HTTP_RESPONSE_CODE).regex("^2\\d{2}$")).log(LoggingLevel.INFO, "Callback sending was successful")
                 .process(exchange -> {
