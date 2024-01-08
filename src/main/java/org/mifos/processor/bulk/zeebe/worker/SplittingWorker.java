@@ -45,7 +45,8 @@ public class SplittingWorker extends BaseWorker {
             exchange.setProperty(SERVER_FILE_NAME, filename);
             exchange.setProperty(ZEEBE_VARIABLE, variables);
             exchange.setProperty("partyLookupFailed", partyLookupFailed);
-            exchange.setProperty("batchAccountLookup", variables.get("batchAccountLookup")!=null?variables.get("batchAccountLookup"):false);
+            exchange.setProperty("batchAccountLookup",
+                    variables.get("batchAccountLookup") != null ? variables.get("batchAccountLookup") : false);
 
             exchange.setProperty(SUB_BATCH_DETAILS, new ArrayList<SubBatchEntity>());
 
