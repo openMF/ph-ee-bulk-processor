@@ -12,6 +12,8 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import io.camunda.zeebe.client.api.command.ClientStatusException;
+import io.grpc.Status;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Optional;
@@ -115,6 +117,7 @@ public class BatchTransactionsController implements BatchTransactions {
     private CamelApiResponse sendRequestToCamel(Headers headers) {
         Exchange exchange = SpringWrapperUtil.getDefaultWrappedExchange(producerTemplate.getCamelContext(), headers);
         exchange = producerTemplate.send("direct:post-batch-transactions", exchange);
+        checkAndThrowClientStatusException(exchange);
         int statusCode = exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE, Integer.class);
         String body = exchange.getIn().getBody(String.class);
         return new CamelApiResponse(body, statusCode);
@@ -150,5 +153,12 @@ public class BatchTransactionsController implements BatchTransactions {
             response = Optional.of(errorJson);
         }
         return response;
+    }
+
+    private void checkAndThrowClientStatusException(Exchange exchange) {
+        Exception cause = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
+        if (cause instanceof ClientStatusException) {
+            throw new ClientStatusException(Status.FAILED_PRECONDITION, cause);
+        }
     }
 }

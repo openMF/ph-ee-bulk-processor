@@ -46,6 +46,7 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.THRESHOLD_DELAY;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.camunda.zeebe.client.api.command.ClientStatusException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -146,8 +147,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     exchange.setProperty(BATCH_ID, batchId);
 
                 }).to("direct:validateFileSyncResponse").choice().when(header("CamelHttpResponseCode").isNotEqualTo("200"))
-                .log(LoggingLevel.ERROR, "File upload failed").otherwise().wireTap("direct:executeBatch").to("direct:pollingOutput")
-                .endChoice().endChoice();
+                .log(LoggingLevel.ERROR, "File upload failed").otherwise().to("direct:executeBatch").endChoice().endChoice();
 
         from("direct:post-bulk-transfer").unmarshal().mimeMultipart("multipart/*").to("direct:validate-tenant").process(exchange -> {
             String fileName = System.currentTimeMillis() + "_" + exchange.getIn().getHeader("fileName", String.class);
@@ -160,7 +160,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
             exchange.setProperty(FILE_NAME, fileName);
             exchange.setProperty(REQUEST_ID, requestId);
             exchange.setProperty(PURPOSE, purpose);
-        }).wireTap("direct:start-batch-process-csv").to("direct:pollingOutput");
+        }).wireTap("direct:start-batch-process-csv");
 
         from("direct:validate-tenant").id("direct:validate-tenant").log("Validating tenant").process(exchange -> {
             String tenantName = exchange.getIn().getHeader(HEADER_PLATFORM_TENANT_ID, String.class);
@@ -306,6 +306,9 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                             response.put("request_id", requestId);
                             response.put("status", "queued");
                         }
+                    } catch (ClientStatusException c) {
+                        log.error("Got ClientStatusException : {}", c.getMessage());
+                        throw c;
                     } catch (Exception e) {
                         response.put("errorCode", 500);
                         response.put("errorDescription", "Unable to start zeebe workflow");
@@ -314,7 +317,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
 
                     exchange.getIn().setBody(response.toString());
 
-                }).log("Completed route direct:start-batch-process-csv");
+                }).log("Completed route direct:start-batch-process-csv").to("direct:pollingOutput");
 
         from("direct:start-batch-process-raw").id("direct:start-batch-process-raw").log("Starting route direct:start-batch-process-raw")
                 .process(exchange -> {
