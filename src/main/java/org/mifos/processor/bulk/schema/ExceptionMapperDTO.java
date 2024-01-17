@@ -12,6 +12,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExceptionMapperDTO {
+
     private String responseCode;
     private String responseDescription;
 }
