@@ -18,6 +18,9 @@ import java.util.Optional;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import io.camunda.zeebe.client.api.command.ClientStatusException;
+import io.grpc.Status;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
@@ -115,6 +118,7 @@ public class BatchTransactionsController implements BatchTransactions {
     private CamelApiResponse sendRequestToCamel(Headers headers) {
         Exchange exchange = SpringWrapperUtil.getDefaultWrappedExchange(producerTemplate.getCamelContext(), headers);
         exchange = producerTemplate.send("direct:post-batch-transactions", exchange);
+        checkAndThrowClientStatusException(exchange);
         int statusCode = exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE, Integer.class);
         String body = exchange.getIn().getBody(String.class);
         return new CamelApiResponse(body, statusCode);
@@ -150,5 +154,12 @@ public class BatchTransactionsController implements BatchTransactions {
             response = Optional.of(errorJson);
         }
         return response;
+    }
+
+    private void checkAndThrowClientStatusException(Exchange exchange) {
+        Exception cause = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
+        if (cause instanceof ClientStatusException) {
+            throw new ClientStatusException(Status.FAILED_PRECONDITION, cause);
+        }
     }
 }
