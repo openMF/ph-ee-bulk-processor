@@ -1,6 +1,17 @@
 package org.mifos.processor.bulk.service;
 
+import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_REGISTERING_INSTITUTE_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REGISTERING_INSTITUTION_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REQUEST_ID;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.camel.Exchange;
 import org.mifos.connector.common.identityaccountmapper.dto.AccountMapperRequestDTO;
 import org.mifos.connector.common.identityaccountmapper.dto.BeneficiaryDTO;
@@ -14,20 +25,8 @@ import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_REGISTERING_INSTITUTE_ID;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.TRANSACTION_LIST;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REGISTERING_INSTITUTION_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REQUEST_ID;
-
-
 public class BatchAccountLookup {
+
     @Autowired
     public ObjectMapper objectMapper;
     @Value("${identity_account_mapper.hostname}")
@@ -66,11 +65,9 @@ public class BatchAccountLookup {
         makeApiCallUsingRetrofit(fullUrl, accountMapperRequestDTO, headers);
     }
 
-    private void makeApiCallUsingRetrofit(String fullUrl, AccountMapperRequestDTO requestBody, Map<String, Object> headers) throws IOException {
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(identityURL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
+    private void makeApiCallUsingRetrofit(String fullUrl, AccountMapperRequestDTO requestBody, Map<String, Object> headers)
+            throws IOException {
+        Retrofit retrofit = new Retrofit.Builder().baseUrl(identityURL).addConverterFactory(GsonConverterFactory.create()).build();
 
         AccountLookupApi accountLookupApi = retrofit.create(AccountLookupApi.class);
 
