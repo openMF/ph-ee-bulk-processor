@@ -1,9 +1,9 @@
 package org.mifos.processor.bulk.camel.routes;
 
-import static org.mifos.processor.bulk.camel.config.CamelProperties.OVERRIDE_HEADER;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.RESULT_TRANSACTION_LIST;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.LOCAL_FILE_PATH;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.OVERRIDE_HEADER;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.REGISTERING_INSTITUTE_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.RESULT_TRANSACTION_LIST;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_SUB_BATCH_FILE_NAME_ARRAY;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SUB_BATCH_COUNT;
@@ -77,14 +77,13 @@ public class SplittingRoute extends BaseRouteBuilder {
                 Map<String, List<Transaction>> transactionsByPayeeId = new HashMap<>();
 
                 // Split the list based on distinct payeeids
-                Map<String, String> subBatchIdPayeeMap= new HashMap<>();
-                Map<String, List<Transaction>> subBatchIdMap= new HashMap<>();
+                Map<String, String> subBatchIdPayeeMap = new HashMap<>();
+                Map<String, List<Transaction>> subBatchIdMap = new HashMap<>();
                 List<String> subBatchIdList = new ArrayList<>();
                 List<Transaction> updatedTransactionList = new ArrayList<Transaction>();
                 for (String payeeId : distinctPayeeIds) {
                     List<Transaction> transactionsForPayee = transactionList.stream()
                             .filter(transaction -> payeeId.equals(transaction.getPayeeDfspId())).collect(Collectors.toList());
-
                     transactionsByPayeeId.put(payeeId, transactionsForPayee);
                     String subBatchId = UUID.randomUUID().toString();
                     subBatchIdList.add(subBatchId);
@@ -92,22 +91,19 @@ public class SplittingRoute extends BaseRouteBuilder {
                     subBatchIdMap.put(subBatchId, transactionsForPayee);
                 }
 
-//                //mapping subBatchId in transactionList
-                for (String subBatchId: subBatchIdList)
-                {
-                  List<Transaction> transactions = subBatchIdMap.get(subBatchId);
-                  for(Transaction transaction: transactions)
-                  {
-                      for(Transaction originalTransaction: transactionList){
-                          if (originalTransaction.equals(transaction))
-                          {
-                              originalTransaction.setBatchId(subBatchId);
-                              updatedTransactionList.add(originalTransaction);
-                          }
-                      }
-                  }
+                // mapping subBatchId in transactionList
+                for (String subBatchId : subBatchIdList) {
+                    List<Transaction> transactions = subBatchIdMap.get(subBatchId);
+                    for (Transaction transaction : transactions) {
+                        for (Transaction originalTransaction : transactionList) {
+                            if (originalTransaction.equals(transaction)) {
+                                originalTransaction.setBatchId(subBatchId);
+                                updatedTransactionList.add(originalTransaction);
+                            }
+                        }
+                    }
                 }
-                    for (String payeeId : distinctPayeeIds) {
+                for (String payeeId : distinctPayeeIds) {
                     List<Transaction> transactionsForSpecificPayee = transactionsByPayeeId.get(payeeId);
                     String filename = UUID.randomUUID() + "_" + "sub-batch-" + payeeId + ".csv";
                     logger.info("Created sub-batch with file name {}", filename);
@@ -122,7 +118,7 @@ public class SplittingRoute extends BaseRouteBuilder {
                     exchange.setProperty(RESULT_TRANSACTION_LIST, updatedTransactionList);
                     subBatchFile.add(filename);
                     exchange.setProperty(TRANSACTION_LIST, updatedTransactionList);
-                    }
+                }
             } else {
                 List<String> lines = new ArrayList<>();
                 String line = null;
