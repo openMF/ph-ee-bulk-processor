@@ -1,5 +1,7 @@
 package org.mifos.processor.bulk.camel.routes;
 
+import static org.mifos.processor.bulk.camel.config.CamelProperties.OVERRIDE_HEADER;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.RESULT_TRANSACTION_LIST;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.LOCAL_FILE_PATH;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.REGISTERING_INSTITUTE_ID;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
@@ -75,14 +77,37 @@ public class SplittingRoute extends BaseRouteBuilder {
                 Map<String, List<Transaction>> transactionsByPayeeId = new HashMap<>();
 
                 // Split the list based on distinct payeeids
+                Map<String, String> subBatchIdPayeeMap= new HashMap<>();
+                Map<String, List<Transaction>> subBatchIdMap= new HashMap<>();
+                List<String> subBatchIdList = new ArrayList<>();
+                List<Transaction> updatedTransactionList = new ArrayList<Transaction>();
                 for (String payeeId : distinctPayeeIds) {
                     List<Transaction> transactionsForPayee = transactionList.stream()
                             .filter(transaction -> payeeId.equals(transaction.getPayeeDfspId())).collect(Collectors.toList());
 
                     transactionsByPayeeId.put(payeeId, transactionsForPayee);
+                    String subBatchId = UUID.randomUUID().toString();
+                    subBatchIdList.add(subBatchId);
+                    subBatchIdPayeeMap.put(payeeId, subBatchId);
+                    subBatchIdMap.put(subBatchId, transactionsForPayee);
                 }
 
-                for (String payeeId : distinctPayeeIds) {
+//                //mapping subBatchId in transactionList
+                for (String subBatchId: subBatchIdList)
+                {
+                  List<Transaction> transactions = subBatchIdMap.get(subBatchId);
+                  for(Transaction transaction: transactions)
+                  {
+                      for(Transaction originalTransaction: transactionList){
+                          if (originalTransaction.equals(transaction))
+                          {
+                              originalTransaction.setBatchId(subBatchId);
+                              updatedTransactionList.add(originalTransaction);
+                          }
+                      }
+                  }
+                }
+                    for (String payeeId : distinctPayeeIds) {
                     List<Transaction> transactionsForSpecificPayee = transactionsByPayeeId.get(payeeId);
                     String filename = UUID.randomUUID() + "_" + "sub-batch-" + payeeId + ".csv";
                     logger.info("Created sub-batch with file name {}", filename);
@@ -91,10 +116,13 @@ public class SplittingRoute extends BaseRouteBuilder {
                     File file = new File(filename);
                     SequenceWriter writer = csvMapper.writerWithSchemaFor(Transaction.class).with(csvSchema).writeValues(file);
                     for (Transaction transaction : transactionsForSpecificPayee) {
+                        transaction.setBatchId(subBatchIdPayeeMap.get(payeeId));
                         writer.write(transaction);
                     }
+                    exchange.setProperty(RESULT_TRANSACTION_LIST, updatedTransactionList);
                     subBatchFile.add(filename);
-                }
+                    exchange.setProperty(TRANSACTION_LIST, updatedTransactionList);
+                    }
             } else {
                 List<String> lines = new ArrayList<>();
                 String line = null;
@@ -128,7 +156,9 @@ public class SplittingRoute extends BaseRouteBuilder {
             exchange.setProperty(SUB_BATCH_COUNT, subBatchFile.size());
             exchange.setProperty(SUB_BATCH_CREATED, true);
             exchange.setProperty(SERVER_SUB_BATCH_FILE_NAME_ARRAY, new ArrayList<String>());
-        });
+        }).log("updating orignal").setProperty(LOCAL_FILE_PATH, exchangeProperty(SERVER_FILE_NAME))
+                .setProperty(OVERRIDE_HEADER, constant(true)) // default header in CSV file will be used
+                .to("direct:update-file-v2").to("direct:upload-file");
 
         // Iterate through each CSVs of sub-batches and uploads in cloud
         from("direct:upload-sub-batch-file").id("direct:upload-sub-batch-file").log("Starting upload of sub-batch file")
@@ -166,7 +196,7 @@ public class SplittingRoute extends BaseRouteBuilder {
 
                     SubBatchEntity subBatchEntity = getDefaultSubBatchEntity();
                     subBatchEntity.setBatchId((String) zeebeVariables.get(BATCH_ID));
-                    subBatchEntity.setSubBatchId(UUID.randomUUID().toString());
+                    subBatchEntity.setSubBatchId(transactionList.get(0).getBatchId());
                     subBatchEntity.setRequestId((String) zeebeVariables.get(REQUEST_ID));
                     subBatchEntity.setCorrelationId((String) zeebeVariables.get(CLIENT_CORRELATION_ID));
                     subBatchEntity.setPayerFsp((String) zeebeVariables.get(PAYER_IDENTIFIER));
