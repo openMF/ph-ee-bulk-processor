@@ -1,5 +1,7 @@
 package org.mifos.processor.bulk.camel.routes;
 
+import static org.mifos.processor.bulk.camel.config.CamelProperties.OVERRIDE_HEADER;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.RESULT_TRANSACTION_LIST;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.LOCAL_FILE_PATH;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.OVERRIDE_HEADER;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.REGISTERING_INSTITUTE_ID;
@@ -79,6 +81,7 @@ public class SplittingRoute extends BaseRouteBuilder {
                 // Split the list based on distinct payeeids
                 Map<String, String> subBatchIdPayeeMap = new HashMap<>();
                 Map<String, List<Transaction>> subBatchIdMap = new HashMap<>();
+
                 List<String> subBatchIdList = new ArrayList<>();
                 List<Transaction> updatedTransactionList = new ArrayList<Transaction>();
                 for (String payeeId : distinctPayeeIds) {
