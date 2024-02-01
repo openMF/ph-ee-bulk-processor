@@ -1,9 +1,9 @@
 package org.mifos.processor.bulk.camel.routes;
 
-import static org.mifos.processor.bulk.camel.config.CamelProperties.LOCAL_FILE_PATH;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.OVERRIDE_HEADER;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.REGISTERING_INSTITUTE_ID;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.RESULT_TRANSACTION_LIST;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.LOCAL_FILE_PATH;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.REGISTERING_INSTITUTE_ID;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_SUB_BATCH_FILE_NAME_ARRAY;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SUB_BATCH_COUNT;
