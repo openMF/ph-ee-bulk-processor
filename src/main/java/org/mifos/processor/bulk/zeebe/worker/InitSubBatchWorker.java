@@ -94,7 +94,6 @@ public class InitSubBatchWorker extends BaseWorker {
 
             Boolean subBatchFailed = exchange.getProperty(INIT_SUB_BATCH_FAILED, Boolean.class);
             if (subBatchFailed != null && subBatchFailed) {
-                failureSubBatches.add(fileName);
             } else {
                 successSubBatches.add(fileName);
             }
