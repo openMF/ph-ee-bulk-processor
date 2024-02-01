@@ -6,12 +6,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Getter;
 import lombok.Setter;
+import java.util.Objects;
 
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonPropertyOrder({ "id", "request_id", "payment_mode", "account_number", "payer_identifier_type", "payer_identifier",
-        "payee_identifier_type", "payee_identifier", "amount", "currency", "note", "program_shortcode", "cycle", "payee_dfsp_id" })
+        "payee_identifier_type", "payee_identifier", "amount", "currency", "note", "program_shortcode", "cycle", "payee_dfsp_id", "batch_id" })
 public class Transaction implements CsvSchema {
 
     @JsonProperty("id")
@@ -31,6 +32,19 @@ public class Transaction implements CsvSchema {
 
     @JsonProperty("currency")
     private String currency;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Transaction that = (Transaction) o;
+        return id == that.id && Objects.equals(requestId, that.requestId) && Objects.equals(paymentMode, that.paymentMode) && Objects.equals(accountNumber, that.accountNumber) && Objects.equals(amount, that.amount) && Objects.equals(currency, that.currency) && Objects.equals(note, that.note) && Objects.equals(payerIdentifierType, that.payerIdentifierType) && Objects.equals(payerIdentifier, that.payerIdentifier) && Objects.equals(payeeIdentifierType, that.payeeIdentifierType) && Objects.equals(payeeIdentifier, that.payeeIdentifier) && Objects.equals(payeeDfspId, that.payeeDfspId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, requestId, paymentMode, accountNumber, amount, currency, note, payerIdentifierType, payerIdentifier, payeeIdentifierType, payeeIdentifier, payeeDfspId);
+    }
 
     @JsonProperty("note")
     private String note;
@@ -56,7 +70,7 @@ public class Transaction implements CsvSchema {
     @JsonProperty("payee_dfsp_id")
     private String payeeDfspId;
 
-    @JsonIgnore
+    @JsonProperty("batch_id")
     private String batchId;
 
     @Override
