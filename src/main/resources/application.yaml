@@ -8,7 +8,7 @@ camel:
         auto-discover-object-mapper: true
 
 kafka:
-    bootstrapAddress: "kafka:9092"
+  bootstrapAddress: "kafka:9092"
   topic:
     gsma:
       name: gsma
@@ -27,10 +27,10 @@ zeebe:
     #    number-of-workers: 8
     #    evenly-allocated-max-jobs: "#{${zeebe.client.max-execution-threads} / ${zeebe.client.number-of-workers}}"
   broker:
-    contactpoint: "localhost:26500"
+    contactpoint: "zeebe-zeebe-gateway:26500"
 
 operations-app:
-  contactpoint: "http://localhost:"
+  contactpoint: "https://ops-bk.sandbox.mifos.io"
   username: "mifos"
   password: "password"
   endpoints:
@@ -40,20 +40,20 @@ operations-app:
     batch-aggregate: "/api/v1/batch/"
 
 mock-payment-schema:
-  contactpoint: "https://mockpaymentschema.sandbox.fynarfin.io/"
+  contactpoint: "http://ph-ee-connector-mock-payment-schema:8080"
   endpoints:
     authorization: "/batches/"
 
 channel:
-  hostname: "http://channel.sandbox.fynarfin.io/"
+  hostname: "https://ph-ee-connector-channel:8443"
 
 cloud:
   aws:
     enabled: true
-    s3BaseUrl: http://localhost:9000
+    s3BaseUrl: "https://s3.ap-south-1.amazonaws.com"
     credentials:
       access-key: ${AWS_ACCESS_KEY:access_key_from_aws}
-      secret-key: ${AWS_SECRET_KEY:access_key_from_aws}
+      secret-key: ${AWS_SECRET_KEY:secret_key_from_aws}
 
     region:
       static: ap-south-1
@@ -92,11 +92,11 @@ config:
   partylookup:
     enable: true
   authorization:
-    enabled: false
+    enabled: true
   approval:
     enable: true
   ordering:
-    enable: false
+    enable: true
     field: "payerIdentifier"
   splitting:
     enable: true
@@ -149,7 +149,7 @@ security:
       enable: true
 
 identity_account_mapper:
-  hostname : "http://localhost:8081"
+  hostname : "http://ph-ee-identity-account-mapper:80"
   account_lookup: /beneficiary
   account_lookup_callback: /accountLookupCallback
   batch_account_lookup: /accountLookup
