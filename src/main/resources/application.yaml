@@ -220,7 +220,6 @@ gov-stack-client:
   header-key: "X-GovStack-Client"
   header-value: "PAYMENT-BB"
 
-
 bpmns:
   tenants:
     - id: "gorilla"
