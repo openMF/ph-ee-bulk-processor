@@ -91,15 +91,15 @@ config:
   partylookup:
     enable: true
   authorization:
-    enabled: true
+    enabled: false
   approval:
     enable: true
   ordering:
-    enable: true
+    enable: false
     field: "payerIdentifier"
   splitting:
     enable: true
-    sub-batch-size: 20
+    sub-batch-size: 5
   formatting:
     enable: false
     standard: "DEFAULT"
@@ -157,7 +157,7 @@ bulk_processor:
   hostname : "https://ph-ee-connector-bulk:8443"
 
 csv:
-  columnNames: "id,request_id,payment_mode,payer_identifier_type,payer_identifier,payee_identifier_type,payee_identifier,amount,currency,note,account_number,program_shortcode,cycle,payee_dfsp_id"
+  columnNames: "id,request_id,payment_mode,payer_identifier_type,payer_identifier,payee_identifier_type,payee_identifier,amount,currency,note,account_number,program_shortcode,cycle,payee_dfsp_id,batch_id"
   size : 100000 # in bytes
 
 budget-account:
