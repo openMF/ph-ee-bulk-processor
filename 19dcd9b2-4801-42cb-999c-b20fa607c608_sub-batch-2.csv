@@ -1,3 +1,0 @@
-id,request_id,payment_mode,payer_identifier_type,payer_identifier,payee_identifier_type,payee_identifier,amount,currency,note
-
-5,z1e22fe3-9740-4fba-97b6-78f43bfa7f0f,closedloop,accountNumber,003001003879112168,accountNumber,3001003873110195,740,USD,Test Payee Payment,4219c893-f7b3-4865-bbd0-8ae05f78e984
