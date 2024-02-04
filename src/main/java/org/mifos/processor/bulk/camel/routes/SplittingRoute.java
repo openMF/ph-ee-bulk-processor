@@ -19,8 +19,10 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SPLITTING_FAILED;
 import com.fasterxml.jackson.databind.SequenceWriter;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -32,8 +34,7 @@ import java.util.stream.Collectors;
 import org.apache.camel.LoggingLevel;
 import org.mifos.processor.bulk.schema.SubBatchEntity;
 import org.mifos.processor.bulk.schema.Transaction;
-import org.mifos.processor.bulk.utility.TransactionUtil;
-import org.mifos.processor.bulk.utility.Utils;
+import org.mifos.processor.bulk.utility.TransactionParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -143,7 +144,7 @@ public class SplittingRoute extends BaseRouteBuilder {
 
                     List<Transaction> subBatchTransactions = new ArrayList<>();
                     for (int j = i; j < Math.min(i + subBatchSize, lines.size()); j++) {
-                        Transaction transaction = TransactionUtil.parseLineToTransaction(lines.get(j));
+                        Transaction transaction = TransactionParser.parseLineToTransaction(lines.get(j));
                         assert transaction != null;
                         transaction.setBatchId(subBatchId); // Set the subBatchId for the transaction
                         subBatchTransactions.add(transaction);
