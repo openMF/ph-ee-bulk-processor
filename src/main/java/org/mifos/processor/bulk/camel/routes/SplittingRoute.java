@@ -19,10 +19,8 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SPLITTING_FAILED;
 import com.fasterxml.jackson.databind.SequenceWriter;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -34,6 +32,8 @@ import java.util.stream.Collectors;
 import org.apache.camel.LoggingLevel;
 import org.mifos.processor.bulk.schema.SubBatchEntity;
 import org.mifos.processor.bulk.schema.Transaction;
+import org.mifos.processor.bulk.utility.TransactionUtil;
+import org.mifos.processor.bulk.utility.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -69,6 +69,7 @@ public class SplittingRoute extends BaseRouteBuilder {
             List<String> subBatchFile = new ArrayList<>();
             Set<String> distinctPayeeIds = transactionList.stream().map(Transaction::getPayeeDfspId).collect(Collectors.toSet());
             logger.info("Payee id {}", distinctPayeeIds);
+            logger.info("Number of payeeId {}", distinctPayeeIds.size());
             Boolean batchAccountLookup = (Boolean) exchange.getProperty("batchAccountLookup");
             if (partyLookupEnabled && batchAccountLookup) {
                 // Create a map to store transactions for each payeeid
@@ -88,7 +89,7 @@ public class SplittingRoute extends BaseRouteBuilder {
                     subBatchIdPayeeMap.put(payeeId, subBatchId);
                     subBatchIdMap.put(subBatchId, transactionsForPayee);
                 }
-
+                logger.info("Number of SubBatch based on payeeId {}", subBatchIdList.size());
                 // mapping subBatchId in transactionList
                 for (String subBatchId : subBatchIdList) {
                     List<Transaction> transactions = subBatchIdMap.get(subBatchId);
@@ -133,16 +134,30 @@ public class SplittingRoute extends BaseRouteBuilder {
                 }
 
                 int subBatchCount = 1;
+                CsvSchema csvSchema = csvMapper.schemaFor(Transaction.class);
+                csvSchema = csvSchema.withHeader();
                 for (int i = 0; i < lines.size(); i += subBatchSize) {
+                    String subBatchId = UUID.randomUUID().toString();
                     String filename = UUID.randomUUID() + "_" + "sub-batch-" + subBatchCount + ".csv";
-                    FileWriter writer = new FileWriter(filename);
-                    writer.write(header);
+                    logger.info("SubBatch Id {}", subBatchId);
+
+                    List<Transaction> subBatchTransactions = new ArrayList<>();
                     for (int j = i; j < Math.min(i + subBatchSize, lines.size()); j++) {
-                        writer.write(lines.get(j) + System.lineSeparator());
+                        Transaction transaction = TransactionUtil.parseLineToTransaction(lines.get(j));
+                        assert transaction != null;
+                        transaction.setBatchId(subBatchId); // Set the subBatchId for the transaction
+                        subBatchTransactions.add(transaction);
                     }
-                    writer.close();
+
+                    // Write the list of Transactions to the file
+                    File file = new File(filename);
+                    try (SequenceWriter writer = csvMapper.writer(csvSchema).writeValues(file)) {
+                        writer.writeAll(subBatchTransactions);
+                    } catch (IOException e) {
+                        logger.error("Failed to write sub-batch file: " + filename, e);
+                    }
                     logger.info("Created sub-batch with file name {}", filename);
-                    subBatchFile.add(filename);
+                    subBatchFile.add(filename); // Ensure this list is declared and accessible
                     subBatchCount++;
                 }
             }
