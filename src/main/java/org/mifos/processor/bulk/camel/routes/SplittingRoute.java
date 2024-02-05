@@ -1,9 +1,9 @@
 package org.mifos.processor.bulk.camel.routes;
 
-import static org.mifos.processor.bulk.camel.config.CamelProperties.OVERRIDE_HEADER;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.RESULT_TRANSACTION_LIST;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.LOCAL_FILE_PATH;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.OVERRIDE_HEADER;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.REGISTERING_INSTITUTE_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.RESULT_TRANSACTION_LIST;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_SUB_BATCH_FILE_NAME_ARRAY;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SUB_BATCH_COUNT;
@@ -24,7 +24,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 import org.apache.camel.LoggingLevel;
 import org.mifos.processor.bulk.schema.SubBatchEntity;
 import org.mifos.processor.bulk.schema.Transaction;
+import org.mifos.processor.bulk.utility.TransactionParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -71,43 +72,41 @@ public class SplittingRoute extends BaseRouteBuilder {
             List<String> subBatchFile = new ArrayList<>();
             Set<String> distinctPayeeIds = transactionList.stream().map(Transaction::getPayeeDfspId).collect(Collectors.toSet());
             logger.info("Payee id {}", distinctPayeeIds);
+            logger.info("Number of payeeId {}", distinctPayeeIds.size());
             Boolean batchAccountLookup = (Boolean) exchange.getProperty("batchAccountLookup");
             if (partyLookupEnabled && batchAccountLookup) {
                 // Create a map to store transactions for each payeeid
                 Map<String, List<Transaction>> transactionsByPayeeId = new HashMap<>();
 
                 // Split the list based on distinct payeeids
-                Map<String, String> subBatchIdPayeeMap= new HashMap<>();
-                Map<String, List<Transaction>> subBatchIdMap= new HashMap<>();
+                Map<String, String> subBatchIdPayeeMap = new HashMap<>();
+                Map<String, List<Transaction>> subBatchIdMap = new HashMap<>();
+
                 List<String> subBatchIdList = new ArrayList<>();
                 List<Transaction> updatedTransactionList = new ArrayList<Transaction>();
                 for (String payeeId : distinctPayeeIds) {
                     List<Transaction> transactionsForPayee = transactionList.stream()
                             .filter(transaction -> payeeId.equals(transaction.getPayeeDfspId())).collect(Collectors.toList());
-
                     transactionsByPayeeId.put(payeeId, transactionsForPayee);
                     String subBatchId = UUID.randomUUID().toString();
                     subBatchIdList.add(subBatchId);
                     subBatchIdPayeeMap.put(payeeId, subBatchId);
                     subBatchIdMap.put(subBatchId, transactionsForPayee);
                 }
-
-//                //mapping subBatchId in transactionList
-                for (String subBatchId: subBatchIdList)
-                {
-                  List<Transaction> transactions = subBatchIdMap.get(subBatchId);
-                  for(Transaction transaction: transactions)
-                  {
-                      for(Transaction originalTransaction: transactionList){
-                          if (originalTransaction.equals(transaction))
-                          {
-                              originalTransaction.setBatchId(subBatchId);
-                              updatedTransactionList.add(originalTransaction);
-                          }
-                      }
-                  }
+                logger.info("Number of SubBatch based on payeeId {}", subBatchIdList.size());
+                // mapping subBatchId in transactionList
+                for (String subBatchId : subBatchIdList) {
+                    List<Transaction> transactions = subBatchIdMap.get(subBatchId);
+                    for (Transaction transaction : transactions) {
+                        for (Transaction originalTransaction : transactionList) {
+                            if (originalTransaction.equals(transaction)) {
+                                originalTransaction.setBatchId(subBatchId);
+                                updatedTransactionList.add(originalTransaction);
+                            }
+                        }
+                    }
                 }
-                    for (String payeeId : distinctPayeeIds) {
+                for (String payeeId : distinctPayeeIds) {
                     List<Transaction> transactionsForSpecificPayee = transactionsByPayeeId.get(payeeId);
                     String filename = UUID.randomUUID() + "_" + "sub-batch-" + payeeId + ".csv";
                     logger.info("Created sub-batch with file name {}", filename);
@@ -122,7 +121,7 @@ public class SplittingRoute extends BaseRouteBuilder {
                     exchange.setProperty(RESULT_TRANSACTION_LIST, updatedTransactionList);
                     subBatchFile.add(filename);
                     exchange.setProperty(TRANSACTION_LIST, updatedTransactionList);
-                    }
+                }
             } else {
                 List<String> lines = new ArrayList<>();
                 String line = null;
@@ -139,16 +138,30 @@ public class SplittingRoute extends BaseRouteBuilder {
                 }
 
                 int subBatchCount = 1;
+                CsvSchema csvSchema = csvMapper.schemaFor(Transaction.class);
+                csvSchema = csvSchema.withHeader();
                 for (int i = 0; i < lines.size(); i += subBatchSize) {
+                    String subBatchId = UUID.randomUUID().toString();
                     String filename = UUID.randomUUID() + "_" + "sub-batch-" + subBatchCount + ".csv";
-                    FileWriter writer = new FileWriter(filename);
-                    writer.write(header);
+                    logger.info("SubBatch Id {}", subBatchId);
+
+                    List<Transaction> subBatchTransactions = new ArrayList<>();
                     for (int j = i; j < Math.min(i + subBatchSize, lines.size()); j++) {
-                        writer.write(lines.get(j) + System.lineSeparator());
+                        Transaction transaction = TransactionParser.parseLineToTransaction(lines.get(j));
+                        assert transaction != null;
+                        transaction.setBatchId(subBatchId); // Set the subBatchId for the transaction
+                        subBatchTransactions.add(transaction);
                     }
-                    writer.close();
+
+                    // Write the list of Transactions to the file
+                    File file = new File(filename);
+                    try (SequenceWriter writer = csvMapper.writer(csvSchema).writeValues(file)) {
+                        writer.writeAll(subBatchTransactions);
+                    } catch (IOException e) {
+                        logger.error("Failed to write sub-batch file: " + filename, e);
+                    }
                     logger.info("Created sub-batch with file name {}", filename);
-                    subBatchFile.add(filename);
+                    subBatchFile.add(filename); // Ensure this list is declared and accessible
                     subBatchCount++;
                 }
             }
