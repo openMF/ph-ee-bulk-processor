@@ -26,6 +26,14 @@ public final class Headers {
         return this.headers.get(key);
     }
 
+    public static Map<String, String> convertHeaders(Map<String, Object> headers) {
+        Map<String, String> stringHeaders = new HashMap<>();
+        for (Map.Entry<String, Object> entry : headers.entrySet()) {
+            stringHeaders.put(entry.getKey(), entry.getValue().toString());
+        }
+        return stringHeaders;
+    }
+
     public static class HeaderBuilder {
 
         private Map<String, Object> headers = new HashMap<>();

@@ -19,6 +19,7 @@ import org.apache.camel.Processor;
 import org.mifos.connector.common.identityaccountmapper.dto.AccountMapperRequestDTO;
 import org.mifos.connector.common.identityaccountmapper.dto.BeneficiaryDTO;
 import org.mifos.processor.bulk.schema.Transaction;
+import org.mifos.processor.bulk.service.BatchAccountLookup;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -58,8 +59,9 @@ public class AccountLookupRoute extends BaseRouteBuilder {
 
         from(RouteId.ACCOUNT_LOOKUP.getValue()).id(RouteId.ACCOUNT_LOOKUP.getValue()).log("Starting route " + RouteId.ACCOUNT_LOOKUP.name())
                 .process(exchange -> exchange.setProperty(OVERRIDE_HEADER, true)).to("direct:download-file")
-                .to("direct:get-transaction-array").to("direct:batch-account-lookup").to("direct:update-file").to("direct:upload-file")
-                .process(exchange -> {
+                .to("direct:get-transaction-array").bean(BatchAccountLookup.class, "doBatchAccountLookup")
+                // .to("direct:batch-account-lookup")
+                .to("direct:update-file").to("direct:upload-file").process(exchange -> {
                     exchange.setProperty(PARTY_LOOKUP_FAILED, false);
                 });
 
