@@ -59,7 +59,7 @@ public class AccountLookupRoute extends BaseRouteBuilder {
 
         from(RouteId.ACCOUNT_LOOKUP.getValue()).id(RouteId.ACCOUNT_LOOKUP.getValue()).log("Starting route " + RouteId.ACCOUNT_LOOKUP.name())
                 .process(exchange -> exchange.setProperty(OVERRIDE_HEADER, true)).to("direct:download-file")
-                .to("direct:get-transaction-array").bean(BatchAccountLookup.class, "batchAccountLookupFunction")
+                .to("direct:get-transaction-array").bean(BatchAccountLookup.class, "doBatchAccountLookup")
                 // .to("direct:batch-account-lookup")
                 .to("direct:update-file").to("direct:upload-file").process(exchange -> {
                     exchange.setProperty(PARTY_LOOKUP_FAILED, false);

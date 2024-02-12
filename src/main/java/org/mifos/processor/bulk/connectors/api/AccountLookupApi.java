@@ -1,4 +1,4 @@
-package org.mifos.processor.bulk.api.definition;
+package org.mifos.processor.bulk.connectors.api;
 
 import java.util.Map;
 import org.mifos.connector.common.identityaccountmapper.dto.AccountMapperRequestDTO;
