@@ -1,5 +1,7 @@
 package org.mifos.processor.bulk.connectors.service;
 
+import java.io.IOException;
+import java.util.Map;
 import org.mifos.connector.common.identityaccountmapper.dto.AccountMapperRequestDTO;
 import org.mifos.processor.bulk.connectors.api.AccountLookupApi;
 import org.mifos.processor.bulk.utility.Headers;
@@ -10,12 +12,9 @@ import org.springframework.stereotype.Service;
 import retrofit2.Call;
 import retrofit2.Retrofit;
 
-import java.io.IOException;
-import java.util.Map;
-
-
 @Service
 public class AccountLookupService {
+
     @Autowired
     RetrofitService retrofitService;
 
