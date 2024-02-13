@@ -18,7 +18,7 @@ public class ZeebeClientConfiguration {
     @Bean
     public ZeebeClient setup() {
         return ZeebeClient.newClientBuilder().gatewayAddress(zeebeBrokerContactpoint).usePlaintext()
-                .defaultJobPollInterval(Duration.ofMillis(1)).defaultJobWorkerMaxJobsActive(2000)
+                .defaultJobPollInterval(Duration.ofMillis(25)).defaultJobWorkerMaxJobsActive(2000)
                 .numJobWorkerExecutionThreads(zeebeClientMaxThreads).build();
     }
 }
