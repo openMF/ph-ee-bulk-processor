@@ -147,8 +147,9 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     String batchId = UUID.randomUUID().toString();
                     exchange.setProperty(BATCH_ID, batchId);
 
-                }).bean(ProcessorStartRouteService.class, "validateFileSyncResponse").choice().when(header("CamelHttpResponseCode").isNotEqualTo("200"))
-                .log(LoggingLevel.ERROR, "File upload failed").otherwise().to("direct:executeBatch").endChoice().endChoice();
+                }).bean(ProcessorStartRouteService.class, "validateFileSyncResponse").choice()
+                .when(header("CamelHttpResponseCode").isNotEqualTo("200")).log(LoggingLevel.ERROR, "File upload failed").otherwise()
+                .to("direct:executeBatch").endChoice().endChoice();
 
         from("direct:post-bulk-transfer").unmarshal().mimeMultipart("multipart/*").to("direct:validate-tenant").process(exchange -> {
             String fileName = System.currentTimeMillis() + "_" + exchange.getIn().getHeader("fileName", String.class);
@@ -330,8 +331,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                 }).log("Completed route direct:start-batch-process-raw");
 
         from("direct:executeBatch").id("direct:executeBatch").log("Starting route direct:executeBatch")
-                .bean(ProcessorStartRouteService.class, "validateTenant")
-                .process(exchange -> {
+                .bean(ProcessorStartRouteService.class, "validateTenant").process(exchange -> {
                     String filename = exchange.getIn().getHeader("filename", String.class);
                     String requestId = exchange.getIn().getHeader("X-CorrelationID", String.class);
                     String purpose = exchange.getIn().getHeader("Purpose", String.class);

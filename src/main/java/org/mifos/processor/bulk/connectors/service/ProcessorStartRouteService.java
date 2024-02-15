@@ -1,5 +1,13 @@
 package org.mifos.processor.bulk.connectors.service;
 
+import static org.mifos.processor.bulk.camel.config.CamelProperties.CONTENT_TYPE;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PLATFORM_TENANT_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.TENANT_NAME;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
+
+import java.io.File;
+import java.io.IOException;
 import org.apache.camel.Exchange;
 import org.json.JSONObject;
 import org.mifos.processor.bulk.camel.routes.ProcessorStartRoute;
@@ -8,15 +16,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import java.io.File;
-import java.io.IOException;
-
-import static org.mifos.processor.bulk.camel.config.CamelProperties.CONTENT_TYPE;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PLATFORM_TENANT_ID;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.TENANT_NAME;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
 
 @Service
 public class ProcessorStartRouteService {
