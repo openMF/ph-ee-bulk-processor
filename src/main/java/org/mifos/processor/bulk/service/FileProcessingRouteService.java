@@ -1,4 +1,4 @@
-package org.mifos.processor.bulk.connectors.service;
+package org.mifos.processor.bulk.service;
 
 import static org.mifos.processor.bulk.camel.config.CamelProperties.LOCAL_FILE_PATH;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.OVERRIDE_HEADER;
