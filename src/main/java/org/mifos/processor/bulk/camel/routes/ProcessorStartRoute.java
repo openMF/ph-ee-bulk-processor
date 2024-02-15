@@ -1,10 +1,7 @@
 package org.mifos.processor.bulk.camel.routes;
 
 import static org.mifos.processor.bulk.camel.config.CamelProperties.BATCH_REQUEST_TYPE;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_CLIENT_CORRELATION_ID;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PLATFORM_TENANT_ID;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PROGRAM_ID;
-import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_REGISTERING_INSTITUTE_ID;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.IS_UPDATED;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.LOCAL_FILE_PATH;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.OVERRIDE_HEADER;
@@ -331,8 +328,8 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                 }).log("Completed route direct:start-batch-process-raw");
 
         from("direct:executeBatch").id("direct:executeBatch").log("Starting route direct:executeBatch")
-                .bean(ProcessorStartRouteService.class, "validateTenant").bean(ProcessorStartRouteService.class, "executeBatch")
-                .choice().when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("raw"))
+                .bean(ProcessorStartRouteService.class, "validateTenant").bean(ProcessorStartRouteService.class, "executeBatch").choice()
+                .when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("raw"))
                 .bean(ProcessorStartRouteService.class, "startBatchProcessRaw")
                 .when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("csv"))
                 .to("direct:start-batch-process-csv").otherwise()
