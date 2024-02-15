@@ -1,13 +1,25 @@
 package org.mifos.processor.bulk.connectors.service;
 
+import static org.mifos.processor.bulk.camel.config.CamelProperties.BATCH_REQUEST_TYPE;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.CONTENT_TYPE;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_CLIENT_CORRELATION_ID;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PLATFORM_TENANT_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PROGRAM_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_REGISTERING_INSTITUTE_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.PROGRAM_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.REGISTERING_INSTITUTE_ID;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.TENANT_NAME;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CLIENT_CORRELATION_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REQUEST_ID;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.UUID;
+
 import org.apache.camel.Exchange;
 import org.json.JSONObject;
 import org.mifos.processor.bulk.camel.routes.ProcessorStartRoute;
@@ -67,5 +79,33 @@ public class ProcessorStartRouteService {
         json.put("SuggestedCallbackSeconds", pollApiTimer);
         exchange.getIn().setBody(json.toString());
         exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 202);
+    }
+
+    public void executeBatch(Exchange exchange) {
+        String filename = exchange.getIn().getHeader("filename", String.class);
+        String requestId = exchange.getIn().getHeader("X-CorrelationID", String.class);
+        String purpose = exchange.getIn().getHeader("Purpose", String.class);
+        String type = exchange.getIn().getHeader("Type", String.class);
+        String clientCorrelationId = exchange.getIn().getHeader(HEADER_CLIENT_CORRELATION_ID, String.class);
+        String registeringInstitutionId = exchange.getIn().getHeader(HEADER_REGISTERING_INSTITUTE_ID, String.class);
+        logger.info("registeringInstitutionId {}", registeringInstitutionId);
+        String programId = exchange.getIn().getHeader(HEADER_PROGRAM_ID, String.class);
+        String callbackUrl = exchange.getIn().getHeader("X-CallbackURL", String.class);
+        exchange.setProperty(FILE_NAME, filename);
+        exchange.setProperty(REQUEST_ID, requestId);
+        exchange.setProperty(PURPOSE, purpose);
+        exchange.setProperty(BATCH_REQUEST_TYPE, type);
+        exchange.setProperty(CLIENT_CORRELATION_ID, clientCorrelationId);
+        exchange.setProperty(REGISTERING_INSTITUTE_ID, registeringInstitutionId);
+        exchange.setProperty(PROGRAM_ID, programId);
+        exchange.setProperty(CALLBACK, callbackUrl);
+    }
+
+    public void startBatchProcessRaw(Exchange exchange) {
+        JSONObject response = new JSONObject();
+        response.put("batch_id", UUID.randomUUID().toString());
+        response.put("request_id", UUID.randomUUID().toString());
+        response.put("status", "queued");
+        exchange.getIn().setBody(response.toString());
     }
 }

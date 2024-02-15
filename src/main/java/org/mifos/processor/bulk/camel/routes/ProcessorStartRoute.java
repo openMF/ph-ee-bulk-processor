@@ -331,26 +331,9 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                 }).log("Completed route direct:start-batch-process-raw");
 
         from("direct:executeBatch").id("direct:executeBatch").log("Starting route direct:executeBatch")
-                .bean(ProcessorStartRouteService.class, "validateTenant").process(exchange -> {
-                    String filename = exchange.getIn().getHeader("filename", String.class);
-                    String requestId = exchange.getIn().getHeader("X-CorrelationID", String.class);
-                    String purpose = exchange.getIn().getHeader("Purpose", String.class);
-                    String type = exchange.getIn().getHeader("Type", String.class);
-                    String clientCorrelationId = exchange.getIn().getHeader(HEADER_CLIENT_CORRELATION_ID, String.class);
-                    String registeringInstitutionId = exchange.getIn().getHeader(HEADER_REGISTERING_INSTITUTE_ID, String.class);
-                    logger.info("registeringInstitutionId {}", registeringInstitutionId);
-                    String programId = exchange.getIn().getHeader(HEADER_PROGRAM_ID, String.class);
-                    String callbackUrl = exchange.getIn().getHeader("X-CallbackURL", String.class);
-                    exchange.setProperty(FILE_NAME, filename);
-                    exchange.setProperty(REQUEST_ID, requestId);
-                    exchange.setProperty(PURPOSE, purpose);
-                    exchange.setProperty(BATCH_REQUEST_TYPE, type);
-                    exchange.setProperty(CLIENT_CORRELATION_ID, clientCorrelationId);
-                    exchange.setProperty(REGISTERING_INSTITUTE_ID, registeringInstitutionId);
-                    exchange.setProperty(PROGRAM_ID, programId);
-                    exchange.setProperty(CALLBACK, callbackUrl);
-                }).choice().when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("raw"))
-                .to("direct:start-batch-process-raw")
+                .bean(ProcessorStartRouteService.class, "validateTenant").bean(ProcessorStartRouteService.class, "executeBatch")
+                .choice().when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("raw"))
+                .bean(ProcessorStartRouteService.class, "startBatchProcessRaw")
                 .when(exchange -> exchange.getProperty(BATCH_REQUEST_TYPE, String.class).equalsIgnoreCase("csv"))
                 .to("direct:start-batch-process-csv").otherwise()
                 .setBody(exchange -> getUnsupportedTypeJson(exchange.getProperty(BATCH_REQUEST_TYPE, String.class)).toString())
