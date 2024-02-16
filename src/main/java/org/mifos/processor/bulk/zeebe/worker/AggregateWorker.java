@@ -46,7 +46,13 @@ public class AggregateWorker extends BaseWorker {
 
             Boolean batchStatusFailed = exchange.getProperty(BATCH_STATUS_FAILED, Boolean.class);
             if (batchStatusFailed == null || !batchStatusFailed) {
-                successRate = exchange.getProperty(COMPLETION_RATE, Long.class).intValue();
+                if (exchange.getException() != null && exchange.getException().getMessage() != null
+                        && exchange.getException().getMessage().contains("404")) {
+                    logger.error("An error occurred, retrying");
+                    successRate = 0;
+                } else {
+                    successRate = exchange.getProperty(COMPLETION_RATE, Long.class).intValue();
+                }
             } else {
                 variables.put(ERROR_CODE, exchange.getProperty(ERROR_CODE));
                 variables.put(ERROR_DESCRIPTION, exchange.getProperty(ERROR_DESCRIPTION));
