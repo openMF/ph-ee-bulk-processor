@@ -149,19 +149,6 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                 }).to("direct:validateFileSyncResponse").choice().when(header("CamelHttpResponseCode").isNotEqualTo("200"))
                 .log(LoggingLevel.ERROR, "File upload failed").otherwise().to("direct:executeBatch").endChoice().endChoice();
 
-        from("direct:post-bulk-transfer").unmarshal().mimeMultipart("multipart/*").to("direct:validate-tenant").process(exchange -> {
-            String fileName = System.currentTimeMillis() + "_" + exchange.getIn().getHeader("fileName", String.class);
-            String requestId = exchange.getIn().getHeader("requestId", String.class);
-            String purpose = exchange.getIn().getHeader("purpose", String.class);
-            String batchId = UUID.randomUUID().toString();
-            String callbackUrl = exchange.getIn().getHeader("X-CallbackURL", String.class);
-            exchange.setProperty(CALLBACK, callbackUrl);
-            exchange.setProperty(BATCH_ID, batchId);
-            exchange.setProperty(FILE_NAME, fileName);
-            exchange.setProperty(REQUEST_ID, requestId);
-            exchange.setProperty(PURPOSE, purpose);
-        }).wireTap("direct:start-batch-process-csv");
-
         from("direct:validate-tenant").id("direct:validate-tenant").log("Validating tenant").process(exchange -> {
             String tenantName = exchange.getIn().getHeader(HEADER_PLATFORM_TENANT_ID, String.class);
             // validation is disabled for now
