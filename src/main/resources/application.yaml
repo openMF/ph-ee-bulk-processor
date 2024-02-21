@@ -121,6 +121,7 @@ callback:
   url: "http://httpstat.us/503"
 
 pollingApi:
+  path : "/batch/Summary/"
   timer: "120"
 
 callback-phases:

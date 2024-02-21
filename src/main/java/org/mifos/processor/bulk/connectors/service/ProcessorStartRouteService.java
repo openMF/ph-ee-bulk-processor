@@ -24,6 +24,8 @@ public class ProcessorStartRouteService {
     ProcessorStartRoute processorStartRoute;
     @Value("${csv.size}")
     private int csvSize;
+    @Value("${pollingApi.path}")
+    private String pollApiPath;
     @Value("${pollingApi.timer}")
     private String pollApiTimer;
 
@@ -60,7 +62,8 @@ public class ProcessorStartRouteService {
 
     public void pollingOutput(Exchange exchange) {
         JSONObject json = new JSONObject();
-        json.put("PollingPath", "/batch/Summary/" + exchange.getProperty(BATCH_ID));
+        String pollingPath = String.format("%s%s", pollApiPath, exchange.getProperty(BATCH_ID));
+        json.put("PollingPath", pollingPath);
         json.put("SuggestedCallbackSeconds", pollApiTimer);
         exchange.getIn().setBody(json.toString());
         exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 202);
