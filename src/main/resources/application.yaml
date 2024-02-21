@@ -223,6 +223,9 @@ bpmns:
     - id: "gorilla"
       flows:
         batch-transactions: "bulk_processor-{dfspid}"
+    - id: "wakanda"
+      flows:
+        batch-transactions: "bulk_processor-{dfspid}"
     - id: "rhino"
       flows:
         batch-transactions: "bulk_processor_account_lookup-{dfspid}"
