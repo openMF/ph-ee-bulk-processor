@@ -67,6 +67,7 @@ import org.json.JSONObject;
 import org.mifos.processor.bulk.config.BudgetAccountConfig;
 import org.mifos.processor.bulk.config.Program;
 import org.mifos.processor.bulk.config.RegisteringInstitutionConfig;
+import org.mifos.processor.bulk.connectors.service.ProcessorStartRouteService;
 import org.mifos.processor.bulk.file.FileTransferService;
 import org.mifos.processor.bulk.properties.TenantImplementation;
 import org.mifos.processor.bulk.properties.TenantImplementationProperties;
@@ -146,8 +147,9 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     String batchId = UUID.randomUUID().toString();
                     exchange.setProperty(BATCH_ID, batchId);
 
-                }).to("direct:validateFileSyncResponse").choice().when(header("CamelHttpResponseCode").isNotEqualTo("200"))
-                .log(LoggingLevel.ERROR, "File upload failed").otherwise().to("direct:executeBatch").endChoice().endChoice();
+                }).bean(ProcessorStartRouteService.class, "validateFileSyncResponse").choice()
+                .when(header("CamelHttpResponseCode").isNotEqualTo("200")).log(LoggingLevel.ERROR, "File upload failed").otherwise()
+                .to("direct:executeBatch").endChoice().endChoice();
 
         from("direct:post-bulk-transfer").unmarshal().mimeMultipart("multipart/*").to("direct:validate-tenant").process(exchange -> {
             String fileName = System.currentTimeMillis() + "_" + exchange.getIn().getHeader("fileName", String.class);
@@ -317,7 +319,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
 
                     exchange.getIn().setBody(response.toString());
 
-                }).log("Completed route direct:start-batch-process-csv").to("direct:pollingOutput");
+                }).log("Completed route direct:start-batch-process-csv").bean(ProcessorStartRouteService.class, "pollingOutput");
 
         from("direct:start-batch-process-raw").id("direct:start-batch-process-raw").log("Starting route direct:start-batch-process-raw")
                 .process(exchange -> {
@@ -328,8 +330,8 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
                     exchange.getIn().setBody(response.toString());
                 }).log("Completed route direct:start-batch-process-raw");
 
-        from("direct:executeBatch").id("direct:executeBatch").log("Starting route direct:executeBatch").to("direct:validate-tenant")
-                .process(exchange -> {
+        from("direct:executeBatch").id("direct:executeBatch").log("Starting route direct:executeBatch")
+                .bean(ProcessorStartRouteService.class, "validateTenant").process(exchange -> {
                     String filename = exchange.getIn().getHeader("filename", String.class);
                     String requestId = exchange.getIn().getHeader("X-CorrelationID", String.class);
                     String purpose = exchange.getIn().getHeader("Purpose", String.class);
@@ -455,7 +457,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
         return true;
     }
 
-    private boolean verifyCsv(File csvData) throws IOException {
+    public boolean verifyCsv(File csvData) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(csvData));
         String header = br.readLine();
         String[] columns = new String[0];
@@ -476,7 +478,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
         return true;
     }
 
-    private void setErrorResponse(Exchange exchange, int responseCode, String errorInfo, String errorDescription) {
+    public void setErrorResponse(Exchange exchange, int responseCode, String errorInfo, String errorDescription) {
         // TODO Auto-generated method stub
         JSONObject json = new JSONObject();
         json.put("Error Information: ", errorInfo);
@@ -487,7 +489,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
         logger.error("Error response is {}", json);
     }
 
-    private void setResponse(Exchange exchange, int responseCode) {
+    public void setResponse(Exchange exchange, int responseCode) {
         exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, responseCode);
     }
 
