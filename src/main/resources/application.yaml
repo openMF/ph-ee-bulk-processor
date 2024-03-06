@@ -195,7 +195,7 @@ payment-mode:
     - id: "CLOSEDLOOP"
       type: "BULK"
       endpoint: "bulk_connector_{MODE}-{dfspid}"
-      debulkingDfspid: "lion"
+      debulkingDfspid: "wakanda"
 batch-authorization:
   callback-url: "https://ph-ee-connector-bulk:8443/authorization/callback"
 
