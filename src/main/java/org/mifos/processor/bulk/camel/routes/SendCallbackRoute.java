@@ -1,9 +1,11 @@
 package org.mifos.processor.bulk.camel.routes;
 
 import static org.mifos.processor.bulk.camel.config.CamelProperties.CALLBACK_RESPONSE_CODE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK_RETRY;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK_SUCCESS;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CLIENT_CORRELATION_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETION_RATE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ERROR_CODE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ERROR_DESCRIPTION;
@@ -14,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
+import org.mifos.processor.bulk.schema.BatchCallbackDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -35,14 +38,16 @@ public class SendCallbackRoute extends BaseRouteBuilder {
 
         from(RouteId.SEND_CALLBACK.getValue()).id(RouteId.SEND_CALLBACK.getValue()).log("Starting route " + RouteId.SEND_CALLBACK.name())
                 .log("Sending callback for Batch Processing").setHeader(Exchange.HTTP_METHOD, constant("POST")).process(exchange -> {
-                    String body = String.format("The Batch Aggregation API was complete with : %s",
+                    String message = String.format("The Batch Aggregation API was complete with : %s",
                             exchange.getProperty(COMPLETION_RATE).toString());
                     callbackUrl = exchange.getProperty(CALLBACK, String.class);
                     logger.info("Callback URL: {}", callbackUrl);
-                    logger.info("Callback Body: {}", body);
-
+                    logger.info("Callback Body: {}", message);
+                    String batchId = exchange.getProperty(BATCH_ID, String.class);
+                    String clientCorrelationId = exchange.getProperty(CLIENT_CORRELATION_ID, String.class);
+                    BatchCallbackDTO batchCallbackDTO = new BatchCallbackDTO(clientCorrelationId, batchId, message);
                     ObjectMapper objectMapper = new ObjectMapper();
-                    String jsonString = objectMapper.writeValueAsString(body);
+                    String jsonString = objectMapper.writeValueAsString(batchCallbackDTO);
                     exchange.getIn().setBody(jsonString);
                 }).choice().when(exchangeProperty("X-CallbackURL").isNotNull()).setHeader(Exchange.HTTP_METHOD, constant("POST"))
                 .toD("${exchangeProperty.X-CallbackURL}?bridgeEndpoint=true&throwExceptionOnFailure=false")
