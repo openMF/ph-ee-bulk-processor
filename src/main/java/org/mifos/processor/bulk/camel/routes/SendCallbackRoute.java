@@ -43,9 +43,9 @@ public class SendCallbackRoute extends BaseRouteBuilder {
                     callbackUrl = exchange.getProperty(CALLBACK, String.class);
                     logger.info("Callback URL: {}", callbackUrl);
                     logger.info("Callback Body: {}", message);
-                    String batchId = exchange.getProperty(BATCH_ID,String.class);
-                    String clientCorrelationId = exchange.getProperty(CLIENT_CORRELATION_ID,String.class);
-                    BatchCallbackDTO batchCallbackDTO = new BatchCallbackDTO(clientCorrelationId,batchId,message);
+                    String batchId = exchange.getProperty(BATCH_ID, String.class);
+                    String clientCorrelationId = exchange.getProperty(CLIENT_CORRELATION_ID, String.class);
+                    BatchCallbackDTO batchCallbackDTO = new BatchCallbackDTO(clientCorrelationId, batchId, message);
                     ObjectMapper objectMapper = new ObjectMapper();
                     String jsonString = objectMapper.writeValueAsString(batchCallbackDTO);
                     exchange.getIn().setBody(jsonString);

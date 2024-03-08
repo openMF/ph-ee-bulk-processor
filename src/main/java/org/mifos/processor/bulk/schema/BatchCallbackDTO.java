@@ -10,6 +10,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BatchCallbackDTO {
+
     String clientCorrelationId;
     String batchId;
     String message;
