@@ -65,8 +65,6 @@ public class BatchAggregateRoute extends BaseRouteBuilder {
                     }
 
                     exchange.setProperty(COMPLETION_RATE, percentage);
-
-                    producerTemplate.send(RouteId.SEND_CALLBACK.getValue(), exchange);
                 }).otherwise().log(LoggingLevel.ERROR, "Batch aggregate request unsuccessful").process(exchange -> {
                     exchange.setProperty(BATCH_STATUS_FAILED, true);
                     exchange.setProperty(ERROR_DESCRIPTION, exchange.getIn().getBody(String.class));
