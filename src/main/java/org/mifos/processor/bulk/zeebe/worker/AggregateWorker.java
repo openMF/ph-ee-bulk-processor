@@ -54,8 +54,9 @@ public class AggregateWorker extends BaseWorker {
                 successRate = 0;
                 variables.put(ERROR_CODE, exchange.getProperty(ERROR_CODE));
                 variables.put(ERROR_DESCRIPTION, exchange.getProperty(ERROR_DESCRIPTION));
-                logger.info("Error: {}, {}", variables.get(ERROR_CODE), variables.get(ERROR_DESCRIPTION));
+                logger.info("Error cause: {}, message: {}", exchange.getException().getCause(), exchange.getException().getMessage());
             } else {
+                logger.info("BATCH SUCCESS ");
                 successRate = exchange.getProperty(COMPLETION_RATE, Long.class).intValue();
             }
             // } else {
