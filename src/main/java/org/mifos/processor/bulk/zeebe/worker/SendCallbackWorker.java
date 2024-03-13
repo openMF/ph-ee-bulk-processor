@@ -1,16 +1,20 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
 import static org.mifos.processor.bulk.camel.config.CamelProperties.CALLBACK_RESPONSE_CODE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK_RETRY;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK_SUCCESS;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CLIENT_CORRELATION_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETION_RATE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETION_THRESHOLD;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ERROR_CODE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ERROR_DESCRIPTION;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MAX_CALLBACK_RETRY;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MAX_STATUS_RETRY;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PHASES;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PHASE_COUNT;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.RETRY;
 
 import java.util.Map;
 import org.apache.camel.Exchange;
@@ -41,7 +45,15 @@ public class SendCallbackWorker extends BaseWorker {
                 exchange.setProperty(COMPLETION_RATE, variables.get(COMPLETION_RATE));
                 exchange.setProperty(PHASES, variables.get(PHASES));
                 exchange.setProperty(PHASE_COUNT, variables.get(PHASE_COUNT));
-                sendToCamelRoute(RouteId.SEND_CALLBACK, exchange);
+                exchange.setProperty(BATCH_ID, variables.get(BATCH_ID));
+                exchange.setProperty(CLIENT_CORRELATION_ID, variables.get(CLIENT_CORRELATION_ID));
+                Integer maxRetry = Integer.parseInt(variables.get(MAX_STATUS_RETRY).toString());
+                Integer completionRate = Integer.parseInt(variables.get(COMPLETION_RATE).toString());
+                Integer completionThreshold = Integer.parseInt(variables.get(COMPLETION_THRESHOLD).toString());
+                Integer statusRetry = Integer.parseInt(variables.get(RETRY).toString());
+                if (statusRetry >= maxRetry || completionRate >= completionThreshold) {
+                    sendToCamelRoute(RouteId.SEND_CALLBACK, exchange);
+                }
             }
             Boolean callbackSuccess = exchange.getProperty(CALLBACK_SUCCESS, Boolean.class);
             if (callbackSuccess == null || !callbackSuccess) {

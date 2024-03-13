@@ -9,6 +9,7 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETION_RATE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ERROR_CODE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ERROR_DESCRIPTION;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MAX_CALLBACK_RETRY;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MAX_STATUS_RETRY;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PHASES;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PHASE_COUNT;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.RETRY;
@@ -47,19 +48,21 @@ public class AggregateWorker extends BaseWorker {
             sendToCamelRoute(RouteId.BATCH_AGGREGATE, exchange);
 
             Boolean batchStatusFailed = exchange.getProperty(BATCH_STATUS_FAILED, Boolean.class);
-            if (batchStatusFailed == null || !batchStatusFailed) {
-                if (exchange.getException() != null && exchange.getException().getMessage() != null
-                        && exchange.getException().getMessage().contains("404")) {
-                    logger.error("An error occurred, retrying");
-                    successRate = 0;
-                } else {
-                    successRate = exchange.getProperty(COMPLETION_RATE, Long.class).intValue();
-                }
-            } else {
+            // if (batchStatusFailed == null || !batchStatusFailed) {
+            if (exchange.getException() != null && exchange.getException().getMessage() != null
+                    && exchange.getException().getMessage().contains("404")) {
+                logger.error("An error occurred, retrying");
+                successRate = 0;
                 variables.put(ERROR_CODE, exchange.getProperty(ERROR_CODE));
                 variables.put(ERROR_DESCRIPTION, exchange.getProperty(ERROR_DESCRIPTION));
-                logger.info("Error: {}, {}", variables.get(ERROR_CODE), variables.get(ERROR_DESCRIPTION));
+                logger.info("Retry: {} , Error cause: {}, message: {}",retry, exchange.getException().getCause(), exchange.getException().getMessage());
+            } else {
+                logger.info("BATCH SUCCESS  retry: {} , and maxRetry: {}",retry,variables.get(MAX_STATUS_RETRY));
+                successRate = exchange.getProperty(COMPLETION_RATE, Long.class).intValue();
             }
+            // } else {
+
+            // }
 
             variables.put(COMPLETION_RATE, successRate);
             variables.put(RETRY, ++retry);
