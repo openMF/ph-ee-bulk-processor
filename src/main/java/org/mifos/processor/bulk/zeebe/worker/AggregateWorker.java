@@ -9,6 +9,7 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETION_RATE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ERROR_CODE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ERROR_DESCRIPTION;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MAX_CALLBACK_RETRY;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MAX_STATUS_RETRY;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PHASES;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PHASE_COUNT;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.RETRY;
@@ -54,9 +55,9 @@ public class AggregateWorker extends BaseWorker {
                 successRate = 0;
                 variables.put(ERROR_CODE, exchange.getProperty(ERROR_CODE));
                 variables.put(ERROR_DESCRIPTION, exchange.getProperty(ERROR_DESCRIPTION));
-                logger.info("Error cause: {}, message: {}", exchange.getException().getCause(), exchange.getException().getMessage());
+                logger.info("Retry: {} , Error cause: {}, message: {}",retry, exchange.getException().getCause(), exchange.getException().getMessage());
             } else {
-                logger.info("BATCH SUCCESS ");
+                logger.info("BATCH SUCCESS  retry: {} , and maxRetry: {}",retry,variables.get(MAX_STATUS_RETRY));
                 successRate = exchange.getProperty(COMPLETION_RATE, Long.class).intValue();
             }
             // } else {
