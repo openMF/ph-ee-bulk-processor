@@ -47,19 +47,20 @@ public class AggregateWorker extends BaseWorker {
             sendToCamelRoute(RouteId.BATCH_AGGREGATE, exchange);
 
             Boolean batchStatusFailed = exchange.getProperty(BATCH_STATUS_FAILED, Boolean.class);
-            if (batchStatusFailed == null || !batchStatusFailed) {
-                if (exchange.getException() != null && exchange.getException().getMessage() != null
-                        && exchange.getException().getMessage().contains("404")) {
-                    logger.error("An error occurred, retrying");
-                    successRate = 0;
-                } else {
-                    successRate = exchange.getProperty(COMPLETION_RATE, Long.class).intValue();
-                }
-            } else {
+            // if (batchStatusFailed == null || !batchStatusFailed) {
+            if (exchange.getException() != null && exchange.getException().getMessage() != null
+                    && exchange.getException().getMessage().contains("404")) {
+                logger.error("An error occurred, retrying");
+                successRate = 0;
                 variables.put(ERROR_CODE, exchange.getProperty(ERROR_CODE));
                 variables.put(ERROR_DESCRIPTION, exchange.getProperty(ERROR_DESCRIPTION));
                 logger.info("Error: {}, {}", variables.get(ERROR_CODE), variables.get(ERROR_DESCRIPTION));
+            } else {
+                successRate = exchange.getProperty(COMPLETION_RATE, Long.class).intValue();
             }
+            // } else {
+
+            // }
 
             variables.put(COMPLETION_RATE, successRate);
             variables.put(RETRY, ++retry);
