@@ -20,7 +20,7 @@ public interface BatchTransactions {
     @PostMapping(value = "/batchtransactions", produces = "application/json")
     String batchTransactions(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
             @RequestHeader(value = HEADER_CLIENT_CORRELATION_ID) String requestId,
-            @RequestHeader(value = FILE_NAME, required = false) String fileName, @RequestHeader(value = PURPOSE) String purpose,
+            @RequestHeader(value = FILE_NAME, required = false) String fileName, @RequestHeader(value = PURPOSE, required = false) String purpose,
             @RequestHeader(value = HEADER_TYPE) String type, @RequestHeader(value = HEADER_PLATFORM_TENANT_ID) String tenant,
             @RequestHeader(value = HEADER_REGISTERING_INSTITUTE_ID, required = false) String registeringInstitutionId,
             @RequestHeader(value = HEADER_PROGRAM_ID, required = false) String programId,
