@@ -29,7 +29,8 @@ public class RestRequestConvertor implements EntityMapper<BatchRequestDTO, Trans
         batchRequestDTO.setCreditParty(List.of(creditParty));
         batchRequestDTO.setDebitParty(List.of(debitParty));
         batchRequestDTO.setDescriptionText(object.getNote());
-        batchRequestDTO.setSubType(object.getPaymentMode());
+        batchRequestDTO.setPaymentMode(object.getPaymentMode());
+        batchRequestDTO.setRequestId(object.getRequestId());
 
         return batchRequestDTO;
     }
@@ -50,8 +51,8 @@ public class RestRequestConvertor implements EntityMapper<BatchRequestDTO, Trans
             transaction.setPayeeIdentifier(object.getCreditParty().get(0).getValue());
         }
         transaction.setNote(object.getDescriptionText());
-        transaction.setPaymentMode(object.getSubType());
-
+        transaction.setPaymentMode(object.getPaymentMode());
+        transaction.setRequestId(object.getRequestId());
         return transaction;
     }
 
@@ -68,7 +69,9 @@ public class RestRequestConvertor implements EntityMapper<BatchRequestDTO, Trans
         for (int i = 0; i < objects.size(); i++) {
             Transaction transaction = convertFrom(objects.get(i));
             transaction.setId(i);
-            transaction.setRequestId(UUID.randomUUID().toString());
+            if (transaction.getRequestId() == null) {
+                transaction.setRequestId(UUID.randomUUID().toString());
+            }
             transactionList.add(transaction);
         }
         return transactionList;
