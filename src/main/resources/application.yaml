@@ -92,14 +92,14 @@ config:
   partylookup:
     enable: true
   authorization:
-    enabled: false
+    enabled: true
   approval:
     enable: true
   ordering:
-    enable: false
+    enable: true
     field: "payerIdentifier"
   splitting:
-    enable: true
+    enable: false
     sub-batch-size: 5
   formatting:
     enable: false
@@ -218,6 +218,7 @@ gov-stack-client:
   header-key: "X-GovStack-Client"
   header-value: "PAYMENT-BB"
 
+
 bpmns:
   tenants:
     - id: "gorilla"
@@ -228,7 +229,7 @@ bpmns:
         batch-transactions: "bulk_processor-{dfspid}"
     - id: "rhino"
       flows:
-        batch-transactions: "bulk_processor-{dfspid}"
+        batch-transactions: "bulk_processor_account_lookup-{dfspid}"
     - id: "lion"
       flows:
-        batch-transactions: "bulk_processor_account_lookup-{dfspid}"
+        batch-transactions: "bulk_processor-{dfspid}"
