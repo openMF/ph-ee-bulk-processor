@@ -90,7 +90,7 @@ config:
   batchAggregate:
     enable: true
   partylookup:
-    enable: true
+    enable: false
   authorization:
     enabled: true
   approval:
