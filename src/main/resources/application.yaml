@@ -173,7 +173,8 @@ budget-account:
 
 management:
   endpoint:
-    health:
+    health: 
+      enabled: true
       probes:
         enabled: true
       liveness:
