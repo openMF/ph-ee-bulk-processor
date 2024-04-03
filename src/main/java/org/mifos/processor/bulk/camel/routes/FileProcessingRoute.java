@@ -55,6 +55,7 @@ public class FileProcessingRoute extends BaseRouteBuilder {
                         transactionList.add(current);
                         totalAmount += Double.parseDouble(current.getAmount());
                     }
+
                     reader.close();
                     exchange.setProperty(TRANSACTION_LIST, transactionList);
                     exchange.setProperty(TRANSACTION_LIST_LENGTH, transactionList.size());
