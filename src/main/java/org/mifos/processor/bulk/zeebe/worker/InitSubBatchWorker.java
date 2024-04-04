@@ -77,6 +77,7 @@ public class InitSubBatchWorker extends BaseWorker {
                     if (subBatch.getRequestFile().contains(fileName)) {
                         subBatchEntity = subBatch;
                         logger.info("SubBatchEntity found");
+                        break;
                     }
                 }
                 logger.debug("BatchEntity for this subbatch is {}", objectMapper.writeValueAsString(subBatchEntity));

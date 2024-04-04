@@ -49,7 +49,7 @@ public class SplittingRoute extends BaseRouteBuilder {
     @Autowired
     private CsvMapper csvMapper;
     @Value("${config.partylookup.enable}")
-    private boolean partyLookupEnabled;
+    private boolean isPartyLookupEnabled;
 
     @Override
     public void configure() throws Exception {
@@ -73,54 +73,43 @@ public class SplittingRoute extends BaseRouteBuilder {
             Set<String> distinctPayeeIds = transactionList.stream().map(Transaction::getPayeeDfspId).collect(Collectors.toSet());
             logger.info("Payee id {}", distinctPayeeIds);
             logger.info("Number of payeeId {}", distinctPayeeIds.size());
-            Boolean batchAccountLookup = (Boolean) exchange.getProperty("batchAccountLookup");
-            if (partyLookupEnabled && batchAccountLookup) {
+            Boolean isBatchAccountLookupEnabled = (Boolean) exchange.getProperty("batchAccountLookup");
+            if (isPartyLookupEnabled && isBatchAccountLookupEnabled) {
                 // Create a map to store transactions for each payeeid
                 Map<String, List<Transaction>> transactionsByPayeeId = new HashMap<>();
 
                 // Split the list based on distinct payeeids
-                Map<String, String> subBatchIdPayeeMap = new HashMap<>();
                 Map<String, List<Transaction>> subBatchIdMap = new HashMap<>();
                 List<String> subBatchIdList = new ArrayList<>();
-                List<Transaction> updatedTransactionList = new ArrayList<Transaction>();
+                Map<Transaction, String> transactionBatchMap = new HashMap<>();
                 for (String payeeId : distinctPayeeIds) {
                     List<Transaction> transactionsForPayee = transactionList.stream()
                             .filter(transaction -> payeeId.equals(transaction.getPayeeDfspId())).collect(Collectors.toList());
-                    transactionsByPayeeId.put(payeeId, transactionsForPayee);
+
                     String subBatchId = UUID.randomUUID().toString();
-                    subBatchIdList.add(subBatchId);
-                    subBatchIdPayeeMap.put(payeeId, subBatchId);
-                    subBatchIdMap.put(subBatchId, transactionsForPayee);
-                }
-                logger.info("Number of SubBatch based on payeeId {}", subBatchIdList.size());
-                // mapping subBatchId in transactionList
-                for (String subBatchId : subBatchIdList) {
-                    List<Transaction> transactions = subBatchIdMap.get(subBatchId);
-                    for (Transaction transaction : transactions) {
-                        for (Transaction originalTransaction : transactionList) {
-                            if (originalTransaction.equals(transaction)) {
-                                originalTransaction.setBatchId(subBatchId);
-                                updatedTransactionList.add(originalTransaction);
-                            }
-                        }
-                    }
-                }
-                for (String payeeId : distinctPayeeIds) {
-                    List<Transaction> transactionsForSpecificPayee = transactionsByPayeeId.get(payeeId);
-                    String filename = UUID.randomUUID() + "_" + "sub-batch-" + payeeId + ".csv";
+                    transactionsByPayeeId.put(payeeId, transactionsForPayee);
+
+                    // Assign batch IDs to transactions and store in a map for easy lookup
+                    transactionsForPayee.forEach(transaction -> {
+                        transaction.setBatchId(subBatchId);
+                        transactionBatchMap.put(transaction, subBatchId);
+                    });
+
+                    // Create CSV file for the current payee
+                    String filename = UUID.randomUUID() + "_sub-batch-" + payeeId + ".csv";
                     logger.info("Created sub-batch with file name {}", filename);
-                    CsvSchema csvSchema = csvMapper.schemaFor(Transaction.class);
-                    csvSchema = csvSchema.withHeader();
+                    CsvSchema csvSchema = csvMapper.schemaFor(Transaction.class).withHeader();
                     File file = new File(filename);
                     SequenceWriter writer = csvMapper.writerWithSchemaFor(Transaction.class).with(csvSchema).writeValues(file);
-                    for (Transaction transaction : transactionsForSpecificPayee) {
-                        transaction.setBatchId(subBatchIdPayeeMap.get(payeeId));
+                    for (Transaction transaction : transactionsForPayee) {
                         writer.write(transaction);
                     }
-                    exchange.setProperty(RESULT_TRANSACTION_LIST, updatedTransactionList);
                     subBatchFile.add(filename);
-                    exchange.setProperty(TRANSACTION_LIST, updatedTransactionList);
                 }
+                // Set properties
+                transactionList.forEach(transaction -> transaction.setBatchId(transactionBatchMap.get(transaction)));
+                exchange.setProperty(RESULT_TRANSACTION_LIST, transactionList);
+                exchange.setProperty(TRANSACTION_LIST, transactionList);
             } else {
                 List<String> lines = new ArrayList<>();
                 String line = null;

@@ -34,20 +34,17 @@ public class Transaction implements CsvSchema {
     private String currency;
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
+    public boolean equals(Object transaction) {
+        if (this == transaction) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if ((transaction == null) || (getClass() != transaction.getClass())) {
             return false;
         }
-        Transaction that = (Transaction) o;
-        return id == that.id && Objects.equals(requestId, that.requestId) && Objects.equals(paymentMode, that.paymentMode)
-                && Objects.equals(accountNumber, that.accountNumber) && Objects.equals(amount, that.amount)
-                && Objects.equals(currency, that.currency) && Objects.equals(note, that.note)
-                && Objects.equals(payerIdentifierType, that.payerIdentifierType) && Objects.equals(payerIdentifier, that.payerIdentifier)
-                && Objects.equals(payeeIdentifierType, that.payeeIdentifierType) && Objects.equals(payeeIdentifier, that.payeeIdentifier)
-                && Objects.equals(payeeDfspId, that.payeeDfspId);
+        Transaction that = (Transaction) transaction;
+        return (id == that.id) && (Objects.equals(requestId, that.requestId)) && (Objects.equals(paymentMode, that.paymentMode))
+                && (Objects.equals(accountNumber, that.accountNumber)) && (Objects.equals(amount, that.amount))
+                && (Objects.equals(payeeDfspId, that.payeeDfspId));
     }
 
     @Override
