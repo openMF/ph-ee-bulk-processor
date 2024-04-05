@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,9 +25,11 @@ public class AwsFileTransferImpl implements FileTransferService {
 
     @Autowired
     private AmazonS3 s3Client;
-
+    @Value("${cloud.aws.s3BaseUrl}")
+    private String s3BaseUrl;
     @Override
     public byte[] downloadFile(String fileName, String bucketName) {
+        s3Client.setEndpoint(s3BaseUrl);
         S3Object s3Object = s3Client.getObject(bucketName, fileName);
         S3ObjectInputStream inputStream = s3Object.getObjectContent();
         try {
