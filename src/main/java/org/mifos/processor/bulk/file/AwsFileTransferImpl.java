@@ -27,6 +27,7 @@ public class AwsFileTransferImpl implements FileTransferService {
     private AmazonS3 s3Client;
     @Value("${cloud.aws.s3BaseUrl}")
     private String s3BaseUrl;
+
     @Override
     public byte[] downloadFile(String fileName, String bucketName) {
         s3Client.setEndpoint(s3BaseUrl);
