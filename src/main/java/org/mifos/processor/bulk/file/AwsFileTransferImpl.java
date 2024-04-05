@@ -1,6 +1,11 @@
 package org.mifos.processor.bulk.file;
 
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
@@ -25,12 +30,28 @@ public class AwsFileTransferImpl implements FileTransferService {
 
     @Autowired
     private AmazonS3 s3Client;
+
+    @Value("${cloud.aws.credentials.access-key}")
+    private String accessKey;
+
+    @Value("${cloud.aws.credentials.secret-key}")
+    private String accessSecret;
+    @Value("${cloud.aws.region.static}")
+    private String region;
+    @Value("${cloud.aws.s3BaseUrl}")
+    private String endpoint;
+
     @Value("${cloud.aws.s3BaseUrl}")
     private String s3BaseUrl;
 
     @Override
     public byte[] downloadFile(String fileName, String bucketName) {
-        s3Client.setEndpoint(s3BaseUrl);
+
+        AWSCredentials credentials = new BasicAWSCredentials(accessKey, accessSecret);
+        s3Client = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials))
+                .withPathStyleAccessEnabled(true).withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endpoint, region))
+                .build();
+
         S3Object s3Object = s3Client.getObject(bucketName, fileName);
         S3ObjectInputStream inputStream = s3Object.getObjectContent();
         try {
