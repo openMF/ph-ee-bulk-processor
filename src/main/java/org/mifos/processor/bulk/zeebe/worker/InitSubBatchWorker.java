@@ -72,15 +72,16 @@ public class InitSubBatchWorker extends BaseWorker {
 
             String fileName = subBatches.remove(0);
             SubBatchEntity subBatchEntity = null;
-
-            for (SubBatchEntity subBatch : subBatchEntityList) {
-                if (subBatch.getRequestFile().contains(fileName)) {
-                    subBatchEntity = subBatch;
-                    logger.info("SubBatchEntity found");
+            if (isSplittingEnabled) {
+                for (SubBatchEntity subBatch : subBatchEntityList) {
+                    if (subBatch.getRequestFile().contains(fileName)) {
+                        subBatchEntity = subBatch;
+                        logger.info("SubBatchEntity found");
+                        break;
+                    }
                 }
+                logger.debug("BatchEntity for this subbatch is {}", objectMapper.writeValueAsString(subBatchEntity));
             }
-            logger.debug("BatchEntity for this subbatch is {}", objectMapper.writeValueAsString(subBatchEntity));
-
             Exchange exchange = new DefaultExchange(camelContext);
             exchange.setProperty(TENANT_NAME, variables.get(TENANT_ID));
             exchange.setProperty(SERVER_FILE_NAME, fileName);

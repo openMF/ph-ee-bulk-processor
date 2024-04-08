@@ -115,7 +115,6 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     PaymentModeMapping mapping = paymentModeConfiguration.getByMode(paymentMode);
 
                     String tenantName = exchange.getProperty(TENANT_NAME, String.class);
-                    tenantName = mapping.getDebulkingDfspid() == null ? tenantName : mapping.getDebulkingDfspid();
                     Map<String, Object> variables = exchange.getProperty(ZEEBE_VARIABLE, Map.class);
                     variables.put(PAYMENT_MODE, paymentMode);
                     variables.put(DEBULKINGDFSPID, mapping.getDebulkingDfspid() == null ? tenantName : mapping.getDebulkingDfspid());

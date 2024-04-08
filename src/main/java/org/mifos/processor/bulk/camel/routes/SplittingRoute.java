@@ -1,7 +1,9 @@
 package org.mifos.processor.bulk.camel.routes;
 
 import static org.mifos.processor.bulk.camel.config.CamelProperties.LOCAL_FILE_PATH;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.OVERRIDE_HEADER;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.REGISTERING_INSTITUTE_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.RESULT_TRANSACTION_LIST;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_SUB_BATCH_FILE_NAME_ARRAY;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.SUB_BATCH_COUNT;
@@ -22,7 +24,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -34,6 +36,7 @@ import java.util.stream.Collectors;
 import org.apache.camel.LoggingLevel;
 import org.mifos.processor.bulk.schema.SubBatchEntity;
 import org.mifos.processor.bulk.schema.Transaction;
+import org.mifos.processor.bulk.utility.TransactionParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -46,7 +49,7 @@ public class SplittingRoute extends BaseRouteBuilder {
     @Autowired
     private CsvMapper csvMapper;
     @Value("${config.partylookup.enable}")
-    private boolean partyLookupEnabled;
+    private boolean isPartyLookupEnabled;
 
     @Override
     public void configure() throws Exception {
@@ -69,31 +72,44 @@ public class SplittingRoute extends BaseRouteBuilder {
             List<String> subBatchFile = new ArrayList<>();
             Set<String> distinctPayeeIds = transactionList.stream().map(Transaction::getPayeeDfspId).collect(Collectors.toSet());
             logger.info("Payee id {}", distinctPayeeIds);
-            if (partyLookupEnabled && !distinctPayeeIds.isEmpty()) {
+            logger.info("Number of payeeId {}", distinctPayeeIds.size());
+            Boolean isBatchAccountLookupEnabled = (Boolean) exchange.getProperty("batchAccountLookup");
+            if (isPartyLookupEnabled && isBatchAccountLookupEnabled) {
                 // Create a map to store transactions for each payeeid
                 Map<String, List<Transaction>> transactionsByPayeeId = new HashMap<>();
 
                 // Split the list based on distinct payeeids
+                Map<String, List<Transaction>> subBatchIdMap = new HashMap<>();
+                List<String> subBatchIdList = new ArrayList<>();
+                Map<Transaction, String> transactionBatchMap = new HashMap<>();
                 for (String payeeId : distinctPayeeIds) {
                     List<Transaction> transactionsForPayee = transactionList.stream()
                             .filter(transaction -> payeeId.equals(transaction.getPayeeDfspId())).collect(Collectors.toList());
 
+                    String subBatchId = UUID.randomUUID().toString();
                     transactionsByPayeeId.put(payeeId, transactionsForPayee);
-                }
 
-                for (String payeeId : distinctPayeeIds) {
-                    List<Transaction> transactionsForSpecificPayee = transactionsByPayeeId.get(payeeId);
-                    String filename = UUID.randomUUID() + "_" + "sub-batch-" + payeeId + ".csv";
+                    // Assign batch IDs to transactions and store in a map for easy lookup
+                    transactionsForPayee.forEach(transaction -> {
+                        transaction.setBatchId(subBatchId);
+                        transactionBatchMap.put(transaction, subBatchId);
+                    });
+
+                    // Create CSV file for the current payee
+                    String filename = UUID.randomUUID() + "_sub-batch-" + payeeId + ".csv";
                     logger.info("Created sub-batch with file name {}", filename);
-                    CsvSchema csvSchema = csvMapper.schemaFor(Transaction.class);
-                    csvSchema = csvSchema.withHeader();
+                    CsvSchema csvSchema = csvMapper.schemaFor(Transaction.class).withHeader();
                     File file = new File(filename);
                     SequenceWriter writer = csvMapper.writerWithSchemaFor(Transaction.class).with(csvSchema).writeValues(file);
-                    for (Transaction transaction : transactionsForSpecificPayee) {
+                    for (Transaction transaction : transactionsForPayee) {
                         writer.write(transaction);
                     }
                     subBatchFile.add(filename);
                 }
+                // Set properties
+                transactionList.forEach(transaction -> transaction.setBatchId(transactionBatchMap.get(transaction)));
+                exchange.setProperty(RESULT_TRANSACTION_LIST, transactionList);
+                exchange.setProperty(TRANSACTION_LIST, transactionList);
             } else {
                 List<String> lines = new ArrayList<>();
                 String line = null;
@@ -110,16 +126,30 @@ public class SplittingRoute extends BaseRouteBuilder {
                 }
 
                 int subBatchCount = 1;
+                CsvSchema csvSchema = csvMapper.schemaFor(Transaction.class);
+                csvSchema = csvSchema.withHeader();
                 for (int i = 0; i < lines.size(); i += subBatchSize) {
+                    String subBatchId = UUID.randomUUID().toString();
                     String filename = UUID.randomUUID() + "_" + "sub-batch-" + subBatchCount + ".csv";
-                    FileWriter writer = new FileWriter(filename);
-                    writer.write(header);
+                    logger.info("SubBatch Id {}", subBatchId);
+
+                    List<Transaction> subBatchTransactions = new ArrayList<>();
                     for (int j = i; j < Math.min(i + subBatchSize, lines.size()); j++) {
-                        writer.write(lines.get(j) + System.lineSeparator());
+                        Transaction transaction = TransactionParser.parseLineToTransaction(lines.get(j));
+                        assert transaction != null;
+                        transaction.setBatchId(subBatchId); // Set the subBatchId for the transaction
+                        subBatchTransactions.add(transaction);
                     }
-                    writer.close();
+
+                    // Write the list of Transactions to the file
+                    File file = new File(filename);
+                    try (SequenceWriter writer = csvMapper.writer(csvSchema).writeValues(file)) {
+                        writer.writeAll(subBatchTransactions);
+                    } catch (IOException e) {
+                        logger.error("Failed to write sub-batch file: " + filename, e);
+                    }
                     logger.info("Created sub-batch with file name {}", filename);
-                    subBatchFile.add(filename);
+                    subBatchFile.add(filename); // Ensure this list is declared and accessible
                     subBatchCount++;
                 }
             }
@@ -127,7 +157,9 @@ public class SplittingRoute extends BaseRouteBuilder {
             exchange.setProperty(SUB_BATCH_COUNT, subBatchFile.size());
             exchange.setProperty(SUB_BATCH_CREATED, true);
             exchange.setProperty(SERVER_SUB_BATCH_FILE_NAME_ARRAY, new ArrayList<String>());
-        });
+        }).log("updating orignal").setProperty(LOCAL_FILE_PATH, exchangeProperty(SERVER_FILE_NAME))
+                .setProperty(OVERRIDE_HEADER, constant(true)) // default header in CSV file will be used
+                .to("direct:update-file-v2").to("direct:upload-file");
 
         // Iterate through each CSVs of sub-batches and uploads in cloud
         from("direct:upload-sub-batch-file").id("direct:upload-sub-batch-file").log("Starting upload of sub-batch file")
@@ -165,7 +197,7 @@ public class SplittingRoute extends BaseRouteBuilder {
 
                     SubBatchEntity subBatchEntity = getDefaultSubBatchEntity();
                     subBatchEntity.setBatchId((String) zeebeVariables.get(BATCH_ID));
-                    subBatchEntity.setSubBatchId(UUID.randomUUID().toString());
+                    subBatchEntity.setSubBatchId(transactionList.get(0).getBatchId());
                     subBatchEntity.setRequestId((String) zeebeVariables.get(REQUEST_ID));
                     subBatchEntity.setCorrelationId((String) zeebeVariables.get(CLIENT_CORRELATION_ID));
                     subBatchEntity.setPayerFsp((String) zeebeVariables.get(PAYER_IDENTIFIER));
