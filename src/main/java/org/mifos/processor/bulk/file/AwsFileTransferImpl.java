@@ -50,8 +50,20 @@ public class AwsFileTransferImpl implements FileTransferService {
         s3Client = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials))
                 .withPathStyleAccessEnabled(true).withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endpoint, region))
                 .build();
+
+        AmazonS3ClientBuilder s3ClientBuilder = AmazonS3ClientBuilder.standard();
+
+        s3ClientBuilder.setEndpointConfiguration(
+                new AwsClientBuilder.EndpointConfiguration(endpoint, region) // Set your desired region here
+        );
+        logger.info("________________________> {}",endpoint);
+        logger.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$> 1 {}",s3ClientBuilder.getEndpoint());
+        logger.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$> 2 {}",s3ClientBuilder.getRegion());
+        logger.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$> 3 {}",s3ClientBuilder.getClientConfiguration());
+
         String s3Endpoint = "https://s3." + Region.getRegion(Regions.AP_SOUTH_1).getServiceEndpoint("s3");
         logger.info("S3 Endpoint : " + s3Endpoint);
+        log
         S3Object s3Object = s3Client.getObject(bucketName, fileName);
         S3ObjectInputStream inputStream = s3Object.getObjectContent();
         try {
