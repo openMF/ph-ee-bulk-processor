@@ -51,7 +51,7 @@ public class AwsFileTransferImpl implements FileTransferService {
                 .withPathStyleAccessEnabled(true).withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endpoint, region))
                 .build();
         String s3Endpoint = "https://s3." + Region.getRegion(Regions.AP_SOUTH_1).getServiceEndpoint("s3");
-        System.out.println("S3 Endpoint : " + s3Endpoint);
+        logger.info("S3 Endpoint : " + s3Endpoint);
         S3Object s3Object = s3Client.getObject(bucketName, fileName);
         S3ObjectInputStream inputStream = s3Object.getObjectContent();
         try {
