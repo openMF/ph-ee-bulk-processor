@@ -58,7 +58,7 @@ public class AwsFileTransferImpl implements FileTransferService {
                                                                                                               // here
         );
         logger.info("________________________> {}", endpoint);
-        logger.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$> 1 {}", s3ClientBuilder.getEndpoint());
+        logger.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$> 1 {}", s3ClientBuilder.getEndpoint().getServiceEndpoint());
         logger.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$> 2 {}", s3ClientBuilder.getRegion());
         logger.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$> 3 {}", s3ClientBuilder.getClientConfiguration());
 
