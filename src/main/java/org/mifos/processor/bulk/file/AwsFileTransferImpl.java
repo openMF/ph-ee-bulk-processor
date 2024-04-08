@@ -4,8 +4,6 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -53,17 +51,17 @@ public class AwsFileTransferImpl implements FileTransferService {
 
         AmazonS3ClientBuilder s3ClientBuilder = AmazonS3ClientBuilder.standard();
 
-        s3ClientBuilder.setEndpointConfiguration(
-                new AwsClientBuilder.EndpointConfiguration(endpoint, region) // Set your desired region here
+        s3ClientBuilder.setEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endpoint, region) // Set
+                                                                                                              // your
+                                                                                                              // desired
+                                                                                                              // region
+                                                                                                              // here
         );
-        logger.info("________________________> {}",endpoint);
-        logger.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$> 1 {}",s3ClientBuilder.getEndpoint());
-        logger.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$> 2 {}",s3ClientBuilder.getRegion());
-        logger.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$> 3 {}",s3ClientBuilder.getClientConfiguration());
+        logger.info("________________________> {}", endpoint);
+        logger.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$> 1 {}", s3ClientBuilder.getEndpoint());
+        logger.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$> 2 {}", s3ClientBuilder.getRegion());
+        logger.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$> 3 {}", s3ClientBuilder.getClientConfiguration());
 
-        String s3Endpoint = "https://s3." + Region.getRegion(Regions.AP_SOUTH_1).getServiceEndpoint("s3");
-        logger.info("S3 Endpoint : " + s3Endpoint);
-        log
         S3Object s3Object = s3Client.getObject(bucketName, fileName);
         S3ObjectInputStream inputStream = s3Object.getObjectContent();
         try {
