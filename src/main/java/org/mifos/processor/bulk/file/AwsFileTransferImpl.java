@@ -4,6 +4,8 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -41,9 +43,6 @@ public class AwsFileTransferImpl implements FileTransferService {
     @Value("${cloud.aws.s3BaseUrl}")
     private String endpoint;
 
-    @Value("${cloud.aws.s3BaseUrl}")
-    private String s3BaseUrl;
-
     @Override
     public byte[] downloadFile(String fileName, String bucketName) {
 
@@ -51,7 +50,8 @@ public class AwsFileTransferImpl implements FileTransferService {
         s3Client = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials))
                 .withPathStyleAccessEnabled(true).withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endpoint, region))
                 .build();
-
+        String s3Endpoint = "https://s3." + Region.getRegion(Regions.AP_SOUTH_1).getServiceEndpoint("s3");
+        System.out.println("S3 Endpoint : " + s3Endpoint);
         S3Object s3Object = s3Client.getObject(bucketName, fileName);
         S3ObjectInputStream inputStream = s3Object.getObjectContent();
         try {
