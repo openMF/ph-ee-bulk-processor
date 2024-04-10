@@ -28,11 +28,13 @@ import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 import org.mifos.connector.common.interceptor.JWSUtil;
 import org.mifos.processor.bulk.api.definition.BatchTransactions;
+import org.mifos.processor.bulk.exception.ConflictingDataException;
 import org.mifos.processor.bulk.file.FileStorageService;
 import org.mifos.processor.bulk.format.RestRequestConvertor;
 import org.mifos.processor.bulk.schema.BatchRequestDTO;
 import org.mifos.processor.bulk.schema.CamelApiResponse;
 import org.mifos.processor.bulk.schema.Transaction;
+import org.mifos.processor.bulk.service.BatchTransactionService;
 import org.mifos.processor.bulk.utility.CsvWriter;
 import org.mifos.processor.bulk.utility.Headers;
 import org.mifos.processor.bulk.utility.SpringWrapperUtil;
@@ -58,6 +60,9 @@ public class BatchTransactionsController implements BatchTransactions {
     @Autowired
     RestRequestConvertor restRequestConvertor;
 
+    @Autowired
+    BatchTransactionService batchTransactionService;
+
     @Value("#{'${tenants}'.split(',')}")
     protected List<String> tenants;
     @Autowired
@@ -74,6 +79,13 @@ public class BatchTransactionsController implements BatchTransactions {
                 .addHeader(PURPOSE, purpose).addHeader(HEADER_TYPE, type).addHeader(HEADER_PLATFORM_TENANT_ID, tenant)
                 .addHeader(HEADER_REGISTERING_INSTITUTE_ID, registeringInstitutionId).addHeader(HEADER_PROGRAM_ID, programId)
                 .addHeader(CALLBACK, callbackUrl);
+
+        try {
+            batchTransactionService.validateClientCorrelationID(requestId);
+        } catch (ConflictingDataException e) {
+            log.error(e.getMessage());
+            throw e;
+        }
 
         Optional<String> validationResponse = isValidRequest(httpServletRequest, fileName, type);
         if (validationResponse.isPresent()) {

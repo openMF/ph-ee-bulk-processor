@@ -30,7 +30,7 @@ zeebe:
     contactpoint: "zeebe-zeebe-gateway:26500"
 
 operations-app:
-  contactpoint: "https://ops-bk.sandbox.mifos.io"
+  contactpoint: "https://ops-bk.sandbox.fyanrfin.io"
   username: "mifos"
   password: "password"
   endpoints:
@@ -140,6 +140,18 @@ server:
     key-password: "password"
     key-store-password: "password"
   port: 8443
+
+spring:
+  datasource:
+    url: jdbc:mysql://operationsmysql:3306/gorilla
+    username: root
+    password: ethieTieCh8ahv
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  liquibase:
+    enabled: true
+    default-schema: gorilla
+    change-log: classpath:/db/changelog/changelog.xml
+    clear-checksums: true
 
 
 security:
