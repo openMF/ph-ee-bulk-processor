@@ -82,6 +82,7 @@ bpmn:
     debit-party-process: "debit_party_process-{dfspid}"
     bulk-processor: "bulk_processor-{dfspid}"
     slcb: "slcb-{dfspid}"
+    batch_processor: "batch_processor-gorilla"
 
 #payment mode moved to a separate application property file for helm rewrite
 
