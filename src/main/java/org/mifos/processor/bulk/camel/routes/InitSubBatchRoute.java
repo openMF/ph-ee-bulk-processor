@@ -24,6 +24,8 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FAILED_AMOUNT;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.INIT_SUB_BATCH_FAILED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ONGOING_AMOUNT;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_LOOKUP_FAILED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYEE_DFSP_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYMENT_MODE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REQUEST_ID;
@@ -34,6 +36,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.mifos.processor.bulk.config.ExternalApiPayloadConfig;
@@ -67,6 +71,9 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
 
     @Value("${channel.hostname}")
     private String channelURL;
+
+    @Value("${config.partylookup.enable}")
+    private boolean isPartyLookupEnabled;
 
     @Override
     public void configure() throws Exception {
@@ -118,6 +125,18 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     Map<String, Object> variables = exchange.getProperty(ZEEBE_VARIABLE, Map.class);
                     variables.put(PAYMENT_MODE, paymentMode);
                     variables.put(DEBULKINGDFSPID, mapping.getDebulkingDfspid() == null ? tenantName : mapping.getDebulkingDfspid());
+                    if (!(Boolean) variables.get(PARTY_LOOKUP_FAILED)) {
+                        String filename = exchange.getProperty(SERVER_FILE_NAME).toString();
+                        String regex = ".*_sub-batch-([\\w-]+)\\.csv";
+                        Pattern pattern = Pattern.compile(regex);
+                        Matcher matcher = pattern.matcher(filename);
+
+                        if (matcher.matches()) {
+                            String payeeDFSPId = matcher.group(1);
+                            logger.info("Payee DFSP Id {}", payeeDFSPId);
+                            variables.put(PAYEE_DFSP_ID, payeeDFSPId);
+                        }
+                    }
                     zeebeProcessStarter.startZeebeWorkflow(
                             Utils.getBulkConnectorBpmnName(mapping.getEndpoint(), mapping.getId().toLowerCase(), tenantName), variables);
                     exchange.setProperty(INIT_SUB_BATCH_FAILED, false);
