@@ -44,6 +44,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.tika.Tika;
 import org.json.JSONObject;
+import org.mifos.processor.bulk.camel.config.CamelProperties;
 import org.mifos.processor.bulk.config.BudgetAccountConfig;
 import org.mifos.processor.bulk.connectors.service.ProcessorStartRouteService;
 import org.mifos.processor.bulk.file.FileTransferService;
@@ -132,7 +133,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
             String requestId = exchange.getIn().getHeader("requestId", String.class);
             String purpose = exchange.getIn().getHeader("purpose", String.class);
             String batchId = UUID.randomUUID().toString();
-            String payeeDFSPId = exchange.getIn().getHeader("X-PayeeDFSP-ID", String.class);
+            String payeeDFSPId = exchange.getIn().getHeader(CamelProperties.PAYEE_DFSP_ID, String.class);
             String callbackUrl = exchange.getIn().getHeader("X-CallbackURL", String.class);
             exchange.setProperty(CALLBACK, callbackUrl);
             exchange.setProperty(BATCH_ID, batchId);

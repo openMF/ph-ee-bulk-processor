@@ -133,7 +133,7 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
 
                         if (matcher.matches()) {
                             String payeeDFSPId = matcher.group(1);
-                            logger.info("Payee DFSP Id {}", payeeDFSPId);
+                            logger.debug("Payee DFSP Id {}", payeeDFSPId);
                             variables.put(PAYEE_DFSP_ID, payeeDFSPId);
                         }
                     }
@@ -148,7 +148,7 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     Transaction transaction = transactionList.get(index);
 
                     exchange.setProperty(REQUEST_ID, transaction.getRequestId());
-                    exchange.setProperty("payeeDFSPId", transaction.getPayeeDfspId());
+                    exchange.setProperty(PAYEE_DFSP_ID, transaction.getPayeeDfspId());
                     logger.info("REQUEST_ID: {}", transaction.getRequestId());
                     exchange.setProperty(TRANSACTION_LIST_ELEMENT, transaction);
                 }).setHeader("Platform-TenantId", exchangeProperty(TENANT_NAME))
