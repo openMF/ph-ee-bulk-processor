@@ -125,9 +125,9 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     Map<String, Object> variables = exchange.getProperty(ZEEBE_VARIABLE, Map.class);
                     variables.put(PAYMENT_MODE, paymentMode);
                     variables.put(DEBULKINGDFSPID, mapping.getDebulkingDfspid() == null ? tenantName : mapping.getDebulkingDfspid());
-                    if (!(Boolean) variables.get(PARTY_LOOKUP_FAILED)) {
+                    if (isPartyLookupEnabled && !(Boolean) variables.get(PARTY_LOOKUP_FAILED)) {
                         String filename = exchange.getProperty(SERVER_FILE_NAME).toString();
-                        String regex = ".*_sub-batch-([\\w-]+)\\.csv";
+                        String regex = ".*_sub-batch-([\\w-]+)\\.csv"; //payee DFSP Id for sub batch are extracted from the sub batch file name when party lookup is enabled and it is successful
                         Pattern pattern = Pattern.compile(regex);
                         Matcher matcher = pattern.matcher(filename);
 
@@ -152,7 +152,7 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     logger.info("REQUEST_ID: {}", transaction.getRequestId());
                     exchange.setProperty(TRANSACTION_LIST_ELEMENT, transaction);
                 }).setHeader("Platform-TenantId", exchangeProperty(TENANT_NAME))
-                .setHeader("X-PayeeDFSP-ID", exchangeProperty("payeeDFSPId")).to("direct:dynamic-payload-setter")
+                .setHeader("X-PayeeDFSP-ID", exchangeProperty(PAYEE_DFSP_ID)).to("direct:dynamic-payload-setter")
                 .to("direct:external-api-call").to("direct:external-api-response-handler").end() // end loop block
                 .endChoice();
 
