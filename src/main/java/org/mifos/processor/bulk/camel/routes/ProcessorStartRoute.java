@@ -23,6 +23,7 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MAX_STATUS_RETRY;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.MERGE_ENABLED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ORDERING_ENABLED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_LOOKUP_ENABLED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYEE_DFSP_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REQUEST_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SPLITTING_ENABLED;
@@ -43,6 +44,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.tika.Tika;
 import org.json.JSONObject;
+import org.mifos.processor.bulk.camel.config.CamelProperties;
 import org.mifos.processor.bulk.config.BudgetAccountConfig;
 import org.mifos.processor.bulk.connectors.service.ProcessorStartRouteService;
 import org.mifos.processor.bulk.file.FileTransferService;
@@ -131,12 +133,14 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
             String requestId = exchange.getIn().getHeader("requestId", String.class);
             String purpose = exchange.getIn().getHeader("purpose", String.class);
             String batchId = UUID.randomUUID().toString();
+            String payeeDfspId = exchange.getIn().getHeader(CamelProperties.PAYEE_DFSP_ID, String.class);
             String callbackUrl = exchange.getIn().getHeader("X-CallbackURL", String.class);
             exchange.setProperty(CALLBACK, callbackUrl);
             exchange.setProperty(BATCH_ID, batchId);
             exchange.setProperty(FILE_NAME, fileName);
             exchange.setProperty(REQUEST_ID, requestId);
             exchange.setProperty(PURPOSE, purpose);
+            exchange.setProperty(PAYEE_DFSP_ID, payeeDfspId);
         }).wireTap("direct:start-batch-process-csv");
 
         from("direct:validate-tenant").id("direct:validate-tenant").log("Validating tenant").process(exchange -> {

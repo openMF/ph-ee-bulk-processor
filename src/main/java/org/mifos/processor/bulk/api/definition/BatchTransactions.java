@@ -5,6 +5,7 @@ import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_CLIEN
 import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PLATFORM_TENANT_ID;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PROGRAM_ID;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_REGISTERING_INSTITUTE_ID;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.PAYEE_DFSP_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.HEADER_TYPE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
@@ -24,6 +25,7 @@ public interface BatchTransactions {
             @RequestHeader(value = HEADER_TYPE) String type, @RequestHeader(value = HEADER_PLATFORM_TENANT_ID) String tenant,
             @RequestHeader(value = HEADER_REGISTERING_INSTITUTE_ID, required = false) String registeringInstitutionId,
             @RequestHeader(value = HEADER_PROGRAM_ID, required = false) String programId,
-            @RequestHeader(value = CALLBACK, required = false) String callbackUrl) throws IOException;
+            @RequestHeader(value = CALLBACK, required = false) String callbackUrl,
+            @RequestHeader(value = PAYEE_DFSP_ID, required = false) String payeeDfspId) throws IOException;
 
 }
