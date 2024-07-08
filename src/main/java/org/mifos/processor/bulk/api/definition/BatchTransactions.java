@@ -26,6 +26,6 @@ public interface BatchTransactions {
             @RequestHeader(value = HEADER_REGISTERING_INSTITUTE_ID, required = false) String registeringInstitutionId,
             @RequestHeader(value = HEADER_PROGRAM_ID, required = false) String programId,
             @RequestHeader(value = CALLBACK, required = false) String callbackUrl,
-            @RequestHeader(value = PAYEE_DFSP_ID, required = false) String payeeDFSPId) throws IOException;
+            @RequestHeader(value = PAYEE_DFSP_ID, required = false) String payeeDfspId) throws IOException;
 
 }

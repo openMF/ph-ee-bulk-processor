@@ -203,7 +203,7 @@ public class ProcessorStartRouteService {
         String purpose = exchange.getProperty(PURPOSE, String.class);
         String batchId = exchange.getProperty(BATCH_ID, String.class);
         String callbackUrl = exchange.getProperty(CALLBACK, String.class);
-        String payeeDFSPId = exchange.getProperty(PAYEE_DFSP_ID, String.class);
+        String payeeDfspId = exchange.getProperty(PAYEE_DFSP_ID, String.class);
         String note = null;
 
         if (purpose == null || purpose.isEmpty()) {
@@ -250,7 +250,7 @@ public class ProcessorStartRouteService {
         variables.put(PAYER_IDENTIFIER_VALUE, exchange.getProperty(PAYER_IDENTIFIER_VALUE));
         variables.put(REGISTERING_INSTITUTE_ID, exchange.getProperty(REGISTERING_INSTITUTE_ID));
         variables.put(IS_FILE_VALID, true);
-        variables.put(PAYEE_DFSP_ID, payeeDFSPId);
+        variables.put(PAYEE_DFSP_ID, payeeDfspId);
         processorStartRoute.setConfigProperties(variables);
 
         logger.debug("Zeebe variables published: {}", variables);

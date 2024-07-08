@@ -68,13 +68,13 @@ public class BatchTransactionsController implements BatchTransactions {
     @Override
     public String batchTransactions(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, String requestId,
             String fileName, String purpose, String type, String tenant, String registeringInstitutionId, String programId,
-            String callbackUrl, String payeeDFSPId) {
+            String callbackUrl, String payeeDfspId) {
 
         log.info("Inside api logic");
         Headers.HeaderBuilder headerBuilder = new Headers.HeaderBuilder().addHeader(HEADER_CLIENT_CORRELATION_ID, requestId)
                 .addHeader(PURPOSE, purpose).addHeader(HEADER_TYPE, type).addHeader(HEADER_PLATFORM_TENANT_ID, tenant)
                 .addHeader(HEADER_REGISTERING_INSTITUTE_ID, registeringInstitutionId).addHeader(HEADER_PROGRAM_ID, programId)
-                .addHeader(CALLBACK, callbackUrl).addHeader(PAYEE_DFSP_ID, payeeDFSPId);
+                .addHeader(CALLBACK, callbackUrl).addHeader(PAYEE_DFSP_ID, payeeDfspId);
 
         Optional<String> validationResponse = isValidRequest(httpServletRequest, fileName, type);
         if (validationResponse.isPresent()) {

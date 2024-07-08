@@ -132,9 +132,9 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                         Matcher matcher = pattern.matcher(filename);
 
                         if (matcher.matches()) {
-                            String payeeDFSPId = matcher.group(1);
-                            logger.debug("Payee DFSP Id {}", payeeDFSPId);
-                            variables.put(PAYEE_DFSP_ID, payeeDFSPId);
+                            String payeeDfspId = matcher.group(1);
+                            logger.debug("Payee DFSP Id {}", payeeDfspId);
+                            variables.put(PAYEE_DFSP_ID, payeeDfspId);
                         }
                     }
                     zeebeProcessStarter.startZeebeWorkflow(
