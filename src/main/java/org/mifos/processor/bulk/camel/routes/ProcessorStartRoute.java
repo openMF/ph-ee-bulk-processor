@@ -256,6 +256,9 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
     public String getWorkflowForTenant(String tenantId, String useCase) {
 
         for (TenantImplementation tenant : tenantImplementationProperties.getTenants()) {
+            logger.info("FRED1 Tenant id: {} ", tenant.getId());
+            logger.info("FRED1  tenandId {} ", tenantId);
+            logger.info("FRED1  useCase {} ", useCase);
             if (tenant.getId().equals(tenantId)) {
                 return tenant.getFlows().getOrDefault(useCase, "default");
             }
