@@ -259,7 +259,7 @@ public class ProcessorStartRouteService {
         try {
             String tenantSpecificWorkflowId = bpmn.replace("{dfspid}", exchange.getProperty(TENANT_NAME).toString());
             logger.info("Tenant specific workflow id: {}", tenantSpecificWorkflowId);
-            logger.info("FRED: tenant is < {} >  ", exchange.getProperty(TENANT_NAME).toString()); 
+            logger.info("FRED: tenant is < {} >  ", exchange.getProperty(TENANT_NAME).toString());
             String txnId = zeebeProcessStarter.startZeebeWorkflow(tenantSpecificWorkflowId, "", variables);
             if (txnId == null || txnId.isEmpty()) {
                 response.put("errorCode", 500);

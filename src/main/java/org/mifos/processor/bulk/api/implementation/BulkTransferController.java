@@ -8,6 +8,7 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
 import org.apache.camel.ProducerTemplate;
 import org.mifos.processor.bulk.api.definition.BulkTransfer;
@@ -17,7 +18,6 @@ import org.mifos.processor.bulk.utility.SpringWrapperUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
