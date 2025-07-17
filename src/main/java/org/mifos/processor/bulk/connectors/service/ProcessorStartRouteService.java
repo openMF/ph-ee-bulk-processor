@@ -250,14 +250,16 @@ public class ProcessorStartRouteService {
         variables.put(IS_FILE_VALID, true);
         processorStartRoute.setConfigProperties(variables);
 
-        logger.debug("Zeebe variables published: {}", variables);
-        logger.debug("Variables published to zeebe: {}", variables);
+        logger.info("Zeebe variables published: {}", variables);
+        logger.info("Variables published to zeebe: {}", variables);
 
         JSONObject response = new JSONObject();
         String bpmn = processorStartRoute.getWorkflowForTenant(exchange.getProperty(TENANT_NAME).toString(), "batch-transactions");
 
         try {
             String tenantSpecificWorkflowId = bpmn.replace("{dfspid}", exchange.getProperty(TENANT_NAME).toString());
+            logger.info("Tenant specific workflow id: {}", tenantSpecificWorkflowId);
+            logger.info("FRED: tenant is < {} >  ", exchange.getProperty(TENANT_NAME).toString()); 
             String txnId = zeebeProcessStarter.startZeebeWorkflow(tenantSpecificWorkflowId, "", variables);
             if (txnId == null || txnId.isEmpty()) {
                 response.put("errorCode", 500);
