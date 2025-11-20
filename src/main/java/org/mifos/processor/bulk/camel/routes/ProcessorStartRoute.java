@@ -243,6 +243,7 @@ public class ProcessorStartRoute extends BaseRouteBuilder {
         while ((line = br.readLine()) != null) {
             String[] row = line.split(",");
             if (row.length != columnNames.size()) {
+                logger.debug("DEBUG FRED10 Row invalid {} {}", row.length, columnNames.size());
                 logger.debug("Row invalid {} {}", row.length, columnNames.size());
                 return false;
             }

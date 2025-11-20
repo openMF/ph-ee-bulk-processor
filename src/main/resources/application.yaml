@@ -1,11 +1,22 @@
+# camel:
+#   server-port: 5000
+#   disable-ssl: false
+#   springboot:
+#     main-run-controller: true
+#     dataformat:
+#       json-jackson:
+#         auto-discover-object-mapper: true
+
+# TD Nov 2025 -- terminate TLS at NGINX run pod on http => solve cors issues from operations-web
 camel:
-  server-port: 5000
-  disable-ssl: false
-  springboot:
-    main-run-controller: true
-    dataformat:
-      json-jackson:
-        auto-discover-object-mapper: true
+  server-port: 0
+  disable-ssl: true
+
+cors:
+  allowed-origins:
+    - "http://ops.mifos.gazelle.localhost"
+    - "https://ops.mifos.gazelle.test"
+
 
 kafka:
   bootstrapAddress: "kafka:9092"
@@ -30,7 +41,7 @@ zeebe:
     contactpoint: "zeebe-zeebe-gateway:26500"
 
 operations-app:
-  contactpoint: "https://ops-bk.sandbox.mifos.io"
+  contactpoint: "https://ops-bk.mifos.gazelle.localhost"
   username: "mifos"
   password: "password"
   endpoints:
@@ -67,21 +78,7 @@ cloud:
 
 tenants: "greenbank, bluebank"
 
-bpmn:
-  flows:
-    payment-transfer: "PayerFundTransfer-{dfspid}"
-    transaction-request: "PayeeTransactionRequest-{dfspid}"
-    party-registration: "PartyRegistration-{dfspid}"
-    gsma-base-transaction: "gsma_base_transaction-{dfspid}"
-    gsma-int-transfer: "gsma_int_transfer-{dfspid}"
-    gsma-payee-process: "gsma_payee_process"
-    gsma-bill-payment: "gsma_bill_payment"
-    gsma-link-based-payment: "gsma_link_transfer"
-    international-remittance-payee: "international_remittance_payee_process-{dfspid}"
-    international-remittance-payer: "international_remittance_payer_process-{dfspid}"
-    debit-party-process: "debit_party_process-{dfspid}"
-    bulk-processor: "bulk_processor-{dfspid}"
-    slcb: "slcb-{dfspid}"
+
 
 #payment mode moved to a separate application property file for helm rewrite
 
@@ -133,13 +130,13 @@ callback-phases:
     - 100
 
 server:
-  ssl:
-    key-alias: "tomcat-https"
-    key-store: "classpath:keystore.jks"
-    key-store-type: JKS
-    key-password: "password"
-    key-store-password: "password"
-  port: 8443
+  # ssl:
+  #   key-alias: "tomcat-https"
+  #   key-store: "classpath:keystore.jks"
+  #   key-store-type: JKS
+  #   key-password: "password"
+  #   key-store-password: "password"
+  port: 8080
 
 
 security:
@@ -196,8 +193,11 @@ payment-mode:
       type: "BULK"
       endpoint: "bulk_connector_{MODE}-{dfspid}"
       debulkingDfspid: "greenbank"
+
 batch-authorization:
-  callback-url: "https://ph-ee-connector-bulk:8443/authorization/callback"
+  callback-url: "${BULK_PROCESSOR_CALLBACK_URL:https://bulk-processor.mifos.gazelle.test/authorization/callback}"
+
+
 
 pubsub:
   room:
@@ -219,12 +219,29 @@ gov-stack-client:
   header-value: "PAYMENT-BB"
 
 
+bpmn:
+  flows:
+    payment-transfer: "PayerFundTransfer-{dfspid}"
+    transaction-request: "PayeeTransactionRequest-{dfspid}"
+    party-registration: "PartyRegistration-{dfspid}"
+    gsma-base-transaction: "gsma_base_transaction-{dfspid}"
+    gsma-int-transfer: "gsma_int_transfer-{dfspid}"
+    gsma-payee-process: "gsma_payee_process"
+    gsma-bill-payment: "gsma_bill_payment"
+    gsma-link-based-payment: "gsma_link_transfer"
+    international-remittance-payee: "international_remittance_payee_process-{dfspid}"
+    international-remittance-payer: "international_remittance_payer_process-{dfspid}"
+    debit-party-process: "debit_party_process-{dfspid}"
+    bulk-processor: "bulk_processor-{dfspid}"
+    slcb: "slcb-{dfspid}"
+
 bpmns:
   tenants:
     - id: "greenbank"
       flows:
         payment-transfer: "minimal_mock_fund_transfer-{dfspid}"
         batch-transactions: "bulk_processor-{dfspid}"
+        fred-transactions: "bulk_processor_account_lookup-{dfspid}"
     - id: "bluebank"
       flows:
         batch-transactions: "bulk_processor-{dfspid}"
