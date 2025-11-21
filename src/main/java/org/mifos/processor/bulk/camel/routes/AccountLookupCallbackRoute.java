@@ -33,6 +33,7 @@ public class AccountLookupCallbackRoute extends BaseRouteBuilder {
     private Integer totalApprovedCount;
 
     @Override
+    @SuppressWarnings("unchecked")
     public void configure() throws Exception {
         from("direct:accountLookupCallback").id("direct:accountLookupCallback")
                 .log("Starting route " + RouteId.ACCOUNT_LOOKUP_CALLBACK.name()).to("direct:download-file")

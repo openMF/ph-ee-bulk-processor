@@ -25,6 +25,7 @@ public class FormattingRoute extends BaseRouteBuilder {
     private Standard formattingStandard;
 
     @Override
+    @SuppressWarnings("unchecked")
     public void configure() throws Exception {
         // parsing enum from application.yaml string
         formattingStandard = Standard.valueOf(standard);

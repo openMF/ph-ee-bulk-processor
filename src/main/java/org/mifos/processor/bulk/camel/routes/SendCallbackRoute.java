@@ -27,6 +27,7 @@ public class SendCallbackRoute extends BaseRouteBuilder {
     private String callbackUrl;
 
     @Override
+    @SuppressWarnings("unchecked")
     public void configure() throws Exception {
 
         from("rest:get:test/send/callback").to(RouteId.SEND_CALLBACK.getValue());
@@ -85,6 +86,7 @@ public class SendCallbackRoute extends BaseRouteBuilder {
                 });
     }
 
+    @SuppressWarnings("unchecked")
     public void eliminatePhases(Exchange exchange) {
         List<Integer> phases = exchange.getProperty(PHASES, List.class);
         int completionRate = exchange.getProperty(COMPLETION_RATE, Integer.class);

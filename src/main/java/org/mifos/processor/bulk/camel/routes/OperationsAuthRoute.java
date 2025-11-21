@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 public class OperationsAuthRoute extends BaseRouteBuilder {
 
     @Override
+    @SuppressWarnings("unchecked")
     public void configure() throws Exception {
 
         from("rest:get:test/auth").to("direct:get-access-token");
@@ -29,6 +30,7 @@ public class OperationsAuthRoute extends BaseRouteBuilder {
         /**
          * Save Access Token to AccessTokenStore
          */
+
         from("direct:access-token-save").id("access-token-save").unmarshal().json(JsonLibrary.Jackson, HashMap.class).process(exchange -> {
             // TODO: Figure out access token storage if required
             Map<String, Object> jsonObject = exchange.getIn().getBody(HashMap.class);

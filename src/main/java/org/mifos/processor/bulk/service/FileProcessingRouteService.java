@@ -59,6 +59,7 @@ public class FileProcessingRouteService {
         exchange.setProperty(COMPLETED_AMOUNT, completedAmount);
     }
 
+    @SuppressWarnings("unchecked")
     public void updateResultFile(Exchange exchange) throws IOException {
         String filepath = exchange.getProperty(LOCAL_FILE_PATH, String.class);
         List<TransactionResult> transactionList = exchange.getProperty(RESULT_TRANSACTION_LIST, List.class);
@@ -68,6 +69,7 @@ public class FileProcessingRouteService {
         CsvWriter.writeToCsv(transactionList, TransactionResult.class, csvMapper, overrideHeader, filepath);
     }
 
+    @SuppressWarnings("unchecked")
     public void updateFile(Exchange exchange) throws IOException {
         String filepath = exchange.getProperty(LOCAL_FILE_PATH, String.class);
         List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);

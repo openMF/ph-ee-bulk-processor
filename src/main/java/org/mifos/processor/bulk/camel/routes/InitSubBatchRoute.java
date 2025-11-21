@@ -76,6 +76,7 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
     private boolean isPartyLookupEnabled;
 
     @Override
+    @SuppressWarnings("unchecked")
     public void configure() throws Exception {
 
         /**
@@ -133,7 +134,7 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
 
                         if (matcher.matches()) {
                             String payeeDfspId = matcher.group(1);
-                            logger.debug("Payee DFSP Id {}", payeeDfspId);
+                            logger.info("Payee DFSP Id {}", payeeDfspId);
                             variables.put(PAYEE_DFSP_ID, payeeDfspId);
                         }
                     }

@@ -31,6 +31,7 @@ public class FileProcessingRoute extends BaseRouteBuilder {
     private CsvMapper csvMapper;
 
     @Override
+    @SuppressWarnings("unchecked")
     public void configure() {
 
         /**

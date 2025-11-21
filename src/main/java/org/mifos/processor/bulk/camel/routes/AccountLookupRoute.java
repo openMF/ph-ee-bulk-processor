@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
+@SuppressWarnings("unchecked")
 public class AccountLookupRoute extends BaseRouteBuilder {
 
     @Value("${identity_account_mapper.account_lookup}")

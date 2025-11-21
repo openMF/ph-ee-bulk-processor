@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 public class DeDuplicationRoute extends BaseRouteBuilder {
 
     @Override
+    @SuppressWarnings("unchecked")
     public void configure() throws Exception {
         from(RouteId.DE_DUPLICATION.getValue()).id(RouteId.DE_DUPLICATION.getValue())
                 .log("Started route " + RouteId.DE_DUPLICATION.getValue()).to("direct:download-file").to("direct:get-transaction-array")
