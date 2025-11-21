@@ -194,12 +194,8 @@ payment-mode:
     - id: "CLOSEDLOOP"
       type: "BULK"
       endpoint: "bulk_connector_{MODE}-{dfspid}"
-<<<<<<< HEAD
       debulkingDfspid: "greenbank"
 
-=======
-      debulkingDfspid: "wakanda"
->>>>>>> master
 batch-authorization:
   callback-url: "${BULK_PROCESSOR_CALLBACK_URL:https://bulk-processor.mifos.gazelle.test/authorization/callback}"
 
@@ -250,7 +246,6 @@ bpmns:
         fred-transactions: "bulk_processor_account_lookup-{dfspid}"
     - id: "bluebank"
       flows:
-<<<<<<< HEAD
         batch-transactions: "bulk_processor-{dfspid}"
     # - id: "rhino"
     #   flows:
@@ -258,6 +253,3 @@ bpmns:
     # - id: "lion"
     #   flows:
     #     batch-transactions: "bulk_processor-{dfspid}"
-=======
-        batch-transactions: "bulk_processor-{dfspid}"
->>>>>>> master
