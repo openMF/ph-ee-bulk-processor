@@ -24,6 +24,8 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FAILED_AMOUNT;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.INIT_SUB_BATCH_FAILED;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ONGOING_AMOUNT;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PARTY_LOOKUP_FAILED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYEE_DFSP_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PAYMENT_MODE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REQUEST_ID;
@@ -34,6 +36,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.mifos.processor.bulk.config.ExternalApiPayloadConfig;
@@ -67,6 +71,9 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
 
     @Value("${channel.hostname}")
     private String channelURL;
+
+    @Value("${config.partylookup.enable}")
+    private boolean isPartyLookupEnabled;
 
     @Override
     public void configure() throws Exception {
@@ -115,10 +122,21 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     PaymentModeMapping mapping = paymentModeConfiguration.getByMode(paymentMode);
 
                     String tenantName = exchange.getProperty(TENANT_NAME, String.class);
-                    tenantName = mapping.getDebulkingDfspid() == null ? tenantName : mapping.getDebulkingDfspid();
                     Map<String, Object> variables = exchange.getProperty(ZEEBE_VARIABLE, Map.class);
                     variables.put(PAYMENT_MODE, paymentMode);
                     variables.put(DEBULKINGDFSPID, mapping.getDebulkingDfspid() == null ? tenantName : mapping.getDebulkingDfspid());
+                    if (isPartyLookupEnabled && !(Boolean) variables.get(PARTY_LOOKUP_FAILED)) {
+                        String filename = exchange.getProperty(SERVER_FILE_NAME).toString();
+                        String regex = ".*_sub-batch-([\\w-]+)\\.csv"; //payee DFSP Id for sub batch are extracted from the sub batch file name when party lookup is enabled and it is successful
+                        Pattern pattern = Pattern.compile(regex);
+                        Matcher matcher = pattern.matcher(filename);
+
+                        if (matcher.matches()) {
+                            String payeeDfspId = matcher.group(1);
+                            logger.debug("Payee DFSP Id {}", payeeDfspId);
+                            variables.put(PAYEE_DFSP_ID, payeeDfspId);
+                        }
+                    }
                     zeebeProcessStarter.startZeebeWorkflow(
                             Utils.getBulkConnectorBpmnName(mapping.getEndpoint(), mapping.getId().toLowerCase(), tenantName), variables);
                     exchange.setProperty(INIT_SUB_BATCH_FAILED, false);
@@ -130,11 +148,11 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     Transaction transaction = transactionList.get(index);
 
                     exchange.setProperty(REQUEST_ID, transaction.getRequestId());
-                    exchange.setProperty("payeeDFSPId", transaction.getPayeeDfspId());
+                    exchange.setProperty(PAYEE_DFSP_ID, transaction.getPayeeDfspId());
                     logger.info("REQUEST_ID: {}", transaction.getRequestId());
                     exchange.setProperty(TRANSACTION_LIST_ELEMENT, transaction);
                 }).setHeader("Platform-TenantId", exchangeProperty(TENANT_NAME))
-                .setHeader("X-PayeeDFSP-ID", exchangeProperty("payeeDFSPId")).to("direct:dynamic-payload-setter")
+                .setHeader("X-PayeeDFSP-ID", exchangeProperty(PAYEE_DFSP_ID)).to("direct:dynamic-payload-setter")
                 .to("direct:external-api-call").to("direct:external-api-response-handler").end() // end loop block
                 .endChoice();
 

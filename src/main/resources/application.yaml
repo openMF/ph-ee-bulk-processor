@@ -96,7 +96,7 @@ config:
     enable: true
     field: "payerIdentifier"
   splitting:
-    enable: false
+    enable: true
     sub-batch-size: 5
   formatting:
     enable: false
@@ -108,7 +108,7 @@ config:
   completion-threshold-check:
     enable: false
     completion-threshold: 95 # in percentage
-    max-retry: 15 #can be as high as 30
+    max-retry: 3 #can be as high as 30
     delay: 2 # in seconds
   deduplication:
     enabled: true
@@ -156,7 +156,7 @@ bulk_processor:
   hostname : "http://ph-ee-connector-bulk:82"
 
 csv:
-  columnNames: "id,request_id,payment_mode,payer_identifier_type,payer_identifier,payee_identifier_type,payee_identifier,amount,currency,note,account_number,program_shortcode,cycle,payee_dfsp_id"
+  columnNames: "id,request_id,payment_mode,payer_identifier_type,payer_identifier,payee_identifier_type,payee_identifier,amount,currency,note,account_number,program_shortcode,cycle,payee_dfsp_id,batch_id"
   size : 100000 # in bytes
 
 budget-account:
@@ -168,9 +168,11 @@ budget-account:
           identifierType: "ACCOUNT"
           identifierValue: "123456789"
 
+
 management:
   endpoint:
-    health:
+    health: 
+      enabled: true
       probes:
         enabled: true
       liveness:
@@ -192,8 +194,12 @@ payment-mode:
     - id: "CLOSEDLOOP"
       type: "BULK"
       endpoint: "bulk_connector_{MODE}-{dfspid}"
+<<<<<<< HEAD
       debulkingDfspid: "greenbank"
 
+=======
+      debulkingDfspid: "wakanda"
+>>>>>>> master
 batch-authorization:
   callback-url: "${BULK_PROCESSOR_CALLBACK_URL:https://bulk-processor.mifos.gazelle.test/authorization/callback}"
 
@@ -244,6 +250,7 @@ bpmns:
         fred-transactions: "bulk_processor_account_lookup-{dfspid}"
     - id: "bluebank"
       flows:
+<<<<<<< HEAD
         batch-transactions: "bulk_processor-{dfspid}"
     # - id: "rhino"
     #   flows:
@@ -251,3 +258,6 @@ bpmns:
     # - id: "lion"
     #   flows:
     #     batch-transactions: "bulk_processor-{dfspid}"
+=======
+        batch-transactions: "bulk_processor-{dfspid}"
+>>>>>>> master

@@ -34,6 +34,7 @@ public class BatchAccountLookupCallbackWorker extends BaseWorker {
             String filename = (String) variables.get(FILE_NAME);
             String batchAccountLookupCallback = (String) variables.get("batchAccountLookupCallback");
             variables.put(PARTY_LOOKUP_FAILED, false);
+            variables.put("batchAccountLookup", true);
             exchange.setProperty(SERVER_FILE_NAME, filename);
             exchange.setProperty("batchAccountLookupCallback", batchAccountLookupCallback);
             exchange.setProperty("workflowInstanceKey", job.getProcessInstanceKey());

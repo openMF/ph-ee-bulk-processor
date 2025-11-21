@@ -34,6 +34,7 @@ public class InitSubBatchWorker extends BaseWorker {
                 if (item != null) {
                     result.add(item.toString());
                 }
+                logger.debug("BatchEntity for this subbatch is {}", objectMapper.writeValueAsString(subBatchEntity));
             }
             return result;
         }

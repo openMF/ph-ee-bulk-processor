@@ -4,14 +4,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import java.util.Objects;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonPropertyOrder({ "id", "request_id", "payment_mode", "account_number", "payer_identifier_type", "payer_identifier",
-        "payee_identifier_type", "payee_identifier", "amount", "currency", "note", "program_shortcode", "cycle", "payee_dfsp_id" })
+@JsonPropertyOrder({ "id", "request_id", "payment_mode", "payer_identifier_type", "payer_identifier", "payee_identifier_type",
+        "payee_identifier", "amount", "currency", "note", "program_shortcode", "cycle", "payee_dfsp_id", "batch_id", "account_number" })
 public class Transaction implements CsvSchema {
 
     @JsonProperty("id")
@@ -31,6 +32,26 @@ public class Transaction implements CsvSchema {
 
     @JsonProperty("currency")
     private String currency;
+
+    @Override
+    public boolean equals(Object transaction) {
+        if (this == transaction) {
+            return true;
+        }
+        if ((transaction == null) || (getClass() != transaction.getClass())) {
+            return false;
+        }
+        Transaction that = (Transaction) transaction;
+        return (id == that.id) && (Objects.equals(requestId, that.requestId)) && (Objects.equals(paymentMode, that.paymentMode))
+                && (Objects.equals(accountNumber, that.accountNumber)) && (Objects.equals(amount, that.amount))
+                && (Objects.equals(payeeDfspId, that.payeeDfspId));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, requestId, paymentMode, accountNumber, amount, currency, note, payerIdentifierType, payerIdentifier,
+                payeeIdentifierType, payeeIdentifier, payeeDfspId);
+    }
 
     @JsonProperty("note")
     private String note;
@@ -56,7 +77,7 @@ public class Transaction implements CsvSchema {
     @JsonProperty("payee_dfsp_id")
     private String payeeDfspId;
 
-    @JsonIgnore
+    @JsonProperty("batch_id")
     private String batchId;
 
     @Override

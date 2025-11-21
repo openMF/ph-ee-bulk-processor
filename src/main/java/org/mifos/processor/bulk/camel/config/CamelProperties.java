@@ -85,4 +85,5 @@ public final class CamelProperties {
     public static final String ORIGINAL_TRANSACTION_LIST = "originalTransactionList";
     public static final String CALLBACK = "X-CallbackURL";
     public static final String CONTENT_TYPE = "Content-Type";
+    public static final String PAYEE_DFSP_ID = "X-PayeeDFSP-ID";
 }

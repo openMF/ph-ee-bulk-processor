@@ -4,6 +4,7 @@ import static org.mifos.processor.bulk.camel.config.CamelProperties.BATCH_STATUS
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CALLBACK_RETRY;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.CLIENT_CORRELATION_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.COMPLETION_RATE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ERROR_CODE;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.ERROR_DESCRIPTION;
@@ -34,6 +35,7 @@ public class AggregateWorker extends BaseWorker {
             int successRate = (int) variables.getOrDefault(COMPLETION_RATE, 0);
 
             Exchange exchange = new DefaultExchange(camelContext);
+            exchange.setProperty(CLIENT_CORRELATION_ID, variables.get(CLIENT_CORRELATION_ID));
             exchange.setProperty(BATCH_ID, variables.get(BATCH_ID));
             exchange.setProperty(TENANT_ID, variables.get(TENANT_ID));
             exchange.setProperty(MAX_CALLBACK_RETRY, variables.get(MAX_CALLBACK_RETRY));
