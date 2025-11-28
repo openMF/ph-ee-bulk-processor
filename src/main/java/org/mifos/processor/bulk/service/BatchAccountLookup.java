@@ -9,7 +9,6 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REQUEST_ID;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.ArrayList;
-//import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.camel.Exchange;
@@ -53,11 +52,8 @@ public class BatchAccountLookup {
         String callbackUrl = exchange.getProperty(CALLBACK, String.class);
         String registeringInstitutionId = exchange.getProperty(HEADER_REGISTERING_INSTITUTE_ID, String.class);
 
-        AccountMapperRequestDTO accountMapperRequestDTO = new AccountMapperRequestDTO(
-                requestId, 
-                registeringInstitutionId,
-                beneficiaryDTOList
-        );
+        AccountMapperRequestDTO accountMapperRequestDTO = new AccountMapperRequestDTO(requestId, registeringInstitutionId,
+                beneficiaryDTOList);
 
         String requestBody = objectMapper.writeValueAsString(accountMapperRequestDTO);
 

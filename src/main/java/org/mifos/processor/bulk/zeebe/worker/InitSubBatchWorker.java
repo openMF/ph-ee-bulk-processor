@@ -6,10 +6,8 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import org.apache.camel.Exchange;
 import org.apache.camel.support.DefaultExchange;
 import org.mifos.processor.bulk.camel.routes.RouteId;
@@ -71,10 +69,7 @@ public class InitSubBatchWorker extends BaseWorker {
                 variables.put(SUB_BATCHES, new ArrayList<String>());
                 variables.put(INIT_SUCCESS_SUB_BATCHES, new ArrayList<String>());
                 variables.put(INIT_FAILURE_SUB_BATCHES, new ArrayList<String>());
-                client.newCompleteCommand(job.getKey())
-                        .variables(variables)
-                        .send()
-                        .join();
+                client.newCompleteCommand(job.getKey()).variables(variables).send().join();
                 return;
             }
 
@@ -91,15 +86,11 @@ public class InitSubBatchWorker extends BaseWorker {
             String currentFile = subBatches.remove(0);
 
             // Parse sub-batch details
-            List<SubBatchEntity> subBatchEntityList = objectMapper.convertValue(
-                    subBatchDetails,
-                    new TypeReference<List<SubBatchEntity>>() {}
-            );
+            List<SubBatchEntity> subBatchEntityList = objectMapper.convertValue(subBatchDetails,
+                    new TypeReference<List<SubBatchEntity>>() {});
 
             SubBatchEntity subBatchEntity = subBatchEntityList.stream()
-                    .filter(e -> e.getRequestFile() != null && e.getRequestFile().contains(currentFile))
-                    .findFirst()
-                    .orElse(null);
+                    .filter(e -> e.getRequestFile() != null && e.getRequestFile().contains(currentFile)).findFirst().orElse(null);
 
             // Setup Camel exchange
             Exchange exchange = new DefaultExchange(camelContext);
@@ -126,10 +117,7 @@ public class InitSubBatchWorker extends BaseWorker {
             variables.put(INIT_SUCCESS_SUB_BATCHES, new ArrayList<>(successSubBatches));
             variables.put(INIT_FAILURE_SUB_BATCHES, new ArrayList<>(failureSubBatches));
 
-            client.newCompleteCommand(job.getKey())
-                    .variables(variables)
-                    .send()
-                    .join();
+            client.newCompleteCommand(job.getKey()).variables(variables).send().join();
 
             logger.info("Completed INIT_SUB_BATCH worker. Remaining sub-batches: {}", subBatches.size());
         });

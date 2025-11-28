@@ -115,9 +115,8 @@ public class ProcessorStartRouteService {
         String tenantName = exchange.getIn().getHeader(HEADER_PLATFORM_TENANT_ID, String.class);
         // validation is disabled for now
         /*
-         * if (tenantName == null || tenantName.isEmpty() || !tenants.contains(tenantName)) {
-         *     throw new Exception("Invalid tenant value.");
-         * }
+         * if (tenantName == null || tenantName.isEmpty() || !tenants.contains(tenantName)) { throw new
+         * Exception("Invalid tenant value."); }
          */
         exchange.setProperty(TENANT_NAME, tenantName);
         exchange.getIn().setHeader(CONTENT_TYPE, "application/json;charset=UTF-8");
@@ -165,28 +164,26 @@ public class ProcessorStartRouteService {
         String registeringInstituteId = exchange.getProperty(REGISTERING_INSTITUTE_ID, String.class);
         String programId = exchange.getProperty(PROGRAM_ID, String.class);
         logger.debug("Inst id: {}, prog id: {}", registeringInstituteId, programId);
-        
+
         if (!(StringUtils.hasText(registeringInstituteId) && StringUtils.hasText(programId))) {
             // this will make sure the file is not updated since there is no update in data
             logger.debug("InstitutionId or programId is null");
             exchange.setProperty(IS_UPDATED, false);
             return;
         }
-        
+
         List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
         logger.debug("Size: {}", transactionList.size());
-        
-        RegisteringInstitutionConfig registeringInstitutionConfig = 
-                budgetAccountConfig.getByRegisteringInstituteId(registeringInstituteId);
-        
+
+        RegisteringInstitutionConfig registeringInstitutionConfig = budgetAccountConfig.getByRegisteringInstituteId(registeringInstituteId);
+
         if (registeringInstitutionConfig == null) {
-            logger.debug("Element in nested in config: {}", 
-                    budgetAccountConfig.getRegisteringInstitutions().get(0).getPrograms().size());
+            logger.debug("Element in nested in config: {}", budgetAccountConfig.getRegisteringInstitutions().get(0).getPrograms().size());
             logger.debug("Registering institute id is null");
             exchange.setProperty(IS_UPDATED, false);
             return;
         }
-        
+
         Program program = registeringInstitutionConfig.getByProgramId(programId);
         if (program == null) {
             // this will make sure the file is not updated since there is no update in data
@@ -194,7 +191,7 @@ public class ProcessorStartRouteService {
             exchange.setProperty(IS_UPDATED, false);
             return;
         }
-        
+
         List<Transaction> resultTransactionList = new ArrayList<>();
 
         transactionList.forEach(transaction -> {
@@ -207,7 +204,7 @@ public class ProcessorStartRouteService {
                 throw new RuntimeException(e);
             }
         });
-        
+
         exchange.setProperty(RESULT_TRANSACTION_LIST, resultTransactionList);
         exchange.setProperty(IS_UPDATED, true);
         exchange.setProperty(PROGRAM_NAME, program.getName());
@@ -252,7 +249,7 @@ public class ProcessorStartRouteService {
 
         List<Integer> phases = phaseUtils.getValues();
         logger.debug(phases.toString());
-        
+
         Map<String, Object> variables = new HashMap<>();
         variables.put(BATCH_ID, batchId);
         variables.put(FILE_NAME, fileName);
@@ -276,23 +273,20 @@ public class ProcessorStartRouteService {
         logger.info("Variables published to zeebe: {}", variables);
 
         JSONObject response = new JSONObject();
-        String bpmn = processorStartRoute.getWorkflowForTenant(
-                exchange.getProperty(TENANT_NAME).toString(), "batch-transactions");
+        String bpmn = processorStartRoute.getWorkflowForTenant(exchange.getProperty(TENANT_NAME).toString(), "batch-transactions");
 
         try {
             logger.info("FREDa ");
             logger.info("FREDa: tenant is < {} >  ", exchange.getProperty(TENANT_NAME).toString());
-            String tenantSpecificWorkflowId = bpmn.replace("{dfspid}", 
-                    exchange.getProperty(TENANT_NAME).toString());
+            String tenantSpecificWorkflowId = bpmn.replace("{dfspid}", exchange.getProperty(TENANT_NAME).toString());
             logger.info("Tenant specific workflow id: {}", tenantSpecificWorkflowId);
             logger.info("FRED: tenant is < {} >  ", exchange.getProperty(TENANT_NAME).toString());
-            
+
             String txnId = zeebeProcessStarter.startZeebeWorkflow(tenantSpecificWorkflowId, "", variables);
             if (txnId == null || txnId.isEmpty()) {
                 response.put("errorCode", 500);
                 response.put("errorDescription", "Unable to start zeebe workflow");
-                response.put("developerMessage", 
-                        "Issue in starting the zeebe workflow, check the zeebe configuration");
+                response.put("developerMessage", "Issue in starting the zeebe workflow, check the zeebe configuration");
             } else {
                 response.put("batch_id", batchId);
                 response.put("request_id", requestId);

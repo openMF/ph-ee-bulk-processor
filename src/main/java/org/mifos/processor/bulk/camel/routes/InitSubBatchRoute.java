@@ -128,7 +128,9 @@ public class InitSubBatchRoute extends BaseRouteBuilder {
                     variables.put(DEBULKINGDFSPID, mapping.getDebulkingDfspid() == null ? tenantName : mapping.getDebulkingDfspid());
                     if (isPartyLookupEnabled && !(Boolean) variables.get(PARTY_LOOKUP_FAILED)) {
                         String filename = exchange.getProperty(SERVER_FILE_NAME).toString();
-                        String regex = ".*_sub-batch-([\\w-]+)\\.csv"; //payee DFSP Id for sub batch are extracted from the sub batch file name when party lookup is enabled and it is successful
+                        String regex = ".*_sub-batch-([\\w-]+)\\.csv"; // payee DFSP Id for sub batch are extracted from
+                                                                       // the sub batch file name when party lookup is
+                                                                       // enabled and it is successful
                         Pattern pattern = Pattern.compile(regex);
                         Matcher matcher = pattern.matcher(filename);
 

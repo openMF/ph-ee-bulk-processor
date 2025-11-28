@@ -1,16 +1,11 @@
-# camel:
-#   server-port: 5000
-#   disable-ssl: false
-#   springboot:
-#     main-run-controller: true
-#     dataformat:
-#       json-jackson:
-#         auto-discover-object-mapper: true
-
-# TD Nov 2025 -- terminate TLS at NGINX run pod on http => solve cors issues from operations-web
 camel:
   server-port: 0
-  disable-ssl: true
+  disable-ssl: false
+  springboot:
+    main-run-controller: true
+    dataformat:
+      json-jackson:
+        auto-discover-object-mapper: true
 
 cors:
   allowed-origins:
@@ -130,13 +125,13 @@ callback-phases:
     - 100
 
 server:
-  # ssl:
-  #   key-alias: "tomcat-https"
-  #   key-store: "classpath:keystore.jks"
-  #   key-store-type: JKS
-  #   key-password: "password"
-  #   key-store-password: "password"
-  port: 8080
+  ssl:
+    key-alias: "tomcat-https"
+    key-store: "classpath:keystore.jks"
+    key-store-type: JKS
+    key-password: "password"
+    key-store-password: "password"
+  port: 8443  # HTTPS port for Spring Boot (external traffic, gRPC)
 
 
 security:
@@ -198,8 +193,6 @@ payment-mode:
 
 batch-authorization:
   callback-url: "${BULK_PROCESSOR_CALLBACK_URL:https://bulk-processor.mifos.gazelle.test/authorization/callback}"
-
-
 
 pubsub:
   room:
