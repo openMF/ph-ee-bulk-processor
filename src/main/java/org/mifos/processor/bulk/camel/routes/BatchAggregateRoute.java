@@ -49,6 +49,7 @@ public class BatchAggregateRoute extends BaseRouteBuilder {
                 .setHeader(HEADER_PLATFORM_TENANT_ID, simple("${exchangeProperty." + TENANT_ID + "}")).process(exchange -> {
                     logger.info(exchange.getIn().getHeaders().toString());
                 }).toD(operationsAppConfig.batchAggregateUrl + "${exchangeProperty." + BATCH_ID + "}?bridgeEndpoint=true")
+                .log(LoggingLevel.INFO, "Actual dynamic endpoint called: ${header.CamelToEndpoint}")
                 .log(LoggingLevel.INFO, "Batch aggregate API response: \n\n ${body}")
                 .log(LoggingLevel.INFO, "Aggregate Response body: ${body}");
 

@@ -1,7 +1,21 @@
 package org.mifos.processor.bulk.zeebe.worker;
 
-import static org.mifos.processor.bulk.camel.config.CamelProperties.*;
-import static org.mifos.processor.bulk.zeebe.ZeebeVariables.*;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.SERVER_FILE_NAME;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.SUB_BATCH_DETAILS;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.SUB_BATCH_ENTITY;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.TENANT_NAME;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.ZEEBE_VARIABLE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.FILE_NAME;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.INIT_FAILURE_SUB_BATCHES;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.INIT_SUB_BATCH_FAILED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.INIT_SUCCESS_SUB_BATCHES;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REMAINING_SUB_BATCH;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.REQUEST_ID;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SPLITTING_ENABLED;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SUB_BATCHES;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

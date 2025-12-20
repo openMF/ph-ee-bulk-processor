@@ -99,6 +99,10 @@ public class FileProcessingRoute extends BaseRouteBuilder {
             String filepath = exchange.getProperty(LOCAL_FILE_PATH, String.class);
             List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
 
+            log.info("update-file-v2 - filepath: {}", filepath);
+            log.info("update-file-v2 - transactionList: {} (size: {})", transactionList != null ? "present" : "NULL",
+                    transactionList != null ? transactionList.size() : 0);
+
             // getting header
             Boolean overrideHeader = exchange.getProperty(OVERRIDE_HEADER, Boolean.class);
             CsvSchema csvSchema = csvMapper.schemaFor(Transaction.class);
@@ -110,9 +114,13 @@ public class FileProcessingRoute extends BaseRouteBuilder {
 
             File file = new File(filepath);
             SequenceWriter writer = csvMapper.writerWithSchemaFor(Transaction.class).with(csvSchema).writeValues(file);
-            for (Transaction transaction : transactionList) {
-                writer.write(transaction);
+            if (transactionList != null) {
+                for (Transaction transaction : transactionList) {
+                    writer.write(transaction);
+                }
             }
+            writer.close();
+            log.info("update-file-v2 - wrote {} transactions to {}", transactionList != null ? transactionList.size() : 0, filepath);
         });
     }
 }

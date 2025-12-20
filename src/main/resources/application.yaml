@@ -51,7 +51,7 @@ mock-payment-schema:
     authorization: "/batches/"
 
 channel:
-  hostname: "http://ph-ee-connector-channel:82"
+  hostname: "https://channel.mifos.gazelle.localhost"
 
 cloud:
   aws:
@@ -72,8 +72,6 @@ cloud:
 
 
 tenants: "greenbank, bluebank"
-
-
 
 #payment mode moved to a separate application property file for helm rewrite
 
@@ -136,9 +134,9 @@ server:
 
 security:
   jws:
-    enable: true
+    enable: false
     response:
-      enable: true
+      enable: false
 
 identity_account_mapper:
   hostname : "http://ph-ee-identity-account-mapper:80"
@@ -151,18 +149,17 @@ bulk_processor:
   hostname : "http://ph-ee-connector-bulk:82"
 
 csv:
-  columnNames: "id,request_id,payment_mode,payer_identifier_type,payer_identifier,payee_identifier_type,payee_identifier,amount,currency,note,account_number,program_shortcode,cycle,payee_dfsp_id,batch_id"
+  columnNames: "id,request_id,payment_mode,payer_identifier_type,payer_identifier,payee_identifier_type,payee_identifier,amount,currency,note"
   size : 100000 # in bytes
 
 budget-account:
   registeringInstitutions:
-    - id: "123"
+    - id: "greenbank"
       programs:
         - id: "SocialWelfare"
           name: "Social Welfare"
           identifierType: "ACCOUNT"
-          identifierValue: "123456789"
-
+          identifierValue: "1"
 
 management:
   endpoint:
@@ -213,7 +210,8 @@ gov-stack-client:
   header-key: "X-GovStack-Client"
   header-value: "PAYMENT-BB"
 
-
+# TD Dec 2025 bpmn.flows looks like it is not actually used by bulk-processor 
+#             so commenting out but leaving for now as 
 bpmn:
   flows:
     payment-transfer: "PayerFundTransfer-{dfspid}"
@@ -227,7 +225,8 @@ bpmn:
     international-remittance-payee: "international_remittance_payee_process-{dfspid}"
     international-remittance-payer: "international_remittance_payer_process-{dfspid}"
     debit-party-process: "debit_party_process-{dfspid}"
-    bulk-processor: "bulk_processor-{dfspid}"
+    #bulk-processor: "bulk_processor-{dfspid}"
+    bulk-processor: "bulk_processor_account_lookup-DFSPID.bpmn"
     slcb: "slcb-{dfspid}"
 
 bpmns:
@@ -235,8 +234,8 @@ bpmns:
     - id: "greenbank"
       flows:
         payment-transfer: "minimal_mock_fund_transfer-{dfspid}"
-        batch-transactions: "bulk_processor-{dfspid}"
-        fred-transactions: "bulk_processor_account_lookup-{dfspid}"
+        #batch-transactions: "bulk_processor-{dfspid}"
+        batch-transactions: "bulk_processor_account_lookup-{dfspid}"
     - id: "bluebank"
       flows:
         batch-transactions: "bulk_processor-{dfspid}"

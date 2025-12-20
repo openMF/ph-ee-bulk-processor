@@ -49,7 +49,8 @@ public class BatchAccountLookupWorker extends BaseWorker {
             Map<String, Object> variables = job.getVariablesAsMap();
             Exchange exchange = new DefaultExchange(camelContext);
             String filename = (String) variables.get(FILE_NAME);
-            String registeringInstituteId = variables.get(REGISTERING_INSTITUTE_ID).toString();
+            Object registeringInstituteIdObj = variables.get(REGISTERING_INSTITUTE_ID);
+            String registeringInstituteId = registeringInstituteIdObj != null ? registeringInstituteIdObj.toString() : null;
             logger.info("registeringInstituteId in worker {}", registeringInstituteId);
             variables.put(CACHED_TRANSACTION_ID, job.getKey());
             exchange.setProperty(HEADER_REGISTERING_INSTITUTE_ID, registeringInstituteId);
