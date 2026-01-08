@@ -71,7 +71,7 @@ cloud:
       connection-string:
 
 
-tenants: "greenbank, bluebank"
+tenants: "greenbank, bluebank, redbank"
 
 #payment mode moved to a separate application property file for helm rewrite
 
@@ -186,7 +186,6 @@ payment-mode:
     - id: "CLOSEDLOOP"
       type: "BULK"
       endpoint: "bulk_connector_{MODE}-{dfspid}"
-      debulkingDfspid: "greenbank"
 
 batch-authorization:
   callback-url: "${BULK_PROCESSOR_CALLBACK_URL:https://bulk-processor.mifos.gazelle.test/authorization/callback}"
@@ -236,6 +235,10 @@ bpmns:
         payment-transfer: "minimal_mock_fund_transfer-{dfspid}"
         batch-transactions: "bulk_processor-{dfspid}"
         #batch-transactions: "bulk_processor_account_lookup-{dfspid}"
+    - id: "redbank"
+      flows:
+        payment-transfer: "minimal_mock_fund_transfer-{dfspid}"
+        batch-transactions: "bulk_processor-{dfspid}"
     - id: "bluebank"
       flows:
         batch-transactions: "bulk_processor-{dfspid}"
