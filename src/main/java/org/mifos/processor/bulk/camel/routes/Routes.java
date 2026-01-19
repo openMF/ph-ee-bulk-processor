@@ -1,9 +1,12 @@
 package org.mifos.processor.bulk.camel.routes;
 
+import static org.mifos.processor.bulk.camel.config.CamelProperties.HEADER_PLATFORM_TENANT_ID;
 import static org.mifos.processor.bulk.camel.config.CamelProperties.IS_BATCH_READY;
+import static org.mifos.processor.bulk.camel.config.CamelProperties.OPS_APP_ACCESS_TOKEN;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.IS_SAMPLE_READY;
 import static org.mifos.processor.bulk.zeebe.ZeebeVariables.SAMPLED_TX_IDS;
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.TENANT_ID;
 
 import com.google.gson.Gson;
 import java.util.ArrayList;
@@ -30,6 +33,8 @@ public class Routes extends BaseRouteBuilder {
         String id = "check-transactions";
         from("direct:" + id).id(id).log("Fetching transaction details")
                 // set request params
+                .setHeader("Authorization", simple("Bearer ${exchangeProperty." + OPS_APP_ACCESS_TOKEN + "}"))
+                .setHeader(HEADER_PLATFORM_TENANT_ID, simple("${exchangeProperty." + TENANT_ID + "}"))
                 .toD(operationsAppConfig.batchTransactionEndpoint).process(exchange -> {
                     // get response body
                     JSONObject transfers = new JSONObject(exchange.getIn().getBody(String.class));
@@ -61,7 +66,10 @@ public class Routes extends BaseRouteBuilder {
         String id = "sample-transactions";
         from("direct:" + id).id(id).log("Fetching transaction details").process(exchange -> {
             exchange.getIn().setHeader("batchId", exchange.getProperty(BATCH_ID));
-        }).toD(operationsAppConfig.batchTransactionEndpoint).process(exchange -> {
+        })
+                .setHeader("Authorization", simple("Bearer ${exchangeProperty." + OPS_APP_ACCESS_TOKEN + "}"))
+                .setHeader(HEADER_PLATFORM_TENANT_ID, simple("${exchangeProperty." + TENANT_ID + "}"))
+                .toD(operationsAppConfig.batchTransactionEndpoint).process(exchange -> {
             // get response body
 
             // check if batch is ready for sampling
