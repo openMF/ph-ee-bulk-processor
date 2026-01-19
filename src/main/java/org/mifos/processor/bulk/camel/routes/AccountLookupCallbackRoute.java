@@ -91,8 +91,10 @@ public class AccountLookupCallbackRoute extends BaseRouteBuilder {
                 } catch (NumberFormatException e) {
                     logger.error(e.getMessage());
                 }
-                String identifier = matchingBeneficiary.get().getFinancialAddress();
-                transaction.setPayeeIdentifier(identifier);
+                // Store financialAddress in accountNumber field for reconciliation
+                // DO NOT overwrite payeeIdentifier - keep the MSISDN for party lookup!
+                String financialAddress = matchingBeneficiary.get().getFinancialAddress();
+                transaction.setAccountNumber(financialAddress);
                 transaction.setPayeeDfspId(matchingBeneficiary.get().getBankingInstitutionCode());
                 updatedTransactionList.add(transaction);
             } else {
