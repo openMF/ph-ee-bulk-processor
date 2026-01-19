@@ -51,7 +51,7 @@ mock-payment-schema:
     authorization: "/batches/"
 
 channel:
-  hostname: "https://channel.mifos.gazelle.localhost"
+  hostname: "https://ph-ee-connector-channel:8443"
 
 cloud:
   aws:
@@ -234,7 +234,7 @@ bpmns:
       flows:
         payment-transfer: "minimal_mock_fund_transfer-{dfspid}"
         batch-transactions: "bulk_processor-{dfspid}"
-        #batch-transactions: "bulk_processor_account_lookup-{dfspid}"
+        batch-transactions-govstack: "bulk_processor_account_lookup-{dfspid}"
     - id: "redbank"
       flows:
         payment-transfer: "minimal_mock_fund_transfer-{dfspid}"

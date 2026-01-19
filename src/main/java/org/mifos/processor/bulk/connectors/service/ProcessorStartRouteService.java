@@ -273,7 +273,11 @@ public class ProcessorStartRouteService {
         logger.info("Variables published to zeebe: {}", variables);
 
         JSONObject response = new JSONObject();
-        String bpmn = processorStartRoute.getWorkflowForTenant(exchange.getProperty(TENANT_NAME).toString(), "batch-transactions");
+        // Check if GovStack mode (registeringInstituteId is set) to select appropriate workflow
+        String registeringInstituteId = exchange.getProperty(REGISTERING_INSTITUTE_ID, String.class);
+        String flowType = StringUtils.hasText(registeringInstituteId) ? "batch-transactions-govstack" : "batch-transactions";
+        logger.info("Selecting workflow flow type: {} (registeringInstituteId: {})", flowType, registeringInstituteId);
+        String bpmn = processorStartRoute.getWorkflowForTenant(exchange.getProperty(TENANT_NAME).toString(), flowType);
 
         try {
             logger.info("FREDa ");
