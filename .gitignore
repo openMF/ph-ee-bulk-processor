@@ -37,3 +37,7 @@ build/
 
 .DS_Store
 /.mvn
+# Certificate files (use K8s secrets instead)
+*.jks
+*.p12
+*.keystore

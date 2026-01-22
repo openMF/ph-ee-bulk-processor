@@ -125,10 +125,10 @@ callback-phases:
 server:
   ssl:
     key-alias: "tomcat-https"
-    key-store: "classpath:keystore.jks"
+    key-store: "file:/tls/keystore.jks"
     key-store-type: JKS
-    key-password: "password"
-    key-store-password: "password"
+    key-password: "changeit"
+    key-store-password: "changeit"
   port: 8443  # HTTPS port for Spring Boot (external traffic, gRPC)
 
 
