@@ -1,0 +1,9 @@
+camel:
+  server-port: 5002
+
+kafka:
+  bootstrapAddress: "localhost:9092"
+
+zeebe:
+  broker:
+    contactpoint: "localhost:26500"

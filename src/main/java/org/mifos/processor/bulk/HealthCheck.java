@@ -1,14 +1,18 @@
 package org.mifos.processor.bulk;
 
+import static org.mifos.processor.bulk.zeebe.ZeebeVariables.BATCH_ID;
+
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import java.io.InputStream;
+import java.util.UUID;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.mifos.processor.bulk.file.FileTransferService;
-import org.mifos.processor.bulk.schema.Transaction;
+import org.mifos.processor.bulk.schema.TransactionOlder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +20,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
-
-import java.util.UUID;
 
 @Component
 public class HealthCheck extends RouteBuilder {
@@ -51,34 +53,31 @@ public class HealthCheck extends RouteBuilder {
 
     @Override
     public void configure() {
-        from("rest:GET:/")
-                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(200))
-                .setBody(constant(""));
+        from("rest:GET:/").setHeader(Exchange.HTTP_RESPONSE_CODE, constant(200)).setBody(constant(""));
 
-        from("rest:GET:/channel/bulk/transfer/{fileName}")
-                .id("transfer-details")
-                .log(LoggingLevel.INFO, "## CHANNEL -> inbound bulk transfer request with ${header.fileName}")
-                .process(exchange -> {
+        from("rest:GET:/channel/bulk/transfer/{fileName}").id("transfer-details")
+                .log(LoggingLevel.INFO, "## CHANNEL -> inbound bulk transfer request with ${header.fileName}").process(exchange -> {
                     String fileName = exchange.getIn().getHeader("fileName", String.class);
                     String batchId = UUID.randomUUID().toString();
+                    exchange.setProperty(BATCH_ID, batchId);
 
                     // TODO: How to get sender information? Hard coded in Channel connector?
-                    byte[] csvFile = fileTransferService.downloadFile(fileName, bucketName);
+                    InputStream csvFileInputStream = fileTransferService.streamFile(fileName, bucketName);
 
                     CsvSchema schema = CsvSchema.emptySchema().withHeader();
-                    MappingIterator<Transaction> readValues = csvMapper.readerWithSchemaFor(Transaction.class).with(schema).readValues(csvFile);
+                    MappingIterator<TransactionOlder> readValues = csvMapper.readerWithSchemaFor(TransactionOlder.class).with(schema)
+                            .readValues(csvFileInputStream);
 
                     while (readValues.hasNext()) {
-                        Transaction current = readValues.next();
+                        TransactionOlder current = readValues.next();
                         current.setBatchId(batchId);
-                        System.out.println(objectMapper.writeValueAsString(current));
-                        if (current.getPayment_mode().equals("gsma"))
+                        logger.info("Writing string in kafka {}", objectMapper.writeValueAsString(current));
+                        if (current.getPaymentMode().equals("gsma") || current.getPaymentMode().equals("afrimoney")) {
                             kafkaTemplate.send(gsmaTopicName, objectMapper.writeValueAsString(current));
-                        else if (current.getPayment_mode().equals("sclb"))
+                        } else if (current.getPaymentMode().equals("sclb")) {
                             kafkaTemplate.send(slcbTopicName, objectMapper.writeValueAsString(current));
+                        }
                     }
-                })
-                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(200))
-                .setBody(constant(""));
+                }).setHeader(Exchange.HTTP_RESPONSE_CODE, constant(200)).setBody(exchange -> exchange.getProperty(BATCH_ID));
     }
 }

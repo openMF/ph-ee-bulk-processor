@@ -1,95 +1,109 @@
 package org.mifos.processor.bulk.schema;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import java.util.Objects;
+import lombok.Getter;
+import lombok.Setter;
 
-@JsonPropertyOrder({ "id", "request_id", "payment_mode", "account_number", "amount", "currency", "note" })
-public class Transaction {
+@Getter
+@Setter
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonPropertyOrder({ "id", "request_id", "payment_mode", "payer_identifier_type", "payer_identifier", "payee_identifier_type",
+        "payee_identifier", "amount", "currency", "note" })
+public class Transaction implements CsvSchema {
 
+    @JsonProperty("id")
     private int id;
-    private String request_id;
-    private String payment_mode;
-    private String account_number;
+
+    @JsonProperty("request_id")
+    private String requestId;
+
+    @JsonProperty("payment_mode")
+    private String paymentMode;
+
+    @JsonProperty("account_number")
+    private String accountNumber;
+
+    @JsonProperty("amount")
     private String amount;
+
+    @JsonProperty("currency")
     private String currency;
-    private String note;
-    private String batchId;
 
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getRequest_id() {
-        return request_id;
-    }
-
-    public void setRequest_id(String request_id) {
-        this.request_id = request_id;
-    }
-
-    public String getPayment_mode() {
-        return payment_mode;
-    }
-
-    public void setPayment_mode(String payment_mode) {
-        this.payment_mode = payment_mode;
-    }
-
-    public String getAccount_number() {
-        return account_number;
-    }
-
-    public void setAccount_number(String account_number) {
-        this.account_number = account_number;
-    }
-
-    public String getAmount() {
-        return amount;
-    }
-
-    public void setAmount(String amount) {
-        this.amount = amount;
-    }
-
-    public String getCurrency() {
-        return currency;
-    }
-
-    public void setCurrency(String currency) {
-        this.currency = currency;
-    }
-
-    public String getNote() {
-        return note;
-    }
-
-    public void setNote(String note) {
-        this.note = note;
-    }
-
-    public String getBatchId() {
-        return batchId;
-    }
-
-    public void setBatchId(String batchId) {
-        this.batchId = batchId;
+    @Override
+    public boolean equals(Object transaction) {
+        if (this == transaction) {
+            return true;
+        }
+        if ((transaction == null) || (getClass() != transaction.getClass())) {
+            return false;
+        }
+        Transaction that = (Transaction) transaction;
+        return (id == that.id) && (Objects.equals(requestId, that.requestId)) && (Objects.equals(paymentMode, that.paymentMode))
+                && (Objects.equals(accountNumber, that.accountNumber)) && (Objects.equals(amount, that.amount))
+                && (Objects.equals(payeeDfspId, that.payeeDfspId));
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(id, requestId, paymentMode, accountNumber, amount, currency, note, payerIdentifierType, payerIdentifier,
+                payeeIdentifierType, payeeIdentifier, payeeDfspId);
+    }
+
+    @JsonProperty("note")
+    private String note;
+
+    @JsonProperty(value = "payer_identifier_type")
+    private String payerIdentifierType;
+
+    @JsonProperty("payer_identifier")
+    private String payerIdentifier;
+
+    @JsonProperty("payee_identifier_type")
+    private String payeeIdentifierType;
+
+    @JsonProperty("payee_identifier")
+    private String payeeIdentifier;
+
+    @JsonProperty("program_shortcode")
+    private String programShortCode;
+
+    @JsonProperty("cycle")
+    private String cycle;
+
+    @JsonProperty("payee_dfsp_id")
+    private String payeeDfspId;
+
+    @JsonProperty("batch_id")
+    private String batchId;
+
+    @Override
     public String toString() {
-        return "Transaction{" +
-                "id=" + id +
-                ", request_id='" + request_id + '\'' +
-                ", payment_mode='" + payment_mode + '\'' +
-                ", account_number='" + account_number + '\'' +
-                ", amount='" + amount + '\'' +
-                ", currency='" + currency + '\'' +
-                ", note='" + note + '\'' +
-                ", batchId='" + batchId + '\'' +
-                '}';
+        StringBuilder buffer = new StringBuilder("Transaction{");
+        buffer.append("id=").append(id);
+        buffer.append(", request_id='").append(requestId);
+        buffer.append(", payment_mode='").append(paymentMode);
+        buffer.append(", account_number='").append(accountNumber);
+        buffer.append(", amount='").append(amount);
+        buffer.append(", currency='").append(currency);
+        buffer.append(", note='").append(note);
+        buffer.append(", batchId='").append(batchId);
+        buffer.append(", status='").append(id).append('}');
+        return buffer.toString();
+    }
+
+    @JsonIgnore
+    @Override
+    public String getCsvString() {
+        return String.format("%s,%s,%s,%s,%s,%s,%s", id, requestId, paymentMode, accountNumber, amount, currency, note);
+    }
+
+    @JsonIgnore
+    @Override
+    public String getCsvHeader() {
+        return "id,request_id,payment_mode,account_number,amount,currency,note,status";
     }
 }

@@ -1,13 +1,17 @@
 camel:
-  server-port: 5000
+  server-port: 0
+  disable-ssl: false
   springboot:
     main-run-controller: true
     dataformat:
       json-jackson:
         auto-discover-object-mapper: true
 
-application:
-  bucket-name: paymenthub-ee-dev
+cors:
+  allowed-origins:
+    - "http://ops.mifos.gazelle.localhost"
+    - "https://ops.mifos.gazelle.test"
+
 
 kafka:
   bootstrapAddress: "kafka:9092"
@@ -17,24 +21,48 @@ kafka:
     slcb:
       name: slcb
 
+application:
+  bucket-name: paymenthub-ee
+
 zeebe:
   client:
-    max-execution-threads: 1000
+    max-execution-threads: 50
     evenly-allocated-max-jobs: 1000
+    poll-interval: 10
     #    max-execution-threads: 100
     #    number-of-workers: 8
     #    evenly-allocated-max-jobs: "#{${zeebe.client.max-execution-threads} / ${zeebe.client.number-of-workers}}"
   broker:
     contactpoint: "zeebe-zeebe-gateway:26500"
 
+operations-app:
+  contactpoint: "https://ops-bk.mifos.gazelle.localhost"
+  username: "mifos"
+  password: "password"
+  endpoints:
+    auth: "/oauth/token"
+    batch-summary: "/api/v1/batch"
+    batch-transaction: "/api/v1/batch/transactions"
+    batch-aggregate: "/api/v1/batch/"
+
+mock-payment-schema:
+  contactpoint: "http://ph-ee-connector-mock-payment-schema:8080"
+  endpoints:
+    authorization: "/batches/"
+
+channel:
+  hostname: "https://ph-ee-connector-channel:8443"
+
 cloud:
   aws:
     enabled: true
+    s3BaseUrl: "http://minio.paymenthub.svc.cluster.local:9000"
     credentials:
-      access-key: ${AWS_ACCESS_KEY:AKIAX32JM37TYOG3QUJU}
-      secret-key: ${AWS_SECRET_KEY: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}
+      access-key: ${AWS_ACCESS_KEY:root}
+      secret-key: ${AWS_SECRET_KEY:password}
+
     region:
-      static: us-east-2
+      static: us-east-1
     stack:
       auto: false
   azure:
@@ -43,8 +71,149 @@ cloud:
       connection-string:
 
 
-dfspids: "ibank-usa,ibank-india"
+tenants: "greenbank, bluebank, redbank"
 
+#payment mode moved to a separate application property file for helm rewrite
+
+config:
+  minimum-successful-tx-ratio: 0.90
+  batchAggregate:
+    enable: true
+  partylookup:
+    enable: true
+  authorization:
+    enabled: true
+  approval:
+    enable: true
+  ordering:
+    enable: true
+    field: "payerIdentifier"
+  splitting:
+    enable: true
+    sub-batch-size: 5
+  formatting:
+    enable: false
+    standard: "DEFAULT"
+  mergeback:
+    enable: false
+  backpressure:
+    enable: false
+  completion-threshold-check:
+    enable: false
+    completion-threshold: 95 # in percentage
+    max-retry: 3 #can be as high as 30
+    delay: 2 # in seconds
+  deduplication:
+    enabled: true
+
+callback:
+  max-retry: 3
+  url: "http://httpstat.us/503"
+
+pollingApi:
+  path : "/batch/Summary/"
+  timer: "120"
+
+callback-phases:
+  values:
+    - 20
+    - 40
+    - 60
+    - 80
+    - 100
+
+server:
+  ssl:
+    key-alias: "tomcat-https"
+    key-store: "file:/tls/keystore.p12"
+    key-store-type: PKCS12
+    key-password: "changeit"
+    key-store-password: "changeit"
+  port: 8443  # HTTPS port for Spring Boot (external traffic, gRPC)
+
+
+security:
+  jws:
+    enable: false
+    response:
+      enable: false
+
+identity_account_mapper:
+  hostname : "http://ph-ee-identity-account-mapper:80"
+  account_lookup: /beneficiary
+  account_lookup_callback: /accountLookupCallback
+  batch_account_lookup: /accountLookup
+  batch_account_lookup_callback: /batchAccountLookupCallback
+
+bulk_processor:
+  hostname : "http://ph-ee-connector-bulk:82"
+
+csv:
+  columnNames: "id,request_id,payment_mode,payer_identifier_type,payer_identifier,payee_identifier_type,payee_identifier,amount,currency,note"
+  size : 100000 # in bytes
+
+budget-account:
+  registeringInstitutions:
+    - id: "greenbank"
+      programs:
+        - id: "SocialWelfare"
+          name: "Social Welfare"
+          identifierType: "MSISDN"
+          identifierValue: "0413509790"
+
+management:
+  endpoint:
+    health: 
+      enabled: true
+      probes:
+        enabled: true
+      liveness:
+        enabled: true
+      readiness:
+        enabled: true
+
+payment-mode:
+  mappings:
+    - id: "GSMA"
+      type: "PAYMENT"
+      endpoint: "/channel/gsma/transfer"
+    - id: "MOJALOOP"
+      type: "PAYMENT"
+      endpoint: "/channel/transfer"
+    - id: "SLCB"
+      type: "BULK"
+      endpoint: "bulk_connector_{MODE}-{dfspid}"
+    - id: "CLOSEDLOOP"
+      type: "BULK"
+      endpoint: "bulk_connector_{MODE}-{dfspid}"
+    - id: "MASTERCARD_CBS"
+      type: "PAYMENT"
+      endpoint: "/channel/transfer"
+
+batch-authorization:
+  callback-url: "${BULK_PROCESSOR_CALLBACK_URL:https://bulk-processor.mifos.gazelle.test/authorization/callback}"
+
+pubsub:
+  room:
+    code: "covid-19"
+    class: "GOV"
+  event:
+    type: "bulk"
+
+security-server:
+  country: "INDIA"
+  organisation: mifos
+  host: https://SECURITYSERVER
+  baseuri: /r1/{country}/GOV/{orgs}
+  endpoints:
+    subs: /room/subs
+
+gov-stack-client:
+  header-key: "X-GovStack-Client"
+  header-value: "PAYMENT-BB"
+
+# TD Dec 2025 bpmn.flows looks like it is not actually used by bulk-processor 
+#             so commenting out but leaving for now as 
 bpmn:
   flows:
     payment-transfer: "PayerFundTransfer-{dfspid}"
@@ -58,3 +227,32 @@ bpmn:
     international-remittance-payee: "international_remittance_payee_process-{dfspid}"
     international-remittance-payer: "international_remittance_payer_process-{dfspid}"
     debit-party-process: "debit_party_process-{dfspid}"
+    #bulk-processor: "bulk_processor-{dfspid}"
+    bulk-processor: "bulk_processor_account_lookup-DFSPID.bpmn"
+    slcb: "slcb-{dfspid}"
+
+bpmns:
+  tenants:
+    - id: "greenbank"
+      flows:
+        payment-transfer: "minimal_mock_fund_transfer-{dfspid}"
+        batch-transactions: "bulk_processor-{dfspid}"
+        batch-transactions-govstack: "bulk_processor_account_lookup-{dfspid}"
+    - id: "greenbank-mastercard"
+      flows:
+        payment-transfer: "MastercardFundTransfer-{dfspid}"
+        batch-transactions: "bulk_processor_account_lookup-{dfspid}"
+    - id: "redbank"
+      flows:
+        payment-transfer: "minimal_mock_fund_transfer-{dfspid}"
+        batch-transactions: "bulk_processor-{dfspid}"
+        batch-transactions-govstack: "bulk_processor_account_lookup-{dfspid}"
+    - id: "bluebank"
+      flows:
+        batch-transactions: "bulk_processor-{dfspid}"
+    # - id: "rhino"
+    #   flows:
+    #     batch-transactions: "bulk_processor_account_lookup-{dfspid}"
+    # - id: "lion"
+    #   flows:
+    #     batch-transactions: "bulk_processor-{dfspid}"

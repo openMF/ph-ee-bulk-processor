@@ -1,0 +1,56 @@
+package org.mifos.processor.bulk.utility;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+public final class Headers {
+
+    private Map<String, Object> headers;
+
+    private Headers() {}
+
+    private void setHeaders(Map<String, Object> headers) {
+        this.headers = headers;
+    }
+
+    public Map<String, Object> getHeaders() {
+        return headers;
+    }
+
+    public Set<String> getHeadersKey() {
+        return this.headers.keySet();
+    }
+
+    public Object get(String key) {
+        return this.headers.get(key);
+    }
+
+    public static Map<String, String> convertHeaders(Map<String, Object> headers) {
+        Map<String, String> stringHeaders = new HashMap<>();
+        for (Map.Entry<String, Object> entry : headers.entrySet()) {
+            Object value = entry.getValue();
+            if (value != null) {
+                stringHeaders.put(entry.getKey(), value.toString());
+            }
+        }
+        return stringHeaders;
+    }
+
+    public static class HeaderBuilder {
+
+        private Map<String, Object> headers = new HashMap<>();
+
+        public HeaderBuilder addHeader(String key, Object value) {
+            headers.put(key, value);
+            return this;
+        }
+
+        public Headers build() {
+            Headers headersClassInstance = new Headers();
+            headersClassInstance.setHeaders(this.headers);
+
+            return headersClassInstance;
+        }
+    }
+}
