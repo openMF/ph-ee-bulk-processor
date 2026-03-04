@@ -50,12 +50,15 @@ public class SendCallbackRoute extends BaseRouteBuilder {
                     ObjectMapper objectMapper = new ObjectMapper();
                     String jsonString = objectMapper.writeValueAsString(batchCallbackDTO);
                     exchange.getIn().setBody(jsonString);
-                }).choice().when(exchangeProperty("X-CallbackURL").isNotNull()).setHeader(Exchange.HTTP_METHOD, constant("POST"))
+                })
+                // Send the callback if a URL is provided
+                .choice().when(exchangeProperty("X-CallbackURL").isNotNull()).setHeader(Exchange.HTTP_METHOD, constant("POST"))
                 .toD("${exchangeProperty.X-CallbackURL}?bridgeEndpoint=true&throwExceptionOnFailure=false")
-                .log(LoggingLevel.INFO, "Callback Response body: ${body}").endChoice().otherwise()
-                .log("Unable to send callback: callback url is null").choice().when(header(Exchange.HTTP_RESPONSE_CODE).regex("^2\\d{2}$"))
-                .when(exchangeProperty("X-CallbackURL").isNotNull()).log(LoggingLevel.INFO, "Callback sending was successful")
-                .process(exchange -> {
+                .log(LoggingLevel.INFO, "Callback Response body: ${body}").otherwise().log("Unable to send callback: callback url is null")
+                .end()
+                // Check the response code (runs at route level regardless of URL presence)
+                .choice().when(header(Exchange.HTTP_RESPONSE_CODE).regex("^2\\d{2}$"))
+                .log(LoggingLevel.INFO, "Callback sending was successful").process(exchange -> {
                     List phases = exchange.getProperty(PHASES, List.class);
                     exchange.setProperty(CALLBACK_RESPONSE_CODE, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
                     exchange.setProperty(CALLBACK_RETRY, 1);
@@ -76,13 +79,11 @@ public class SendCallbackRoute extends BaseRouteBuilder {
                         retry++;
                         logger.info("Retry Left {}, Setting Callback as Failed and Retrying...", (maxRetry - retry));
                         exchange.setProperty(CALLBACK_RETRY, retry);
-
                     }
                     exchange.setProperty(CALLBACK_RESPONSE_CODE, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
                     exchange.setProperty(CALLBACK_SUCCESS, false);
                     exchange.setProperty(ERROR_DESCRIPTION, exchange.getIn().getBody(String.class));
                     exchange.setProperty(ERROR_CODE, exchange.getIn().getHeader(Exchange.HTTP_RESPONSE_CODE));
-
                 });
     }
 
