@@ -101,8 +101,8 @@ config:
   completion-threshold-check:
     enable: false
     completion-threshold: 95 # in percentage
-    max-retry: 3 #can be as high as 30
-    delay: 2 # in seconds
+    max-retry: 10 #can be as high as 30
+    delay: 30 # in seconds
   deduplication:
     enabled: true
 
