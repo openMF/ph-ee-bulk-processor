@@ -29,7 +29,10 @@ public final class Headers {
     public static Map<String, String> convertHeaders(Map<String, Object> headers) {
         Map<String, String> stringHeaders = new HashMap<>();
         for (Map.Entry<String, Object> entry : headers.entrySet()) {
-            stringHeaders.put(entry.getKey(), entry.getValue().toString());
+            Object value = entry.getValue();
+            if (value != null) {
+                stringHeaders.put(entry.getKey(), value.toString());
+            }
         }
         return stringHeaders;
     }

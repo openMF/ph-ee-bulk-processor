@@ -33,6 +33,7 @@ public class AccountLookupCallbackRoute extends BaseRouteBuilder {
     private Integer totalApprovedCount;
 
     @Override
+    @SuppressWarnings("unchecked")
     public void configure() throws Exception {
         from("direct:accountLookupCallback").id("direct:accountLookupCallback")
                 .log("Starting route " + RouteId.ACCOUNT_LOOKUP_CALLBACK.name()).to("direct:download-file")
@@ -90,8 +91,10 @@ public class AccountLookupCallbackRoute extends BaseRouteBuilder {
                 } catch (NumberFormatException e) {
                     logger.error(e.getMessage());
                 }
-                String identifier = matchingBeneficiary.get().getFinancialAddress();
-                transaction.setPayeeIdentifier(identifier);
+                // Store financialAddress in accountNumber field for reconciliation
+                // DO NOT overwrite payeeIdentifier - keep the MSISDN for party lookup!
+                String financialAddress = matchingBeneficiary.get().getFinancialAddress();
+                transaction.setAccountNumber(financialAddress);
                 transaction.setPayeeDfspId(matchingBeneficiary.get().getBankingInstitutionCode());
                 updatedTransactionList.add(transaction);
             } else {

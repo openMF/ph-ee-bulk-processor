@@ -17,6 +17,7 @@ public class OrderingRoute extends BaseRouteBuilder {
     private String orderingField;
 
     @Override
+    @SuppressWarnings("unchecked")
     public void configure() {
 
         /**
