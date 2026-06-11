@@ -7,11 +7,12 @@ plugins {
     id 'maven-publish'
     id 'eclipse'
     id 'checkstyle'
-    id 'org.springframework.boot' version '2.6.2'
+    id 'org.springframework.boot' version '3.4.4'
+    id 'io.spring.dependency-management' version '1.1.6'
     id 'com.diffplug.spotless' version '6.19.0'
-    id "com.jfrog.artifactory" version '5.+'
 }
-apply plugin: "com.jfrog.artifactory"
+// The com.jfrog.artifactory plugin ('5.+') was removed: deploy strategy is
+// being reworked ecosystem-wide; maven-publish stays for local publishing.
 repositories {
     mavenLocal()
     maven {
@@ -24,6 +25,20 @@ repositories {
 
     maven {
         url = uri('https://mifos.jfrog.io/artifactory/mifosx-gradle-local')
+    }
+
+    // Mifos Platform BOM + ph-ee-connector-common 2.0.0-SNAPSHOT are consumed
+    // from the local JFrog Artifactory sandbox (Docker Compose in
+    // proposal/local-jfrog/). Swap this host for the production Mifos JFrog
+    // when the official BOM is ready.
+    maven {
+        name = 'LocalJFrog'
+        url = uri('http://localhost:8081/artifactory/mifos-platform-snapshot')
+        allowInsecureProtocol = true
+        credentials {
+            username = findProperty('localJfrog.user') ?: System.getenv('LOCAL_JFROG_USER')
+            password = findProperty('localJfrog.key') ?: System.getenv('LOCAL_JFROG_KEY')
+        }
     }
 }
 
@@ -49,33 +64,36 @@ spotless {
 }
 
 ext {
-    camelVersion = '3.4.0'
-    springBootVersion = '2.6.2'
     cucumberVersion = '7.8.1'
-    lambokVersion = '1.18.24'
 }
 
 dependencies {
+    // Mifos Platform BOM pins Spring Boot 3.4, Camel 4, Zeebe 8, Jakarta EE 10
+    // and every other shared library version. Do NOT hardcode managed versions.
+    // This is a deployable application (leaf node), so use enforcedPlatform().
+    implementation enforcedPlatform('org.mifos.platform:mifos-platform-bom:1.0.0-SNAPSHOT')
+
     // spring dependency
-    implementation "org.springframework.boot:spring-boot-starter:$springBootVersion"
-    implementation "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
-    implementation "org.springframework:spring-web:5.3.14"
-    implementation 'org.springframework.kafka:spring-kafka:2.8.1'
-    implementation "org.springframework.boot:spring-boot-starter-actuator:$springBootVersion"
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework:spring-web'
+    implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
     // spring test dependency
-    testImplementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
     // camel dependency
-    implementation "org.apache.camel.springboot:camel-spring-boot-starter:$camelVersion"
-    implementation "org.apache.camel:camel-undertow:$camelVersion"
-    implementation "org.apache.camel:camel-http:$camelVersion"
-    implementation "org.apache.camel.springboot:camel-mail-starter:$camelVersion"
-    implementation "org.apache.camel:camel-jackson:$camelVersion"
+    implementation 'org.apache.camel.springboot:camel-spring-boot-starter'
+    implementation 'org.apache.camel:camel-undertow'
+    implementation 'org.apache.camel:camel-http'
+    implementation 'org.apache.camel.springboot:camel-mail-starter'
+    implementation 'org.apache.camel:camel-jackson'
 
-    // camel test dependency
-    testImplementation "org.apache.camel:camel-test:$camelVersion"
-    testImplementation "org.apache.camel:camel-test-spring-junit5:$camelVersion"
+    // camel test dependency (camel-test was the JUnit4 module; Camel 4 ships
+    // camel-test-junit5 instead)
+    testImplementation 'org.apache.camel:camel-test-junit5'
+    testImplementation 'org.apache.camel:camel-test-spring-junit5'
 
     // cucumber test dependency
     testImplementation "io.cucumber:cucumber-junit:$cucumberVersion"
@@ -83,42 +101,35 @@ dependencies {
     testImplementation "io.cucumber:cucumber-java:$cucumberVersion"
 
     // miscellaneous dependency
-    implementation 'com.google.code.gson:gson:2.8.9'
-    implementation 'org.json:json:20210307'
-    implementation 'org.mifos:ph-ee-connector-common:1.8.1-gazelle'
-    implementation 'org.apache.camel.springboot:camel-spring-boot-starter:3.4.0'
-    implementation 'org.apache.camel:camel-undertow:3.4.0'
-    implementation 'org.springframework.boot:spring-boot-starter:2.5.2'
-    implementation 'org.springframework.boot:spring-boot-starter-web:2.5.2'
-    implementation 'org.apache.camel:camel-http:3.4.0'
-    implementation 'org.springframework:spring-web:5.3.19'
+    implementation 'com.google.code.gson:gson'
+    implementation 'org.json:json'
+    implementation 'org.mifos:ph-ee-connector-common:2.0.0-SNAPSHOT'
+    // AWS SDK v1 is actually used by the storage code. The v1 -> v2 migration
+    // is a code rewrite (different packages), out of scope for this PR.
     implementation 'com.amazonaws:aws-java-sdk:1.11.486'
-    implementation 'commons-io:commons-io:2.11.0'
+    implementation 'commons-io:commons-io'
 
     implementation 'com.amazonaws:aws-java-sdk-s3:1.11.486'
     //To be removed
     implementation 'com.amazonaws:aws-java-sdk-dynamodb:1.11.486'
-    implementation 'com.azure:azure-storage-blob:12.12.0'
+    implementation 'com.azure:azure-storage-blob'
 
-    implementation 'io.camunda:zeebe-client-java:8.1.23'
-    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-csv:2.12.3'
+    implementation 'io.camunda:zeebe-client-java'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-csv'
     implementation 'org.apache.tika:tika-core:1.4'
-    implementation 'org.apache.commons:commons-io:1.3.2'
-    implementation "org.projectlombok:lombok:$lambokVersion"
-    annotationProcessor "org.projectlombok:lombok:$lambokVersion"
+    implementation 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
     checkstyle 'com.puppycrawl.tools:checkstyle:10.9.3'
     checkstyle 'com.github.sevntu-checkstyle:sevntu-checks:1.44.1'
-    implementation 'com.diffplug.gradle.spotless:spotless:2.4.1'
 
     // miscellaneous test dependency
     testImplementation "com.google.truth:truth:1.1.3"
-    testImplementation 'com.google.code.gson:gson:2.9.0'
-    implementation 'io.rest-assured:rest-assured:4.4.0'
+    implementation 'io.rest-assured:rest-assured'
 
     //retrofit
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-jackson:2.9.0'
-    implementation('com.squareup.retrofit2:converter-gson:2.4.0')
+    implementation('com.squareup.retrofit2:converter-gson:2.9.0')
 }
 
 configure(this) {
@@ -226,7 +237,8 @@ configure(this) {
 group = 'org.mifos'
 version = '2.0.0.mifos-SNAPSHOT'
 description = 'ph-ee-processor-bulk'
-sourceCompatibility = '17'
+sourceCompatibility = JavaVersion.VERSION_21
+targetCompatibility = JavaVersion.VERSION_21
 
 publishing {
     publications {

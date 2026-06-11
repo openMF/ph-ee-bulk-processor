@@ -2,7 +2,7 @@ package org.mifos.processor.bulk.service;
 
 import static org.mifos.processor.bulk.camel.config.CamelProperties.EVENT_TYPE;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.ProducerTemplate;

@@ -1,6 +1,6 @@
 package org.mifos.processor.bulk.api.implementation;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import org.mifos.processor.bulk.api.definition.Simulate;
 import org.springframework.web.bind.annotation.RestController;
 

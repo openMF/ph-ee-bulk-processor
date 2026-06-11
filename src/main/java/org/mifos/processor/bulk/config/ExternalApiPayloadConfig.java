@@ -1,9 +1,9 @@
 package org.mifos.processor.bulk.config;
 
+import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-import javax.annotation.PostConstruct;
 import lombok.Getter;
 import org.apache.camel.Exchange;
 import org.mifos.processor.bulk.camel.processor.GsmaApiPayload;

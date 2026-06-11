@@ -1,9 +1,9 @@
 package org.mifos.processor.bulk;
 
+import jakarta.annotation.PostConstruct;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.PostConstruct;
 import org.mifos.processor.bulk.format.Standard;
 import org.mifos.processor.bulk.schema.Transaction;
 import org.mifos.processor.bulk.zeebe.worker.WorkerConfig;

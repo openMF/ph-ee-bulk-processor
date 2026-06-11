@@ -92,6 +92,7 @@ public class AuthorizationWorker extends BaseWorker {
         logger.info("MockPaymentSchema endpoint: {}", endpoint);
         logger.debug("Body: {}", objectMapper.writeValueAsString(requestPayload));
         ResponseEntity<String> responseEntity = restTemplate.exchange(endpoint, HttpMethod.POST, requestEntity, String.class);
-        return responseEntity.getStatusCode();
+        // Spring 6: getStatusCode() returns HttpStatusCode; convert to keep the HttpStatus signature
+        return HttpStatus.valueOf(responseEntity.getStatusCode().value());
     }
 }
