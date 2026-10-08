@@ -24,8 +24,8 @@ public class MergeBackRoute extends BaseRouteBuilder {
     public void configure() throws Exception {
 
         /**
-         * Base route for kicking off merge back logic. Performs below tasks. 1. Picks the top two files from the array
-         * of files to be merged. 2. Merges them into single CSV. 3. Uploads the CSV to S3. 4. Updated the exchange
+         * Base route for kicking off merge back logic. Performs below tasks: 1. Picks the top two files from the array
+         * of files to be merged. 2. Merges them into single CSV. 3. Uploads the CSV to S3. 4. Updates the exchange
          * variables.
          */
         from(RouteId.MERGE_BACK.getValue()).id(RouteId.MERGE_BACK.getValue()).log("Starting route " + RouteId.MERGE_BACK.name()).choice()
@@ -34,7 +34,9 @@ public class MergeBackRoute extends BaseRouteBuilder {
                 .when(exchange -> exchange.getProperty(MERGE_FILE_LIST, List.class).size() == 1).process(exchange -> {
                     exchange.setProperty(MERGE_FAILED, false);
                     exchange.setProperty(MERGE_COMPLETED, true);
-                    String resultFile = (String) exchange.getProperty(MERGE_FILE_LIST, List.class).get(0);
+                    @SuppressWarnings("unchecked")
+                    List<String> mergeFileList = (List<String>) exchange.getProperty(MERGE_FILE_LIST, List.class);
+                    String resultFile = mergeFileList.get(0);
                     setResultFileProperty(exchange, resultFile);
                 }).otherwise().to("direct:start-merge").endChoice();
 
@@ -59,7 +61,8 @@ public class MergeBackRoute extends BaseRouteBuilder {
                     }
                 }).to("direct:upload-file").process(exchange -> {
                     String mergedFileServerName = exchange.getProperty(SERVER_FILE_NAME, String.class);
-                    List<String> mergeList = exchange.getProperty(MERGE_FILE_LIST, List.class);
+                    @SuppressWarnings("unchecked")
+                    List<String> mergeList = (List<String>) exchange.getProperty(MERGE_FILE_LIST, List.class);
                     String first = mergeList.remove(0);
                     String second = mergeList.remove(0);
                     logger.info("Merge iteration {}, for list, {}", exchange.getProperty(MERGE_ITERATION), mergeList);
@@ -76,19 +79,21 @@ public class MergeBackRoute extends BaseRouteBuilder {
 
                     exchange.setProperty(MERGE_FILE_LIST, mergeList);
 
-                    // make sures to remove the files from local storage
+                    // make sure to remove the files from local storage
                     new File(exchange.getProperty(FILE_1, String.class)).delete();
                     new File(exchange.getProperty(FILE_2, String.class)).delete();
                 });
 
-        // downloads the two files(using FIFO access pattern) from s3 which is to be merged.
+        // downloads the two files (using FIFO access pattern) from s3 which are to be merged
         from("direct:download-file-to-be-merged").id("direct:download-file-to-be-merged")
                 .log("Starting route direct:download-file-to-be-merged").log("Downloading files to be merged").process(exchange -> {
-                    List<String> mergeList = exchange.getProperty(MERGE_FILE_LIST, List.class);
+                    @SuppressWarnings("unchecked")
+                    List<String> mergeList = (List<String>) exchange.getProperty(MERGE_FILE_LIST, List.class);
                     exchange.setProperty(SERVER_FILE_NAME, mergeList.get(0));
                 }).to("direct:download-file") // downloading first file
                 .setProperty(FILE_1, exchangeProperty(LOCAL_FILE_PATH)).process(exchange -> {
-                    List<String> mergeList = exchange.getProperty(MERGE_FILE_LIST, List.class);
+                    @SuppressWarnings("unchecked")
+                    List<String> mergeList = (List<String>) exchange.getProperty(MERGE_FILE_LIST, List.class);
                     exchange.setProperty(SERVER_FILE_NAME, mergeList.get(1));
                 }).to("direct:download-file") // downloading second file
                 .setProperty(FILE_2, exchangeProperty(LOCAL_FILE_PATH));

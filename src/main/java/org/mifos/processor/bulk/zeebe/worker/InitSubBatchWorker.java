@@ -35,56 +35,81 @@ public class InitSubBatchWorker extends BaseWorker {
     @Autowired
     private ObjectMapper objectMapper;
 
+    // FIXED: Generic-safe, null-safe, no inference issues
+    private static List<String> toStringList(Object obj) {
+        if (obj == null) {
+            return new ArrayList<>();
+        }
+        if (obj instanceof List<?> list) {
+            List<String> result = new ArrayList<>();
+            for (Object item : list) {
+                if (item != null) {
+                    result.add(item.toString());
+                }
+            }
+            return result;
+        }
+        return new ArrayList<>();
+    }
+
+    // FIXED: For SUB_BATCH_DETAILS → List<Object> expected
+    private static List<Object> toObjectList(Object obj) {
+        if (obj == null) {
+            return new ArrayList<>();
+        }
+        if (obj instanceof List<?> list) {
+            return new ArrayList<>(list); // safe: List<?> → List<Object>
+        }
+        return new ArrayList<>();
+    }
+
     @Override
     public void setup() {
-
-        /**
-         * Starts the new worker for initialising sub batches. Performs below tasks 1. Downloads the file from cloud. 2.
-         * Parse the data into POJO. 3. Initiates workflow based on the payment_mode
-         */
         newWorker(Worker.INIT_SUB_BATCH, (client, job) -> {
             logger.info("Started INIT_SUB_BATCH worker");
-            logger.debug("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
+
             Map<String, Object> variables = job.getVariablesAsMap();
 
-            List<String> subBatches = (List<String>) variables.get(SUB_BATCHES);
-            if (subBatches == null) {
-                subBatches = new ArrayList<>();
-            }
-            List<String> successSubBatches = (List<String>) variables.get(INIT_SUCCESS_SUB_BATCHES);
-            if (successSubBatches == null) {
-                successSubBatches = new ArrayList<>();
-            }
-            List<String> failureSubBatches = (List<String>) variables.get(INIT_FAILURE_SUB_BATCHES);
-            if (failureSubBatches == null) {
-                failureSubBatches = new ArrayList<>();
-            }
-            boolean isSplittingEnabled = (boolean) variables.get(SPLITTING_ENABLED);
+            // 100% SAFE LISTS — NO NPE, NO COMPILATION ISSUES
+            List<String> subBatches = toStringList(variables.get(SUB_BATCHES));
+            List<String> successSubBatches = toStringList(variables.get(INIT_SUCCESS_SUB_BATCHES));
+            List<String> failureSubBatches = toStringList(variables.get(INIT_FAILURE_SUB_BATCHES));
+            List<Object> subBatchDetails = toObjectList(variables.get(SUB_BATCH_DETAILS));
 
-            if (!isSplittingEnabled) {
-                subBatches.add((String) variables.get(FILE_NAME));
+            // Early exit
+            if (subBatches.isEmpty()) {
+                logger.info("No sub-batches to process. Completing job early.");
+                variables.put(REMAINING_SUB_BATCH, 0);
+                variables.put(SUB_BATCHES, new ArrayList<String>());
+                variables.put(INIT_SUCCESS_SUB_BATCHES, new ArrayList<String>());
+                variables.put(INIT_FAILURE_SUB_BATCHES, new ArrayList<String>());
+                client.newCompleteCommand(job.getKey()).variables(variables).send().join();
+                return;
             }
 
-            List<Object> subBatchObjectList = (List<Object>) variables.get(SUB_BATCH_DETAILS);
-            logger.debug("Subbatch entity list in init sub batch worker: {}", subBatchObjectList);
-
-            List<SubBatchEntity> subBatchEntityList = objectMapper.convertValue(subBatchObjectList, new TypeReference<>() {});
-
-            String fileName = subBatches.remove(0);
-            SubBatchEntity subBatchEntity = null;
-            if (isSplittingEnabled) {
-                for (SubBatchEntity subBatch : subBatchEntityList) {
-                    if (subBatch.getRequestFile().contains(fileName)) {
-                        subBatchEntity = subBatch;
-                        logger.info("SubBatchEntity found");
-                        break;
-                    }
+            // Handle non-splitting mode
+            Boolean splittingEnabled = (Boolean) variables.get(SPLITTING_ENABLED);
+            if (Boolean.FALSE.equals(splittingEnabled)) {
+                String fileName = (String) variables.get(FILE_NAME);
+                if (fileName != null && !subBatches.contains(fileName)) {
+                    subBatches.add(fileName);
                 }
-                logger.debug("BatchEntity for this subbatch is {}", objectMapper.writeValueAsString(subBatchEntity));
             }
+
+            // Safe remove
+            String currentFile = subBatches.remove(0);
+
+            // Parse sub-batch details
+            List<SubBatchEntity> subBatchEntityList = objectMapper.convertValue(subBatchDetails,
+                    new TypeReference<List<SubBatchEntity>>() {});
+
+            SubBatchEntity subBatchEntity = subBatchEntityList.stream()
+                    .filter(e -> e.getRequestFile() != null && e.getRequestFile().contains(currentFile)).findFirst().orElse(null);
+
+            // Setup Camel exchange
             Exchange exchange = new DefaultExchange(camelContext);
             exchange.setProperty(TENANT_NAME, variables.get(TENANT_ID));
-            exchange.setProperty(SERVER_FILE_NAME, fileName);
+            exchange.setProperty(SERVER_FILE_NAME, currentFile);
             exchange.setProperty(BATCH_ID, variables.get(BATCH_ID));
             exchange.setProperty(REQUEST_ID, variables.get(REQUEST_ID));
             exchange.setProperty(PURPOSE, variables.get(PURPOSE));
@@ -93,21 +118,22 @@ public class InitSubBatchWorker extends BaseWorker {
 
             sendToCamelRoute(RouteId.INIT_SUB_BATCH, exchange);
 
-            Boolean subBatchFailed = exchange.getProperty(INIT_SUB_BATCH_FAILED, Boolean.class);
-            if (subBatchFailed != null && subBatchFailed) {
-                failureSubBatches.add(fileName);
+            Boolean failed = exchange.getProperty(INIT_SUB_BATCH_FAILED, Boolean.class);
+            if (Boolean.TRUE.equals(failed)) {
+                failureSubBatches.add(currentFile);
             } else {
-                successSubBatches.add(fileName);
+                successSubBatches.add(currentFile);
             }
 
+            // Update Zeebe variables
             variables.put(REMAINING_SUB_BATCH, subBatches.size());
-            variables.put(SUB_BATCHES, subBatches);
-            variables.put(INIT_SUCCESS_SUB_BATCHES, successSubBatches);
-            variables.put(INIT_FAILURE_SUB_BATCHES, failureSubBatches);
+            variables.put(SUB_BATCHES, new ArrayList<>(subBatches));
+            variables.put(INIT_SUCCESS_SUB_BATCHES, new ArrayList<>(successSubBatches));
+            variables.put(INIT_FAILURE_SUB_BATCHES, new ArrayList<>(failureSubBatches));
 
-            client.newCompleteCommand(job.getKey()).variables(variables).send();
-            logger.info("Completed INIT_SUB_BATCH worker. Remaining subbatches {}", subBatches.size());
+            client.newCompleteCommand(job.getKey()).variables(variables).send().join();
+
+            logger.info("Completed INIT_SUB_BATCH worker. Remaining sub-batches: {}", subBatches.size());
         });
     }
-
 }

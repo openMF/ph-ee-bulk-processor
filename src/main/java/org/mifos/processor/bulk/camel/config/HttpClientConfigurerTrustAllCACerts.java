@@ -12,6 +12,7 @@ import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -41,11 +42,11 @@ public class HttpClientConfigurerTrustAllCACerts implements HttpClientConfigurer
         } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
             logger.debug(e.getMessage());
         }
-        clientBuilder.setSslcontext(sslContext);
-
+        clientBuilder.setSSLContext(sslContext);
         // don't check Hostnames, either.
         // -- use SSLConnectionSocketFactory.getDefaultHostnameVerifier(), if you don't want to weaken
-        HostnameVerifier hostnameVerifier = SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER;
+        HostnameVerifier hostnameVerifier = NoopHostnameVerifier.INSTANCE;
+        // TD Deprecated HostnameVerifier hostnameVerifier = SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER;
 
         // here's the special part:
         // -- need to create an SSL Socket Factory, to use our weakened "trust strategy";

@@ -13,8 +13,11 @@ import static org.mifos.processor.bulk.zeebe.ZeebeVariables.PURPOSE;
 import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.springframework.http.MediaType;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 
 public interface BatchTransactions {
 
@@ -27,5 +30,11 @@ public interface BatchTransactions {
             @RequestHeader(value = HEADER_PROGRAM_ID, required = false) String programId,
             @RequestHeader(value = CALLBACK, required = false) String callbackUrl,
             @RequestHeader(value = PAYEE_DFSP_ID, required = false) String payeeDfspId) throws IOException;
+
+    // NEW execution reconciliation endpoint
+    @PostMapping(value = "/batchtransactions/execution", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    String updateBatchExecution(@RequestParam MultiValueMap<String, Object> executionPayload,
+            @RequestHeader(value = HEADER_PLATFORM_TENANT_ID) String tenant,
+            @RequestHeader(value = HEADER_CLIENT_CORRELATION_ID, required = false) String requestId);
 
 }

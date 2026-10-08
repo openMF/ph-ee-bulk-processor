@@ -7,6 +7,7 @@ import javax.annotation.PostConstruct;
 import lombok.Getter;
 import org.apache.camel.Exchange;
 import org.mifos.processor.bulk.camel.processor.GsmaApiPayload;
+import org.mifos.processor.bulk.camel.processor.MastercardApiPayload;
 import org.mifos.processor.bulk.camel.processor.MojaloopApiPayload;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +25,9 @@ public class ExternalApiPayloadConfig {
     MojaloopApiPayload mojaloopApiPayload;
 
     @Autowired
+    MastercardApiPayload mastercardApiPayload;
+
+    @Autowired
     PaymentModeConfiguration paymentModeConfiguration;
 
     @PostConstruct
@@ -33,6 +37,8 @@ public class ExternalApiPayloadConfig {
                 payloadMap.put(paymentMode.getId(), gsmaApiPayload);
             } else if (paymentMode.getId().equalsIgnoreCase("mojaloop")) {
                 payloadMap.put(paymentMode.getId(), mojaloopApiPayload);
+            } else if (paymentMode.getId().equalsIgnoreCase("MASTERCARD_CBS")) {
+                payloadMap.put(paymentMode.getId(), mastercardApiPayload);
             }
         }
     }
