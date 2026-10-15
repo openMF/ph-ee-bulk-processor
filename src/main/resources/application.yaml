@@ -1,11 +1,17 @@
 camel:
-  server-port: 5000
+  server-port: 0
   disable-ssl: false
   springboot:
     main-run-controller: true
     dataformat:
       json-jackson:
         auto-discover-object-mapper: true
+
+cors:
+  allowed-origins:
+    - "http://ops.mifos.gazelle.localhost"
+    - "https://ops.mifos.gazelle.test"
+
 
 kafka:
   bootstrapAddress: "kafka:9092"
@@ -30,7 +36,7 @@ zeebe:
     contactpoint: "zeebe-zeebe-gateway:26500"
 
 operations-app:
-  contactpoint: "https://ops-bk.sandbox.mifos.io"
+  contactpoint: "https://ops-bk.mifos.gazelle.localhost"
   username: "mifos"
   password: "password"
   endpoints:
@@ -50,13 +56,13 @@ channel:
 cloud:
   aws:
     enabled: true
-    s3BaseUrl: "https://s3.ap-south-1.amazonaws.com"
+    s3BaseUrl: "http://minio.paymenthub.svc.cluster.local:9000"
     credentials:
-      access-key: ${AWS_ACCESS_KEY:access_key_from_aws}
-      secret-key: ${AWS_SECRET_KEY:secret_key_from_aws}
+      access-key: ${AWS_ACCESS_KEY:root}
+      secret-key: ${AWS_SECRET_KEY:password}
 
     region:
-      static: ap-south-1
+      static: us-east-1
     stack:
       auto: false
   azure:
@@ -65,23 +71,7 @@ cloud:
       connection-string:
 
 
-tenants: "ibank-usa,ibank-india"
-
-bpmn:
-  flows:
-    payment-transfer: "PayerFundTransfer-{dfspid}"
-    transaction-request: "PayeeTransactionRequest-{dfspid}"
-    party-registration: "PartyRegistration-{dfspid}"
-    gsma-base-transaction: "gsma_base_transaction-{dfspid}"
-    gsma-int-transfer: "gsma_int_transfer-{dfspid}"
-    gsma-payee-process: "gsma_payee_process"
-    gsma-bill-payment: "gsma_bill_payment"
-    gsma-link-based-payment: "gsma_link_transfer"
-    international-remittance-payee: "international_remittance_payee_process-{dfspid}"
-    international-remittance-payer: "international_remittance_payer_process-{dfspid}"
-    debit-party-process: "debit_party_process-{dfspid}"
-    bulk-processor: "bulk_processor-{dfspid}"
-    slcb: "slcb-{dfspid}"
+tenants: "greenbank, bluebank, redbank"
 
 #payment mode moved to a separate application property file for helm rewrite
 
@@ -111,8 +101,8 @@ config:
   completion-threshold-check:
     enable: false
     completion-threshold: 95 # in percentage
-    max-retry: 3 #can be as high as 30
-    delay: 2 # in seconds
+    max-retry: 10 #can be as high as 30
+    delay: 30 # in seconds
   deduplication:
     enabled: true
 
@@ -135,18 +125,18 @@ callback-phases:
 server:
   ssl:
     key-alias: "tomcat-https"
-    key-store: "classpath:keystore.jks"
-    key-store-type: JKS
-    key-password: "password"
-    key-store-password: "password"
-  port: 8443
+    key-store: "file:/tls/keystore.p12"
+    key-store-type: PKCS12
+    key-password: "changeit"
+    key-store-password: "changeit"
+  port: 8443  # HTTPS port for Spring Boot (external traffic, gRPC)
 
 
 security:
   jws:
-    enable: true
+    enable: false
     response:
-      enable: true
+      enable: false
 
 identity_account_mapper:
   hostname : "http://ph-ee-identity-account-mapper:80"
@@ -156,21 +146,20 @@ identity_account_mapper:
   batch_account_lookup_callback: /batchAccountLookupCallback
 
 bulk_processor:
-  hostname : "https://ph-ee-connector-bulk:8443"
+  hostname : "http://ph-ee-connector-bulk:82"
 
 csv:
-  columnNames: "id,request_id,payment_mode,payer_identifier_type,payer_identifier,payee_identifier_type,payee_identifier,amount,currency,note,account_number,program_shortcode,cycle,payee_dfsp_id,batch_id"
+  columnNames: "id,request_id,payment_mode,payer_identifier_type,payer_identifier,payee_identifier_type,payee_identifier,amount,currency,note"
   size : 100000 # in bytes
 
 budget-account:
   registeringInstitutions:
-    - id: "123"
+    - id: "greenbank"
       programs:
         - id: "SocialWelfare"
           name: "Social Welfare"
-          identifierType: "ACCOUNT"
-          identifierValue: "123456789"
-
+          identifierType: "MSISDN"
+          identifierValue: "0413509790"
 
 management:
   endpoint:
@@ -197,9 +186,12 @@ payment-mode:
     - id: "CLOSEDLOOP"
       type: "BULK"
       endpoint: "bulk_connector_{MODE}-{dfspid}"
-      debulkingDfspid: "wakanda"
+    - id: "MASTERCARD_CBS"
+      type: "PAYMENT"
+      endpoint: "/channel/transfer"
+
 batch-authorization:
-  callback-url: "https://ph-ee-connector-bulk:8443/authorization/callback"
+  callback-url: "${BULK_PROCESSOR_CALLBACK_URL:https://bulk-processor.mifos.gazelle.test/authorization/callback}"
 
 pubsub:
   room:
@@ -220,18 +212,47 @@ gov-stack-client:
   header-key: "X-GovStack-Client"
   header-value: "PAYMENT-BB"
 
+# TD Dec 2025 bpmn.flows looks like it is not actually used by bulk-processor 
+#             so commenting out but leaving for now as 
+bpmn:
+  flows:
+    payment-transfer: "PayerFundTransfer-{dfspid}"
+    transaction-request: "PayeeTransactionRequest-{dfspid}"
+    party-registration: "PartyRegistration-{dfspid}"
+    gsma-base-transaction: "gsma_base_transaction-{dfspid}"
+    gsma-int-transfer: "gsma_int_transfer-{dfspid}"
+    gsma-payee-process: "gsma_payee_process"
+    gsma-bill-payment: "gsma_bill_payment"
+    gsma-link-based-payment: "gsma_link_transfer"
+    international-remittance-payee: "international_remittance_payee_process-{dfspid}"
+    international-remittance-payer: "international_remittance_payer_process-{dfspid}"
+    debit-party-process: "debit_party_process-{dfspid}"
+    #bulk-processor: "bulk_processor-{dfspid}"
+    bulk-processor: "bulk_processor_account_lookup-DFSPID.bpmn"
+    slcb: "slcb-{dfspid}"
 
 bpmns:
   tenants:
-    - id: "gorilla"
+    - id: "greenbank"
       flows:
+        payment-transfer: "minimal_mock_fund_transfer-{dfspid}"
         batch-transactions: "bulk_processor-{dfspid}"
-    - id: "wakanda"
+        batch-transactions-govstack: "bulk_processor_account_lookup-{dfspid}"
+    - id: "greenbank-mastercard"
       flows:
-        batch-transactions: "bulk_processor-{dfspid}"
-    - id: "rhino"
-      flows:
+        payment-transfer: "MastercardFundTransfer-{dfspid}"
         batch-transactions: "bulk_processor_account_lookup-{dfspid}"
-    - id: "lion"
+    - id: "redbank"
+      flows:
+        payment-transfer: "minimal_mock_fund_transfer-{dfspid}"
+        batch-transactions: "bulk_processor-{dfspid}"
+        batch-transactions-govstack: "bulk_processor_account_lookup-{dfspid}"
+    - id: "bluebank"
       flows:
         batch-transactions: "bulk_processor-{dfspid}"
+    # - id: "rhino"
+    #   flows:
+    #     batch-transactions: "bulk_processor_account_lookup-{dfspid}"
+    # - id: "lion"
+    #   flows:
+    #     batch-transactions: "bulk_processor-{dfspid}"

@@ -27,14 +27,18 @@ public class AwsFileTransferImpl implements FileTransferService {
 
     @Override
     public byte[] downloadFile(String fileName, String bucketName) {
+        logger.info("downloadFile() - downloading from MinIO: bucket={}, file={}", bucketName, fileName);
         S3Object s3Object = s3Client.getObject(bucketName, fileName);
         S3ObjectInputStream inputStream = s3Object.getObjectContent();
         try {
             byte[] content = IOUtils.toByteArray(inputStream);
+            logger.info("downloadFile() - downloaded {} bytes", content != null ? content.length : 0);
             return content;
         } catch (IOException e) {
+            logger.error("downloadFile() - IOException: {}", e.getMessage(), e);
             logger.debug("{}", e.getMessage());
         }
+        logger.info("downloadFile() - returning null (download failed)");
         return null;
     }
 
@@ -48,8 +52,12 @@ public class AwsFileTransferImpl implements FileTransferService {
     @Override
     public String uploadFile(File file, String bucketName) {
         String fileName = file.getName();
+        logger.info("uploadFile() - file: {}, size: {}, exists: {}, path: {}", fileName, file.length(), file.exists(),
+                file.getAbsolutePath());
         s3Client.putObject(new PutObjectRequest(bucketName, fileName, file));
+        logger.info("uploadFile() - uploaded to MinIO bucket: {}", bucketName);
         file.delete();
+        logger.info("uploadFile() - local file deleted");
 
         return fileName;
     }

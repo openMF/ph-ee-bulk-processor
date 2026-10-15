@@ -61,9 +61,11 @@ public class MergeBackWorker extends BaseWorker {
 
             sendToCamelRoute(RouteId.MERGE_BACK, exchange);
 
-            boolean mergeCompleted = exchange.getProperty(MERGE_COMPLETED, Boolean.class);
+            Boolean mergeCompletedObj = exchange.getProperty(MERGE_COMPLETED, Boolean.class);
+            boolean mergeCompleted = mergeCompletedObj != null ? mergeCompletedObj : false;
             if (mergeCompleted) {
-                variables.put(MERGE_FAILED, exchange.getProperty(MERGE_FAILED, Boolean.class));
+                Boolean mergeFailedObj = exchange.getProperty(MERGE_FAILED, Boolean.class);
+                variables.put(MERGE_FAILED, mergeFailedObj != null ? mergeFailedObj : false);
                 String resultFile = exchange.getProperty(RESULT_FILE, String.class);
                 if (resultFile != null && !resultFile.isEmpty()) {
                     variables.put(RESULT_FILE, resultFile);

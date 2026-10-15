@@ -52,6 +52,7 @@ public class SplittingRoute extends BaseRouteBuilder {
     private boolean isPartyLookupEnabled;
 
     @Override
+    @SuppressWarnings("unchecked")
     public void configure() throws Exception {
 
         /**
@@ -183,8 +184,10 @@ public class SplittingRoute extends BaseRouteBuilder {
         // generate subBatchEntityDetails, make sure [LOCAL_FILE_PATH] has the absolute sub batch file path
         from("direct:generate-sub-batch-entity").id("direct:generate-sub-batch-entity").log("Generating sub batch entity")
                 .to("direct:get-transaction-array").process(exchange -> {
-                    List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
-                    Map<String, Object> zeebeVariables = exchange.getProperty(ZEEBE_VARIABLE, Map.class);
+                    @SuppressWarnings("unchecked")
+                    List<Transaction> transactionList = (List<Transaction>) exchange.getProperty(TRANSACTION_LIST, List.class);
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> zeebeVariables = (Map<String, Object>) exchange.getProperty(ZEEBE_VARIABLE, Map.class);
                     String serverFileName = exchange.getProperty(LOCAL_FILE_PATH, String.class);
 
                     logger.info("Generating sub batch entity for file {}", serverFileName);

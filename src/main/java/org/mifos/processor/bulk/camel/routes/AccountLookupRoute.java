@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
+@SuppressWarnings("unchecked")
 public class AccountLookupRoute extends BaseRouteBuilder {
 
     @Value("${identity_account_mapper.account_lookup}")
@@ -70,15 +71,22 @@ public class AccountLookupRoute extends BaseRouteBuilder {
             List<Transaction> transactionList = exchange.getProperty(TRANSACTION_LIST, List.class);
             HashMap<String, List<Transaction>> stringListHashMap = new HashMap<>();
             List<BeneficiaryDTO> beneficiaryDTOList = new ArrayList<>();
+            logger.info("=== ACCOUNT LOOKUP ROUTE DEBUG ===");
+            logger.info("Building beneficiary list from {} transactions", transactionList != null ? transactionList.size() : 0);
             transactionList.forEach(transaction -> {
+                logger.info("Adding beneficiary - payeeIdentity: {}, paymentMode: {}", transaction.getPayeeIdentifier(),
+                        transaction.getPaymentMode());
                 beneficiaryDTOList.add(new BeneficiaryDTO(transaction.getPayeeIdentifier(), "", "", ""));
             });
             String requestId = exchange.getProperty(REQUEST_ID, String.class);
             String callbackUrl = exchange.getProperty(CALLBACK, String.class);
             String registeringInstitutionId = exchange.getProperty(HEADER_REGISTERING_INSTITUTE_ID, String.class);
+            logger.info("Request metadata - ID: {}, RegisteringInstitution: {}, Callback: {}", requestId, registeringInstitutionId,
+                    callbackUrl);
             AccountMapperRequestDTO accountMapperRequestDTO = new AccountMapperRequestDTO(requestId, registeringInstitutionId,
                     beneficiaryDTOList);
             String requestBody = objectMapper.writeValueAsString(accountMapperRequestDTO);
+            logger.info("Request body to send to identity mapper ({} chars): {}", requestBody.length(), requestBody);
 
             exchange.getIn().setHeader(CALLBACK, callbackUrl);
             exchange.getIn().setHeader(REGISTERING_INSTITUTION_ID, registeringInstitutionId);
