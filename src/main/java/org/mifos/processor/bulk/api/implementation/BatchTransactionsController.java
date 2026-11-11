@@ -39,6 +39,7 @@ import org.mifos.processor.bulk.utility.Headers;
 import org.mifos.processor.bulk.utility.SpringWrapperUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartException;
@@ -84,7 +85,24 @@ public class BatchTransactionsController implements BatchTransactions {
 
         if (JWSUtil.isMultipartRequest(httpServletRequest)) {
             log.info("This is file based request");
-            String localFileName = fileStorageService.save(JWSUtil.parseFormData(httpServletRequest), fileName);
+            // Use Spring's MultipartHttpServletRequest instead of JWSUtil.parseFormData()
+            org.springframework.web.multipart.MultipartHttpServletRequest multipartRequest = (org.springframework.web.multipart.MultipartHttpServletRequest) httpServletRequest;
+            org.springframework.web.multipart.MultipartFile multipartFile = multipartRequest.getFile("data");
+
+            log.info("multipartFile is null: {}", multipartFile == null);
+            if (multipartFile != null) {
+                log.info("multipartFile.isEmpty(): {}", multipartFile.isEmpty());
+                log.info("multipartFile.getSize(): {}", multipartFile.getSize());
+                log.info("multipartFile.getOriginalFilename(): {}", multipartFile.getOriginalFilename());
+            }
+
+            if (multipartFile == null || multipartFile.isEmpty()) {
+                log.error("No file data found in multipart request");
+                httpServletResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                return getErrorResponse("No file data", "No file was uploaded with the request", HttpServletResponse.SC_BAD_REQUEST);
+            }
+
+            String localFileName = fileStorageService.save(multipartFile);
             Headers headers = headerBuilder.addHeader(FILE_NAME, localFileName).build();
             log.info("Headers passed: {}", headers.getHeaders());
 
@@ -161,5 +179,63 @@ public class BatchTransactionsController implements BatchTransactions {
         if (cause instanceof ClientStatusException) {
             throw new ClientStatusException(Status.FAILED_PRECONDITION, cause);
         }
+    }
+
+    @Override
+    public String updateBatchExecution(MultiValueMap<String, Object> executionPayload, String tenant, String requestId) {
+
+        log.info("## BATCH EXECUTION UPDATE - Received execution update request");
+        log.info("## Tenant: {}", tenant);
+        log.info("## Request ID: {}", requestId);
+        log.info("## Payload keys: {}", executionPayload.keySet());
+        log.info("## Payload size: {}", executionPayload.size());
+
+        // Log all payload data for debugging
+        executionPayload.forEach((key, value) -> {
+            log.info("## Execution payload - {}: {}", key, value);
+        });
+
+        try {
+            // Extract transaction results from payload
+            // Expected format: status, transactionId, completedTimestamp, etc.
+            String status = getPayloadValue(executionPayload, "status");
+            String transactionId = getPayloadValue(executionPayload, "transactionId");
+            String batchId = getPayloadValue(executionPayload, "batchId");
+            String subBatchId = getPayloadValue(executionPayload, "subBatchId");
+
+            log.info("## Processing execution update - batchId: {}, subBatchId: {}, transactionId: {}, status: {}", batchId, subBatchId,
+                    transactionId, status);
+
+            // TODO: Update transaction status in database/Zeebe workflow
+            // For now, just acknowledge receipt
+
+            JSONObject response = new JSONObject();
+            response.put("message", "Batch execution update received successfully");
+            response.put("requestId", requestId);
+            response.put("batchId", batchId);
+            response.put("transactionId", transactionId);
+            response.put("status", "ACCEPTED");
+
+            log.info("## BATCH EXECUTION UPDATE - Successfully processed update for transactionId: {}", transactionId);
+
+            return response.toString();
+
+        } catch (Exception e) {
+            log.error("## BATCH EXECUTION UPDATE - Error processing execution update", e);
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("error", "Failed to process execution update");
+            errorResponse.put("message", e.getMessage());
+            errorResponse.put("requestId", requestId);
+            return errorResponse.toString();
+        }
+    }
+
+    private String getPayloadValue(MultiValueMap<String, Object> payload, String key) {
+        List<Object> values = payload.get(key);
+        if (values != null && !values.isEmpty()) {
+            Object value = values.get(0);
+            return value != null ? value.toString() : null;
+        }
+        return null;
     }
 }
